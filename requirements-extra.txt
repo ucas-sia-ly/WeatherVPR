@@ -1,0 +1,6 @@
+# Install PyTorch with a CUDA build compatible with the local driver first.
+# This project uses the bundled DINOv2 source without installing its historical
+# pinned torch/xformers requirements. xFormers is optional for inference.
+safetensors>=0.4
+numpy>=1.24
+Pillow>=9.2

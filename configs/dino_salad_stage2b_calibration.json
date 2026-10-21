@@ -1,0 +1,121 @@
+{
+  "cosine_min": 0.6607610583305359,
+  "margin_min": 0.009481430053710938,
+  "provenance": {
+    "copy_control_samples": 3072,
+    "margin_rule": "known_copy_lower_tail",
+    "null_margin_quantile": 0.1284695863723755,
+    "null_pairs": [
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Bangkok/Bangkok_0004471_2014_09_299_13.76522163869077_100.5182499160246_Ia6hgfB_haBJCiIUnx9ETg.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_b1e2af95a57717c5b718ad27.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Osaka/Osaka_0000825_2018_03_255_34.65849756123927_135.4741479637111_J9gAnco8dQeJrpfufYqjwA.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_55edc1065d69cceab71a2198.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Bangkok/Bangkok_0004068_2017_06_560_13.76121849216748_100.5456872194324_PMy5N_tSIhT64hjbRXY7Lg.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_ef154927dc50f725b6684720.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Bangkok/Bangkok_0004071_2014_09_181_13.76113374771673_100.5537489152755_FEERbkj7X0B7CrIIkzPOGw.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_b23a465ba2132dd490b15422.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Chicago/Chicago_0002161_2007_08_282_41.86581520661155_-87.66155501020272_7zeTrtsgB6pYTNA2OHzU2A.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_13bf197aba6bbabfa4b81681.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/OSL/OSL_0003221_2014_05_319_59.93901703900292_10.77735801290055_mcOKw7ZawYpI8Gd676vLxw.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_ab0c110152030e0c30f809fb.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Bangkok/Bangkok_0002516_2011_12_526_13.74327709930661_100.558707824332_tY4GGkYFaH5dLuyW4Wz99w.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_d976fc8ecdde168b654bf169.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/BuenosAires/BuenosAires_0000698_2017_06_196_-34.6017804933724_-58.42194704291107_qSS0HTCtfetzHanYaXQvYw.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_f365be583c1d4a11e8d9147d.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/BuenosAires/BuenosAires_0000502_2015_06_406_-34.60914424571482_-58.40861430283249_4WDh0Arg8xeNSZpFvSPFsg.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_7827c3dc63e23152ac784171.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/Bangkok/Bangkok_0000434_2011_09_300_13.71912859164989_100.5695696132156_pySpoHBTdovquU_hcYpQqw.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_e563c2f9dcbd0ec20312891b.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/LosAngeles/LosAngeles_0000569_2012_09_514_34.04706393814588_-118.2394974836057_HMMBEacHx5RVOnT87KiwBw.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_88c9ccbb137098f6370c2674.png"
+      ],
+      [
+        "/home/admin123/github/WORKSPACE/dataset/gsv-cities/Images/MexicoCity/MexicoCity_0000284_2008_10_375_19.41086175978899_-99.1681205830567_auKHh_pMxhf9qrdv2FzcOQ.jpg",
+        "/home/admin123/github/WORKSPACE/outputs/qwen_curriculum/images/train/qwen_614657aad5244c3cd39a65d7.png"
+      ]
+    ],
+    "seed": 3041,
+    "selection": "places disjoint from training and validation",
+    "teacher": {
+      "checkpoint": "/home/admin123/github/WORKSPACE/salad/checkpoint/dino_salad.ckpt",
+      "checkpoint_global_step": null,
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "distillation_loss": null,
+      "image_preprocessing": {
+        "color_space": "RGB",
+        "image_size": [
+          224,
+          224
+        ],
+        "input_range": [
+          0.0,
+          1.0
+        ],
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "resize": "PIL_bilinear",
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "version": "rgb_bilinear_imagenet_v1"
+      },
+      "model_config": {
+        "agg_arch": "SALAD",
+        "agg_config": {
+          "cluster_dim": 128,
+          "num_channels": 768,
+          "num_clusters": 64,
+          "token_dim": 256
+        },
+        "backbone_arch": "dinov2_vitb14",
+        "backbone_config": {
+          "norm_layer": true,
+          "num_trainable_blocks": 4,
+          "return_token": true
+        },
+        "image_size": [
+          224,
+          224
+        ]
+      },
+      "precision": "32",
+      "preprocessing_source": "explicit_workflow_rgb_bilinear_imagenet_for_registered_raw_weights",
+      "targets": "online_real_main_images",
+      "training_evidence": {
+        "kind": "registered_pretrained_artifact",
+        "name": "salad_v1.0.0_dinov2_vitb14_gsv_cities",
+        "source_url": "https://github.com/serizba/salad/releases/download/v1.0.0/dino_salad.ckpt"
+      }
+    }
+  },
+  "samples": 3072,
+  "search_radius": 1,
+  "structure_max": 0.10390956699848175,
+  "tail_probability": 0.01
+}

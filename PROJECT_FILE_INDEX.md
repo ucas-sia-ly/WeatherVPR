@@ -1,0 +1,30 @@
+# 项目文件索引
+
+- `README.md`：首次运行顺序、项目结构。
+- `scripts/setup_sources.sh`：将 SALAD 后端与 DINOv2 源码安装在独立项目 `third_party/` 内。
+- `scripts/check_setup.py`：检查独立工程源码和完整权重。
+- `scripts/build_night_manifest.py`：从 Qwen 元数据和已搬入图像建立核验过的精确配对。
+- `scripts/prepare_calibration.py`：核验并打包与当前 checkpoint 匹配的 Stage2B 校准。
+- `scripts/make_night_split.py`：按地点建立 night 训练/合成验证清单，排除校准保留地点。
+- `scripts/train.py`：天气 Adapter 训练 CLI。
+- `scripts/describe.py`：单图描述符导出 CLI。
+- `scripts/evaluate.py`：白天图库 × 天气查询 Recall@1/5/10。
+- `scripts/evaluate_svox.py`：原始白天 Gallery × 真实 SVOX night Query，25 m UTM Recall@1/5/10。
+- `scripts/evaluate_pairs.py`：地点隔离的 Qwen night 合成验证 Recall 与精确配对余弦。
+- `scripts/remap_manifest.py`：将搬运前绝对路径按**明确前缀**批量改写成新绝对路径。
+- `src/weather_vpr/models/adapter.py`：共享冻结 DINOv2/SALAD 与天气 Adapter。
+- `src/weather_vpr/losses/distillation.py`：SGPD、Keep、Global、InfoNCE。
+- `src/weather_vpr/data/paired_dataset.py`：manifest 精确配对与哈希可选校验。
+- `src/weather_vpr/data/correspondence.py`：复用项目内部 Stage2B 匹配校准。
+- `src/weather_vpr/data/evaluation_dataset.py`：CSV 显式地点标注。
+- `src/weather_vpr/inference/evaluate.py`：描述符抽取及 Recall 计算。
+- `src/weather_vpr/utils/backend.py`：仅加载本项目 `third_party/salad/` 后端。
+- `configs/*_global.sh`：各天气两步 Global smoke。
+- `configs/*_sgpd.sh`：各天气 SGPD 实验。
+- `data/train/`：已配对的 7,719 组 night/day 图像。
+- `data/splits/`：已隔离地点的训练/合成验证清单。
+- `data/svox/`：真实 SVOX test gallery 和 night queries。
+- `weights/`：唯一完整白天 SALAD checkpoint。
+- `runs/`：每个天气的独立 Adapter 训练与评估结果。
+- `docs/DOWNLOADS.md`：现有资源状态与迁移后的下载来源。
+- `tests/`：单元测试。
