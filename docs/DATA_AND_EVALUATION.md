@@ -16,7 +16,7 @@ python scripts/build_night_manifest.py \
 
 SGPD 校准与当前完整 `dino_salad.ckpt` 的 SHA-256、DINOv2-B/14/SALAD 配置和 224×224 RGB 双线性归一化严格匹配。其 12 个校准地点均在 heldout 中。`scripts/prepare_calibration.py` 能重验并打包校准与地点排除文件。更换 checkpoint 或预处理后必须重新标定，不能修改 JSON 的哈希来绕过检查。
 
-合成验证可运行 `python scripts/evaluate_pairs.py --adapter-dir runs/night_sgpd_01 --device cuda`。它使用验证清单中的原始白天图作为 Gallery，未适配与适配夜图共享这份 Gallery；同 `(city, place_id)` 判为检索正样本，并额外比较每对夜图与其**精确白天源图**的描述符余弦相似度。该指标只监控合成域，不能替代真实夜景 Recall。
+合成验证可运行 `python scripts/evaluate_pairs.py --adapter-dir runs/night_lora_sgpd_01 --device cuda`。它使用验证清单中的原始白天图作为 Gallery，未适配与适配夜图共享这份 Gallery；同 `(city, place_id)` 判为检索正样本，并额外比较每对夜图与其**精确白天源图**的描述符余弦相似度。该指标只监控合成域，不能替代真实夜景 Recall。
 
 ## 真实夜间检索
 
@@ -24,10 +24,12 @@ SGPD 校准与当前完整 `dino_salad.ckpt` 的 SHA-256、DINOv2-B/14/SALAD 配
 
 ```bash
 python scripts/evaluate_svox.py --check-data
-python scripts/evaluate_svox.py --adapter-dir runs/night_sgpd_01 \
-  --device cuda --output runs/night_sgpd_01/svox_test.json
+python scripts/evaluate_svox.py --adapter-dir runs/night_lora_sgpd_01 \
+  --device cuda --output runs/night_lora_sgpd_01/svox_test.json
 ```
 
 评估先提取一次白天 Gallery，再用同一 Gallery 分别计算未适配夜图 baseline 与 Adapter 夜图。缓存绑定完整 checkpoint、预处理和有序图像字节；不同 Adapter 实验可以安全复用原始 Gallery。勿使用 SVOX test Recall 挑选 epoch 或调整超参数；合成验证划分用于开发阶段监控，最终固定配置后再测 SVOX。
+
+需要在真实夜景上做开发阶段诊断时，可使用 `--split train`：它读取 SVOX 的 22,232 张 train/day Gallery 与 702 张 train/night Query，默认另存 `runs/cache/svox_train_gallery.safetensors`，不会混用 test Gallery。`--split test` 仍是默认的最终评估协议。
 
 仓库还保留了 `scripts/evaluate.py`，用于用户自行提供 `path,place_id` 的普通 CSV 数据集。它的同 ID 判正协议**不适用于** SVOX 地理半径真值；SVOX 应使用专门入口。

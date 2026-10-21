@@ -17,7 +17,42 @@ from safetensors.torch import load_file
 
 from weather_vpr.data.paired_dataset import resolve_file, sha256
 from weather_vpr.models.adapter import WeatherAdapterSALAD
+from weather_vpr.models.io import adapter_model_kwargs
 from weather_vpr.utils.backend import enable_backend_imports, project_root
+
+
+def _require_night_adapter_dir(value: Path) -> Path:
+    """Check run artifacts before loading a model or reading validation images."""
+    directory = Path(value).expanduser().resolve()
+    missing = [name for name in ("adapter.json", "adapter.safetensors")
+               if not (directory / name).is_file()]
+    if directory.is_dir() and not missing:
+        return directory
+    if not directory.exists():
+        problem = "directory does not exist"
+        next_step = ("Create it by training: OUTPUT=runs/night_lora_sgpd_01 "
+                     "bash configs/night_sgpd.sh.")
+    elif not directory.is_dir():
+        problem = "path is not a directory"
+        next_step = "Pass a completed training output directory via --adapter-dir."
+    else:
+        problem = "incomplete directory; missing " + ", ".join(missing)
+        next_step = ("Training may still be running; wait until both adapter.json and "
+                     "adapter.safetensors are saved. If it stopped, start a new run in an "
+                     "unused directory, for example OUTPUT=runs/night_lora_sgpd_02 "
+                     "bash configs/night_sgpd.sh.")
+    smoke = project_root() / "runs/night_sgpd_smoke_20261021"
+    smoke_hint = (
+        "For a quick pipeline check, use --adapter-dir runs/night_sgpd_smoke_20261021 "
+        "(a short smoke run, not a trained result)."
+        if (smoke / "adapter.json").is_file() and (smoke / "adapter.safetensors").is_file()
+        else "For a quick pipeline check, create a smoke adapter with "
+             "OUTPUT=runs/night_global_smoke bash configs/night_global.sh."
+    )
+    raise FileNotFoundError(
+        f"Night adapter {problem}: {directory}.\n"
+        f"{next_step}\n" + smoke_hint
+    )
 
 
 def load_pair_validation(manifest: Path, *, limit_pairs: int | None = None,
@@ -133,10 +168,12 @@ def evaluate_pairs(*, manifest: Path, checkpoint: Path, backbone_repo: Path,
                    adapter_dir: Path, output: Path, device: str = "auto",
                    retrieval_device: str | None = None, batch_size: int = 16,
                    num_workers: int = 2, limit_pairs: int | None = None,
-                   verify_hashes: bool = True, save_hard_cases: bool = False) -> dict:
+                   verify_hashes: bool = True, save_hard_cases: bool = False,
+                   adapter_scale: float = 1.0) -> dict:
     """Evaluate one night adapter and its unadapted baseline on a held-out split."""
     if batch_size < 1 or num_workers < 0:
         raise ValueError("batch-size must be positive and num-workers nonnegative")
+    adapter_dir = _require_night_adapter_dir(adapter_dir)
     device = _device(device)
     retrieval_device = _device(retrieval_device or device)
     if device == "cpu":
@@ -148,7 +185,6 @@ def evaluate_pairs(*, manifest: Path, checkpoint: Path, backbone_repo: Path,
 
     checkpoint = Path(checkpoint).expanduser().resolve(strict=True)
     backbone_repo = Path(backbone_repo).expanduser().resolve(strict=True)
-    adapter_dir = Path(adapter_dir).expanduser().resolve(strict=True)
     output = Path(output).expanduser().resolve()
     checkpoint_hash = sha256(checkpoint)
     print(f"Synthetic night validation: {len(dataset.queries)} pairs, "
@@ -160,9 +196,13 @@ def evaluate_pairs(*, manifest: Path, checkpoint: Path, backbone_repo: Path,
             or metadata.get("model_config") != base.config
             or metadata.get("preprocessing") != preprocessing):
         raise ValueError("Night adapter is incompatible with checkpoint, model configuration or preprocessing")
-    net = WeatherAdapterSALAD(base, ("night",), bottleneck=metadata["bottleneck"]).to(device).eval()
+    net = WeatherAdapterSALAD(base, ("night",), **adapter_model_kwargs(metadata)).to(device).eval()
     net.adapters["night"].load_state_dict(
         load_file(str(adapter_dir / "adapter.safetensors"), device="cpu"), strict=True)
+    if metadata.get('adapter_type', 'output') == 'lora':
+        net.set_lora_scale('night', adapter_scale)
+    elif adapter_scale != 1.0:
+        raise ValueError('adapter-scale applies only to LoRA adapters')
 
     print("Extracting original day gallery descriptors...", flush=True)
     gallery = extract_descriptors(base, dataset.references, base.image_size,
@@ -186,7 +226,8 @@ def evaluate_pairs(*, manifest: Path, checkpoint: Path, backbone_repo: Path,
         "dataset": "synthetic_night_pairs", "manifest": str(Path(manifest).resolve()),
         "manifest_sha256": sha256(Path(manifest).resolve()), "checkpoint": str(checkpoint),
         "checkpoint_sha256": checkpoint_hash, "adapter_dir": str(adapter_dir),
-        "adapter_metadata": metadata, "preprocessing": preprocessing,
+        "adapter_metadata": metadata, "adapter_scale": adapter_scale,
+        "preprocessing": preprocessing,
         "validation_pairs": len(dataset.queries), "gallery_images": len(dataset.references),
         "places": len(set(places)), "limited_subset": limit_pairs is not None,
         "baseline": baseline, "adapter": adapted,
@@ -215,6 +256,8 @@ def parse_args(argv=None):
     parser.add_argument("--backbone-repo", type=Path, default=project_root() / "third_party/dinov2")
     parser.add_argument("--adapter-dir", type=Path,
                         help="Output directory of a trained night Adapter; required for evaluation")
+    parser.add_argument("--adapter-scale", type=float, default=1.0,
+                        help="LoRA update multiplier; choose only on development data")
     parser.add_argument("--output", type=Path,
                         help="Result JSON; defaults to runs/night_pairs_validation.json or a named smoke subset")
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, cuda:0, ...")
@@ -244,6 +287,10 @@ def main(argv=None):
         return
     if args.adapter_dir is None:
         raise SystemExit("--adapter-dir is required unless --check-data is selected")
+    try:
+        _require_night_adapter_dir(args.adapter_dir)
+    except FileNotFoundError as exc:
+        raise SystemExit(str(exc)) from None
     output = args.output or (project_root() / "runs" /
                              (f"night_pairs_validation_first{args.limit_pairs}.json"
                               if args.limit_pairs else "night_pairs_validation.json"))
@@ -253,7 +300,7 @@ def main(argv=None):
         output=output, device=args.device, retrieval_device=args.retrieval_device,
         batch_size=args.batch_size, num_workers=args.num_workers,
         limit_pairs=args.limit_pairs, verify_hashes=not args.skip_hash_verification,
-        save_hard_cases=args.save_hard_cases,
+        save_hard_cases=args.save_hard_cases, adapter_scale=args.adapter_scale,
     )
 
 

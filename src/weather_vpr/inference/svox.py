@@ -17,7 +17,42 @@ import torch
 from safetensors.torch import load_file, save_file
 
 from weather_vpr.models.adapter import WeatherAdapterSALAD
+from weather_vpr.models.io import adapter_model_kwargs
 from weather_vpr.utils.backend import enable_backend_imports, project_root
+
+
+def _require_night_adapter_dir(value: Path) -> Path:
+    """Check run artifacts before loading SVOX data or the backbone."""
+    directory = Path(value).expanduser().resolve()
+    missing = [name for name in ("adapter.json", "adapter.safetensors")
+               if not (directory / name).is_file()]
+    if directory.is_dir() and not missing:
+        return directory
+    if not directory.exists():
+        problem = "directory does not exist"
+        next_step = ("Create it by training: OUTPUT=runs/night_lora_sgpd_01 "
+                     "bash configs/night_sgpd.sh.")
+    elif not directory.is_dir():
+        problem = "path is not a directory"
+        next_step = "Pass a completed training output directory via --adapter-dir."
+    else:
+        problem = "incomplete directory; missing " + ", ".join(missing)
+        next_step = ("Training may still be running; wait until both adapter.json and "
+                     "adapter.safetensors are saved. If it stopped, start a new run in an "
+                     "unused directory, for example OUTPUT=runs/night_lora_sgpd_02 "
+                     "bash configs/night_sgpd.sh.")
+    smoke = project_root() / "runs/night_sgpd_smoke_20261021"
+    smoke_hint = (
+        "For a quick pipeline check, use --adapter-dir runs/night_sgpd_smoke_20261021 "
+        "(a short smoke run, not a trained result)."
+        if (smoke / "adapter.json").is_file() and (smoke / "adapter.safetensors").is_file()
+        else "For a quick pipeline check, create a smoke adapter with "
+             "OUTPUT=runs/night_global_smoke bash configs/night_global.sh."
+    )
+    raise FileNotFoundError(
+        f"Night adapter {problem}: {directory}.\n"
+        f"{next_step}\n" + smoke_hint
+    )
 
 
 def sha256(path: Path) -> str:
@@ -41,20 +76,22 @@ def gallery_fingerprint(images) -> str:
     return digest.hexdigest()
 
 
-def load_night_dataset(svox_root: Path):
-    """Use the bundled SVOX loader while pinning its native test/night protocol."""
+def load_night_dataset(svox_root: Path, *, split: str = "test"):
+    """Use the native SVOX night protocol; train split is for development checks."""
     enable_backend_imports()
     from workflow.evaluation import load_evaluation_set
 
+    if split not in {"train", "test"}:
+        raise ValueError("SVOX night evaluation supports train or test split")
     root = Path(svox_root).expanduser().resolve()
     # The generic upstream loader would prefer this file over SVOX coordinates.
     if (root / "evaluation_manifest.json").exists():
         raise ValueError("SVOX night evaluation requires the native UTM protocol; remove evaluation_manifest.json")
     dataset = load_evaluation_set(
-        "SVOX", root, split="test", query_subdirs=["queries_night"], positive_radius=25.0
+        "SVOX", root, split=split, query_subdirs=["queries_night"], positive_radius=25.0
     )
     expected = {"ground_truth": "utm_radius", "positive_radius_meters": 25.0,
-                "split": "test", "query_subdirs": ["queries_night"]}
+                "split": split, "query_subdirs": ["queries_night"]}
     if dataset.protocol != expected:
         raise ValueError(f"Unexpected SVOX protocol: {dataset.protocol}")
     return dataset
@@ -143,15 +180,18 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
                         device: str, retrieval_device: str, batch_size: int,
                         num_workers: int, query_chunk_size: int,
                         reference_chunk_size: int, reference_cache_mib: int,
-                        save_hard_cases: bool = False) -> dict:
+                        save_hard_cases: bool = False, split: str = "test",
+                        adapter_scale: float = 1.0) -> dict:
     """Write baseline and optional adapter R@1/5/10 against one unchanged gallery."""
     if batch_size < 1 or num_workers < 0 or query_chunk_size < 1 or reference_chunk_size < 1 or reference_cache_mib < 0:
         raise ValueError("Batch/chunk sizes must be positive; workers and cache MiB nonnegative")
+    if adapter_dir is not None:
+        adapter_dir = _require_night_adapter_dir(adapter_dir)
     device = _validate_device(device)
     retrieval_device = _validate_device(retrieval_device)
     if device == "cpu":
         os.environ["XFORMERS_DISABLED"] = "1"
-    dataset = load_night_dataset(svox_root)
+    dataset = load_night_dataset(svox_root, split=split)
     enable_backend_imports()
     from workflow.evaluation import build_results, exact_retrieval, extract_descriptors
     from workflow.model import input_preprocessing, load_checkpoint_model
@@ -162,7 +202,7 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
     if cache_path is not None:
         cache_path = Path(cache_path).expanduser().resolve()
     checkpoint_hash = sha256(checkpoint)
-    print(f"SVOX test: {len(dataset.references)} day gallery, {len(dataset.queries)} night queries; "
+    print(f"SVOX {split}: {len(dataset.references)} day gallery, {len(dataset.queries)} night queries; "
           f"{dataset.summary()['num_queries_without_positives']} queries without a 25 m positive", flush=True)
     print(f"Loading frozen DINOv2-SALAD: {checkpoint}", flush=True)
     base = load_checkpoint_model(checkpoint, device=device, backbone_repo=backbone_repo)
@@ -175,16 +215,19 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
     student = None
     metadata = None
     if adapter_dir is not None:
-        adapter_dir = Path(adapter_dir).expanduser().resolve(strict=True)
         metadata = json.loads((adapter_dir / "adapter.json").read_text(encoding="utf-8"))
         if (metadata.get("weather") != "night" or
                 metadata.get("checkpoint_sha256") != checkpoint_hash or
                 metadata.get("model_config") != base.config or
                 metadata.get("preprocessing") != preprocessing):
             raise ValueError("Night adapter is incompatible with checkpoint, model configuration or preprocessing")
-        net = WeatherAdapterSALAD(base, ("night",), bottleneck=metadata["bottleneck"]).to(device).eval()
+        net = WeatherAdapterSALAD(base, ("night",), **adapter_model_kwargs(metadata)).to(device).eval()
         weights = load_file(str(adapter_dir / "adapter.safetensors"), device="cpu")
         net.adapters["night"].load_state_dict(weights, strict=True)
+        if metadata.get('adapter_type', 'output') == 'lora':
+            net.set_lora_scale('night', adapter_scale)
+        elif adapter_scale != 1.0:
+            raise ValueError('adapter-scale applies only to LoRA adapters')
         student = _NightStudent(net)
 
     vectors = None
@@ -218,7 +261,7 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
         return build_results(dataset, rows, save_hard_cases=save_hard_cases)
 
     baseline = score(baseline_vectors, "baseline")
-    result = {"dataset": "SVOX", "split": "test", "query_group": "queries_night",
+    result = {"dataset": "SVOX", "split": split, "query_group": "queries_night",
               "checkpoint": str(checkpoint), "checkpoint_sha256": checkpoint_hash,
               "image_size": list(base.image_size), "preprocessing": preprocessing,
               "gallery_cache": str(cache_path) if cache_path else None,
@@ -231,7 +274,8 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
                                               base.image_size, device, batch_size, num_workers)
         adapted = score(adapted_vectors, "adapter")
         result["adapter"] = {"directory": str(adapter_dir),
-                             "metadata": metadata, "evaluation": adapted}
+                             "metadata": metadata, "scale": adapter_scale,
+                             "evaluation": adapted}
         result["delta_recall"] = {key: adapted["recall"][key] - baseline["recall"][key]
                                   for key in ("R@1", "R@5", "R@10")}
 
@@ -247,20 +291,24 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
-        description="Evaluate real SVOX test/queries_night against the unchanged test/gallery "
+        description="Evaluate real SVOX night queries against the unchanged day gallery "
                     "using 25 m UTM positives. Baseline and optional night adapter share one day gallery.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--svox-root", type=Path, default=project_root() / "data/svox",
-                        help="Folder containing images/test/gallery and images/test/queries_night")
+                        help="Folder containing images/{train,test}/gallery and queries_night")
+    parser.add_argument("--split", choices=("train", "test"), default="test",
+                        help="Use train for real-weather development checks; test for final reporting")
     parser.add_argument("--checkpoint", type=Path, default=project_root() / "weights/dino_salad.ckpt")
     parser.add_argument("--backbone-repo", type=Path, default=project_root() / "third_party/dinov2")
     parser.add_argument("--adapter-dir", type=Path,
                         help="Night training output with adapter.json and adapter.safetensors; omit for baseline only")
-    parser.add_argument("--output", type=Path, default=project_root() / "runs/svox_night_evaluation.json")
+    parser.add_argument("--adapter-scale", type=float, default=1.0,
+                        help="LoRA update multiplier; choose only on development data")
+    parser.add_argument("--output", type=Path,
+                        help="Result JSON; default runs/svox_night_evaluation.json (train has its own name)")
     parser.add_argument("--gallery-cache", type=Path,
-                        default=project_root() / "runs/cache/svox_test_gallery.safetensors",
-                        help="Reusable day gallery cache, validated against checkpoint, ordered images and preprocessing")
+                        help="Reusable day gallery cache; defaults to runs/cache/svox_<split>_gallery.safetensors")
     parser.add_argument("--no-gallery-cache", action="store_true")
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, cuda:0, ...")
     parser.add_argument("--retrieval-device", help="Ranking device; defaults to --device")
@@ -280,19 +328,29 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
     if args.check_data:
-        print(json.dumps(load_night_dataset(args.svox_root).summary(), indent=2,
+        print(json.dumps(load_night_dataset(args.svox_root, split=args.split).summary(), indent=2,
                          ensure_ascii=False))
         return
+    if args.adapter_dir is not None:
+        try:
+            _require_night_adapter_dir(args.adapter_dir)
+        except FileNotFoundError as exc:
+            raise SystemExit(str(exc)) from None
+    default_name = ('svox_night_evaluation.json' if args.split == 'test'
+                    else 'svox_train_night_evaluation.json')
+    output = args.output or project_root() / 'runs' / default_name
+    cache = args.gallery_cache or project_root() / 'runs/cache' / f'svox_{args.split}_gallery.safetensors'
     evaluate_svox_night(
         svox_root=args.svox_root, checkpoint=args.checkpoint,
         backbone_repo=args.backbone_repo, adapter_dir=args.adapter_dir,
-        output=args.output, cache_path=None if args.no_gallery_cache else args.gallery_cache,
+        output=output, cache_path=None if args.no_gallery_cache else cache,
         device=args.device, retrieval_device=args.retrieval_device or args.device,
         batch_size=args.batch_size, num_workers=args.num_workers,
         query_chunk_size=args.query_chunk_size,
         reference_chunk_size=args.reference_chunk_size,
         reference_cache_mib=args.reference_cache_mib,
-        save_hard_cases=args.save_hard_cases,
+        save_hard_cases=args.save_hard_cases, split=args.split,
+        adapter_scale=args.adapter_scale,
     )
 
 

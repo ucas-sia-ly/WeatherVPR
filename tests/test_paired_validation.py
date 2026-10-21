@@ -7,7 +7,9 @@ from pathlib import Path
 import torch
 
 from weather_vpr.data.paired_dataset import sha256
-from weather_vpr.inference.paired_validation import load_pair_validation, mean_paired_cosine
+from weather_vpr.inference.paired_validation import (
+    evaluate_pairs, load_pair_validation, mean_paired_cosine,
+)
 
 
 class PairedValidationTests(unittest.TestCase):
@@ -59,6 +61,30 @@ class PairedValidationTests(unittest.TestCase):
             (root / "night/a.png").write_bytes(b"changed")
             with self.assertRaisesRegex(ValueError, "incorrect output_sha256"):
                 load_pair_validation(manifest)
+
+    def test_missing_adapter_fails_before_model_or_data(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            missing = root / "runs/night_sgpd_01"
+            with self.assertRaises(FileNotFoundError) as caught:
+                evaluate_pairs(manifest=root / "missing.jsonl", checkpoint=root / "missing.ckpt",
+                               backbone_repo=root / "missing_dinov2", adapter_dir=missing,
+                               output=root / "result.json", device="cpu", num_workers=0)
+            self.assertIn(str(missing), str(caught.exception))
+            self.assertIn("OUTPUT=runs/night_lora_sgpd_01 bash configs/night_sgpd.sh", str(caught.exception))
+            self.assertIn("smoke", str(caught.exception))
+
+            missing.mkdir(parents=True)
+            (missing / "adapter.json").write_text("{}", encoding="utf-8")
+            with self.assertRaisesRegex(FileNotFoundError, "missing adapter.safetensors"):
+                evaluate_pairs(manifest=root / "missing.jsonl", checkpoint=root / "missing.ckpt",
+                               backbone_repo=root / "missing_dinov2", adapter_dir=missing,
+                               output=root / "result.json", device="cpu", num_workers=0)
+            (missing / "training_log.jsonl").write_text("", encoding="utf-8")
+            with self.assertRaisesRegex(FileNotFoundError, "Training may still be running"):
+                evaluate_pairs(manifest=root / "missing.jsonl", checkpoint=root / "missing.ckpt",
+                               backbone_repo=root / "missing_dinov2", adapter_dir=missing,
+                               output=root / "result.json", device="cpu", num_workers=0)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
-# WeatherVPR：DINOv2-SALAD 的 Night SGPD Adapter
+# WeatherVPR：DINOv2-SALAD 的 Night LoRA-SGPD
 
-本项目以完整的白天 `dino_salad.ckpt` 为共享冻结主干，只训练约 0.8 MB 的夜间残差 Adapter。真实白天图作为 Teacher，逐一对应的 Qwen 生成夜图作为 Student。SGPD 只在可信 Patch 对应上蒸馏局部特征，并用白天 SALAD 的 `assignment_keep` 加权。推理时夜间描述符直接检索**原始白天 SALAD Gallery**。
+本项目以白天训练的 `dino_salad.ckpt` 为共享冻结主干。默认只训练 DINOv2 最后 4 个 Transformer block 中 `attn.qkv` / `attn.proj` 的夜间 LoRA（rank 8、alpha 16），DINOv2 原权重与 SALAD 均冻结。真实白天图作为 Teacher，逐一对应的 Qwen 生成夜图作为 Student。SGPD 只在可信 Patch 对应上蒸馏局部特征，并用白天 SALAD 的 `assignment_keep` 加权。Teacher 与白天 Gallery 均关闭天气 LoRA；夜间描述符直接检索**原始白天 SALAD Gallery**，无需重建图库。
 
-参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现的 SGPD 和跨域 InfoNCE 是新的实验设计，并非论文 ICKD、MSE、Triplet 的逐项复现。
+参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现的 SGPD 和跨域 InfoNCE 是新的实验设计，并非论文 ICKD、MSE、Triplet 的逐项复现。代码保留旧的输出端 Patch/CLS Adapter，设置 `ADAPTER_TYPE=output` 可做消融。目前只有 night 数据和实验准备完成；其它天气 Adapter 仅有接口设计，尚未训练。
 
 ## 当前就绪状态
 
@@ -10,7 +10,7 @@
 - `data/train/manifest.jsonl` 是 7,719 对 SHA-256 核验过的 night/day 精确配对。`data/splits/night_train.jsonl` 有 7,263 对训练图，`night_val.jsonl` 有 385 对地点隔离的合成验证图；历史保留地点另排除 71 对。
 - `configs/dino_salad_stage2b_calibration.json` 与当前 checkpoint 和 224×224 预处理匹配。相应地点排除已纳入 split；SGPD 的 A 类可信 Patch 才参与局部损失。
 - `data/svox/images/test/` 有 17,166 张白天 Gallery 和 823 张真实夜间 Query。评估采用 SVOX 25 m UTM 正样本协议，报告 Recall@1/5/10。
-- 已在 GPU 跑通两步 Global 与两步 SGPD 训练、Adapter 描述符导出、完整 SVOX 检索和合成验证。原始 SALAD 在 SVOX night 的 25 m R@1/5/10 为 92.71% / 98.42% / 99.15%；两步 SGPD smoke Adapter 的 Recall 与其相同。两步训练只是工程检查，不代表完整实验结果。
+- `runs/night_sgpd_01` 是**旧 Output Adapter** 的 3 epoch SGPD 结果（7,263 对、5,448 步），不是本版 LoRA 结果。它在 SVOX 上的 R@1/5/10 为 **92.22% / 98.06% / 99.15%**，原始 SALAD baseline 为 **92.71% / 98.42% / 99.15%**。旧结果尚未改善真实夜景检索；新 LoRA 配置尚未完成训练和评估。
 
 当前目录所需的模型、源码和图像均已具备，**无需再下载文件**。另一台机器上的资源来源见 [下载与来源](docs/DOWNLOADS.md)。
 
@@ -18,56 +18,75 @@
 
 ## 运行
 
-以下命令从项目根目录执行。本机 `base` 环境的 PyTorch CUDA 构建与驱动不兼容；已验证 `a2b-lightvpr` 环境可用。
+以下命令从项目根目录执行。本机 `base` 环境的 PyTorch CUDA 构建与驱动不兼容；下列 `PYTHON` 指向已验证可用的 `a2b-lightvpr` 环境。每次训练必须使用新的 `OUTPUT` 目录。
 
 ```bash
-conda activate a2b-lightvpr
-python scripts/check_setup.py --with-train-data
-PYTHONPATH=src python -m unittest discover -s tests -v
+export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
+"$PYTHON" scripts/check_setup.py --with-train-data
+PYTHONPATH=src "$PYTHON" -m unittest discover -s tests -v
 
 # 这些文件当前已生成；复制项目或重新整理数据时可重跑
-python scripts/prepare_calibration.py
-python scripts/make_night_split.py
+"$PYTHON" scripts/prepare_calibration.py
+"$PYTHON" scripts/make_night_split.py
 
-# 两步链路检查
-OUTPUT=runs/night_global_smoke_new bash configs/night_global.sh
+# 可选：两步链路检查，输出独立于正式训练
+OUTPUT=runs/night_lora_smoke_01 MAX_STEPS=2 bash configs/night_global.sh
 
-# 完整 night SGPD 训练；默认 3 epoch、batch 4、bf16
-OUTPUT=runs/night_sgpd_01 bash configs/night_sgpd.sh
+# 阶段 1：Global Alignment + 跨 batch day-descriptor queue 的地点 InfoNCE
+OUTPUT=runs/night_lora_global_01 bash configs/night_global.sh
+
+# 阶段 2：从阶段 1 的同类型 LoRA 初始化，继续训练 SGPD + 全局损失
+OUTPUT=runs/night_lora_sgpd_01 \
+  INIT_ADAPTER_DIR=runs/night_lora_global_01 bash configs/night_sgpd.sh
+
+# 训练命令结束并出现 adapter.safetensors 与 adapter.json 后再评估
 
 # 合成夜图的地点隔离验证；用于开发阶段比较消融
-python scripts/evaluate_pairs.py --adapter-dir runs/night_sgpd_01 \
-  --device cuda --output runs/night_sgpd_01/synthetic_val.json
+"$PYTHON" scripts/evaluate_pairs.py --adapter-dir runs/night_lora_sgpd_01 \
+  --device cuda --output runs/night_lora_sgpd_01/synthetic_val.json
 
 # 与未适配 SALAD baseline 共用同一白天图库，比较真实夜景 R@1/5/10
-python scripts/evaluate_svox.py --adapter-dir runs/night_sgpd_01 \
+"$PYTHON" scripts/evaluate_svox.py --adapter-dir runs/night_lora_sgpd_01 \
   --device cuda --batch-size 32 --num-workers 4 \
-  --output runs/night_sgpd_01/svox_test.json
+  --output runs/night_lora_sgpd_01/svox_test.json
 ```
 
-`evaluate_svox.py` 默认在 `runs/cache/` 保存经过 checkpoint、预处理和图库图像字节校验的白天描述符缓存。后续 Adapter 消融可复用它，无需重新提取白天 Gallery。只检查测试集协议可运行 `python scripts/evaluate_svox.py --check-data`。
+两个训练脚本默认使用 `ADAPTER_TYPE=lora`、rank 8、alpha 16、最后 4 个 block 的 `qkv/proj`，并采用地点分散 batch 与容量 256 的 detached 白天描述符队列。同一 `(city, place_id)` 的多个白天描述符均作为正样本，不会变成伪负例；训练日志记录有效负样本数。`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT` 默认均为 0；SGPD 脚本的 `PATCH_WEIGHT` 默认为 0.1。`INIT_ADAPTER_DIR` 只接受天气、checkpoint、预处理及 Adapter 结构一致的已有结果。
+
+`evaluate_svox.py` 默认在 `runs/cache/` 保存经过 checkpoint、预处理和图库图像字节校验的**原始白天**描述符缓存。后续 LoRA/Output 消融可复用它，无需重新提取或重建白天 Gallery。只检查测试集协议可运行 `"$PYTHON" scripts/evaluate_svox.py --check-data`。
+
+在最终 test 之前，也可传 `--split train` 使用 SVOX 的独立 train/day Gallery 与 train/night Query 诊断真实夜景；该 split 有独立的 Gallery 缓存，默认 test 结果不会被覆盖。
 
 `evaluate_pairs.py` 使用 385 对未参与训练的 Qwen 合成夜图与其精确白天源图，报告同地点 Recall@1/5/10 和平均配对描述符余弦相似度。它与真实 SVOX 测试分开。`--limit-pairs 8` 可做短流程检查，输出明确标记为子集。
 
 ## 独立消融
 
-`configs/night_sgpd.sh` 接受环境变量覆盖各损失和训练预算；每次设置新的 `OUTPUT`。建议所有实验使用相同 split、seed、epoch 与 Gallery 缓存。
+`configs/night_sgpd.sh` 接受环境变量覆盖各损失和训练预算；每次设置新的 `OUTPUT`。建议所有实验使用相同 split、seed、epoch 与 Gallery 缓存。阶段 2 的 LoRA 消融可复用同一个阶段 1 初始化。
 
 ```bash
-# Global + 跨域 InfoNCE
-OUTPUT=runs/night_global_01 PATCH_WEIGHT=0 KEEP_WEIGHT=0 bash configs/night_sgpd.sh
+# 阶段 1 的 Global + queue InfoNCE 本身就是一个消融结果
+"$PYTHON" scripts/evaluate_pairs.py --adapter-dir runs/night_lora_global_01 \
+  --device cuda --output runs/night_lora_global_01/synthetic_val.json
 
 # 同一可信对应，但 Patch 权重均匀
-OUTPUT=runs/night_uniform_01 IMPORTANCE_MODE=uniform bash configs/night_sgpd.sh
+OUTPUT=runs/night_lora_uniform_01 INIT_ADAPTER_DIR=runs/night_lora_global_01 \
+  IMPORTANCE_MODE=uniform bash configs/night_sgpd.sh
 
-# SALAD Keep 引导 SGPD
-OUTPUT=runs/night_sgpd_01 bash configs/night_sgpd.sh
+# 额外开启 Keep Alignment；OT / Magnitude 也可分别设置非零权重
+OUTPUT=runs/night_lora_keep_01 INIT_ADAPTER_DIR=runs/night_lora_global_01 \
+  KEEP_WEIGHT=0.01 bash configs/night_sgpd.sh
 
-# 加 Keep Alignment
-OUTPUT=runs/night_sgpd_keep_01 KEEP_WEIGHT=0.01 bash configs/night_sgpd.sh
+# 旧输出端 Adapter 的公平消融：两阶段都选 output，使用独立目录
+OUTPUT=runs/night_output_global_01 ADAPTER_TYPE=output bash configs/night_global.sh
+OUTPUT=runs/night_output_sgpd_01 ADAPTER_TYPE=output \
+  INIT_ADAPTER_DIR=runs/night_output_global_01 bash configs/night_sgpd.sh
+
+# 不使用跨 batch 队列的消融
+OUTPUT=runs/night_lora_no_queue_01 INIT_ADAPTER_DIR=runs/night_lora_global_01 \
+  CONTRAST_QUEUE_SIZE=0 bash configs/night_sgpd.sh
 ```
 
-可用 `PATCH_WEIGHT`、`KEEP_WEIGHT`、`GLOBAL_WEIGHT`、`CONTRAST_WEIGHT`、`IMPORTANCE_MODE`、`BATCH_SIZE`、`EPOCHS`、`MAX_STEPS`、`SEED`、`BF16`、`DEVICE`、`PYTHON` 等变量调整。训练日志、Adapter 权重和配置保存在各自 `runs/` 目录，完整主干只存一份。
+可用 `ADAPTER_TYPE`、`LORA_RANK`、`LORA_ALPHA`、`LORA_BLOCKS`、`PATCH_WEIGHT`、`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT`、`GLOBAL_WEIGHT`、`CONTRAST_WEIGHT`、`IMPORTANCE_MODE`、`BATCH_SAMPLING`、`CONTRAST_QUEUE_SIZE`、`BATCH_SIZE`、`EPOCHS`、`MAX_STEPS`、`SEED`、`BF16`、`DEVICE`、`PYTHON` 等变量调整。训练日志、Adapter 权重和配置保存在各自 `runs/` 目录，完整主干只存一份。
 
 ## 目录
 
@@ -76,9 +95,9 @@ configs/                  night 命令、校准及排除地点
 data/train/               已核验的原图、生成图和配对清单
 data/splits/              地点隔离的训练/合成验证清单
 data/svox/                真实天气测试图
-src/weather_vpr/models/  冻结共享模型与轻量 Adapter
-src/weather_vpr/losses/  SGPD、Keep、全局和地点判别损失
-src/weather_vpr/data/    精确配对和可信 Patch 对应
+src/weather_vpr/models/  冻结共享模型与 LoRA / Output Adapter
+src/weather_vpr/losses/  SGPD、可选 Keep/OT/Magnitude、全局和 queue InfoNCE
+src/weather_vpr/data/    精确配对、地点分散采样和可信 Patch 对应
 src/weather_vpr/inference/ SVOX 检索与描述符导出
 scripts/                  数据准备、训练、评估入口
 third_party/              项目内部的 SALAD/DINOv2 源码

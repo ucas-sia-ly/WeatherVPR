@@ -11,6 +11,7 @@ from PIL import Image
 from safetensors.torch import load_file
 from weather_vpr.utils.backend import enable_backend_imports, project_root
 from weather_vpr.models.adapter import WeatherAdapterSALAD
+from weather_vpr.models.io import adapter_model_kwargs
 
 enable_backend_imports()
 from workflow.model import load_checkpoint_model, input_preprocessing
@@ -32,6 +33,8 @@ def main():
     p.add_argument('--weather', required=True, help='day for original model, or an adapter name')
     p.add_argument('--adapter', action='append', default=[],
                    help='weather=/path/to/training/output ; repeat for each weather')
+    p.add_argument('--adapter-scale', type=float, default=1.0,
+                   help='Scale the selected LoRA update; use a development-selected value')
     p.add_argument('--output', type=Path, required=True, help='Output numpy .npy descriptor')
     p.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     args = p.parse_args()
@@ -56,13 +59,17 @@ def main():
                 or metadata['model_config'] != base.config
                 or metadata['preprocessing'] != input_preprocessing(base.image_size)):
             raise ValueError(f'Adapter {name} incompatible with base checkpoint/config')
-        cfg[name] = metadata['bottleneck']
-    if len(set(cfg.values())) > 1:
-        raise ValueError('This starter requires one shared hidden width for all adapter modules')
-    net = WeatherAdapterSALAD(base, tuple(cfg), bottleneck=next(iter(cfg.values()), 64)).to(args.device).eval()
+        cfg[name] = adapter_model_kwargs(metadata)
+    configurations = list(cfg.values())
+    if configurations and any(value != configurations[0] for value in configurations[1:]):
+        raise ValueError('All weather adapters loaded together must share adapter type and dimensions')
+    net = WeatherAdapterSALAD(base, tuple(cfg),
+                              **(configurations[0] if configurations else adapter_model_kwargs({}))).to(args.device).eval()
     for name, directory in models.items():
         state = load_file(str(directory / 'adapter.safetensors'), device='cpu')
         net.adapters[name].load_state_dict(state, strict=True)
+    if args.weather != 'day' and args.adapter_scale != 1.0:
+        net.set_lora_scale(args.weather, args.adapter_scale)
     with Image.open(args.image) as im:
         img = preprocess_teacher_image(im, base.image_size).unsqueeze(0).to(args.device)
     with torch.no_grad():
@@ -77,4 +84,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

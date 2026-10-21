@@ -1,13 +1,14 @@
 """Small SVOX protocol and gallery-cache checks; no model download required."""
 import tempfile
 import unittest
+import shutil
 from pathlib import Path
 
 import torch
 
 from weather_vpr.inference.svox import (
     _cache_metadata, _load_gallery_cache, _save_gallery_cache,
-    gallery_fingerprint, load_night_dataset,
+    evaluate_svox_night, gallery_fingerprint, load_night_dataset,
 )
 
 
@@ -45,6 +46,18 @@ class SVOXNightTests(unittest.TestCase):
             self.assertEqual(result["recall"]["R@1"], 1.0)
             self.assertEqual(result["num_queries_without_positives"], 1)
 
+    def test_train_split_can_be_checked_without_touching_test_protocol(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            test = self._dataset(root)
+            shutil.copytree(root / 'images/test', root / 'images/train')
+            train = load_night_dataset(root, split='train')
+            self.assertEqual(train.protocol['split'], 'train')
+            self.assertEqual(test.protocol['split'], 'test')
+            self.assertEqual(train.summary()['num_queries'], test.summary()['num_queries'])
+            with self.assertRaises(ValueError):
+                load_night_dataset(root, split='val')
+
     def test_cache_invalidated_by_images_weights_and_preprocessing(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -72,6 +85,22 @@ class SVOXNightTests(unittest.TestCase):
             (root / "evaluation_manifest.json").write_text("{}", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "native UTM"):
                 load_night_dataset(root)
+
+    def test_missing_adapter_fails_before_svox_or_model(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            missing = root / "runs/night_sgpd_01"
+            with self.assertRaises(FileNotFoundError) as caught:
+                evaluate_svox_night(
+                    svox_root=root / "missing_svox", checkpoint=root / "missing.ckpt",
+                    backbone_repo=root / "missing_dinov2", adapter_dir=missing,
+                    output=root / "result.json", cache_path=None, device="cpu",
+                    retrieval_device="cpu", batch_size=1, num_workers=0,
+                    query_chunk_size=1, reference_chunk_size=1, reference_cache_mib=0,
+                )
+            self.assertIn(str(missing), str(caught.exception))
+            self.assertIn("OUTPUT=runs/night_lora_sgpd_01 bash configs/night_sgpd.sh", str(caught.exception))
+            self.assertIn("smoke", str(caught.exception))
 
 
 if __name__ == "__main__":

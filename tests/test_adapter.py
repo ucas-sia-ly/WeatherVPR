@@ -31,7 +31,7 @@ class Tests(unittest.TestCase):
     def test_initial_identity_and_gradient(self):
         torch.manual_seed(1)
         base = FakeSalad()
-        net = WeatherAdapterSALAD(base, ['night','rain'], bottleneck=4)
+        net = WeatherAdapterSALAD(base, ['night','rain'], bottleneck=4, adapter_type='output')
         im = torch.randn(2,3,4,4)
         t, ta = net.teacher(im)
         s, sa = net.student(im, 'night')
@@ -45,7 +45,7 @@ class Tests(unittest.TestCase):
         self.assertTrue(any(x.grad is not None for x in net.adapters['night'].parameters()))
         self.assertFalse(any(x.grad is not None for x in net.adapters['rain'].parameters()))
     def test_invalid_correspondence_rejected(self):
-        net = WeatherAdapterSALAD(FakeSalad(), ['night'],4)
+        net = WeatherAdapterSALAD(FakeSalad(), ['night'],4, adapter_type='output')
         x = torch.randn(1,3,4,4)
         _, ta = net.teacher(x)
         _, sa = net.student(x,'night')

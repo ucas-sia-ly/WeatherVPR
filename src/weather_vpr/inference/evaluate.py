@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from safetensors.torch import load_file
 from weather_vpr.utils.backend import project_root,enable_backend_imports
 from weather_vpr.models.adapter import WeatherAdapterSALAD
+from weather_vpr.models.io import adapter_model_kwargs
 from weather_vpr.data.evaluation_dataset import LabeledImages
 
 def sha256(path):
@@ -55,6 +56,8 @@ def main():
     p.add_argument('--query-csv',type=Path,required=True)
     p.add_argument('--weather',default='night',help='day or trained adapter weather')
     p.add_argument('--adapter-dir',type=Path,help='Training output dir for this weather')
+    p.add_argument('--adapter-scale',type=float,default=1.0,
+                   help='Scale the selected LoRA update; choose on development data')
     p.add_argument('--batch-size',type=int,default=8)
     p.add_argument('--device',default='cuda' if torch.cuda.is_available() else 'cpu')
     p.add_argument('--output',type=Path,default=project_root()/'runs/evaluation_night.json')
@@ -71,10 +74,13 @@ def main():
         if cfg['weather']!=a.weather or cfg['checkpoint_sha256']!=sha256(a.checkpoint) or \
            cfg['model_config']!=base.config or cfg['preprocessing']!=input_preprocessing(base.image_size):
             raise ValueError('Adapter does not match base model, weather, or preprocessing')
-    net=WeatherAdapterSALAD(base,(a.weather,) if cfg else (), bottleneck=cfg['bottleneck'] if cfg else 64).to(a.device).eval()
+    net=WeatherAdapterSALAD(base,(a.weather,) if cfg else (),
+                            **adapter_model_kwargs(cfg or {})).to(a.device).eval()
     if cfg:
         state=load_file(str(a.adapter_dir/'adapter.safetensors'),device='cpu')
         net.adapters[a.weather].load_state_dict(state,strict=True)
+        if a.adapter_scale != 1.0:
+            net.set_lora_scale(a.weather,a.adapter_scale)
     gallery_ds=LabeledImages(a.gallery_csv,base.image_size)
     query_ds=LabeledImages(a.query_csv,base.image_size)
     g,gl=extract(DataLoader(gallery_ds,batch_size=a.batch_size),net,'day',a.device)
