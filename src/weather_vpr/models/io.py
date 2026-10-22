@@ -1,15 +1,16 @@
 """Small adapter metadata contract shared by training and inference.
 
-The full DINOv2-SALAD checkpoint is deliberately stored only once.  An
-adapter directory contains the weather-specific tensors and this configuration.
-Old output-adapter runs predate the ``adapter_type`` field and remain loadable.
+The frozen daytime DINOv2-SALAD checkpoint is stored once. A weather directory
+contains either lightweight adaptation tensors or a full weather-specific
+DINOv2 backbone, plus this configuration. Old output-adapter runs predate the
+``adapter_type`` field and remain loadable.
 """
 from __future__ import annotations
 
 
 def adapter_model_kwargs(metadata: dict) -> dict:
     kind = metadata.get("adapter_type", "output")
-    if kind not in {"output", "lora"}:
+    if kind not in {"output", "lora", "full"}:
         raise ValueError(f"Unsupported adapter_type in metadata: {kind}")
     return {
         "adapter_type": kind,

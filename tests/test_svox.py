@@ -99,7 +99,7 @@ class SVOXNightTests(unittest.TestCase):
                     query_chunk_size=1, reference_chunk_size=1, reference_cache_mib=0,
                 )
             self.assertIn(str(missing), str(caught.exception))
-            self.assertIn("OUTPUT=runs/night_lora_sgpd_01 bash configs/night_sgpd.sh", str(caught.exception))
+            self.assertIn("OUTPUT=runs/night_full_sgpd_01 bash configs/night_full_sgpd.sh", str(caught.exception))
             self.assertIn("smoke", str(caught.exception))
 
 

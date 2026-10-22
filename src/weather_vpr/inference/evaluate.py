@@ -1,4 +1,4 @@
-"""Fixed day gallery, real-weather query Recall@K; uses one shared base network."""
+"""Fixed original day gallery versus real-weather query Recall@K."""
 from __future__ import annotations
 import argparse, hashlib, json, os
 from pathlib import Path
@@ -6,10 +6,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from safetensors.torch import load_file
 from weather_vpr.utils.backend import project_root,enable_backend_imports
 from weather_vpr.models.adapter import WeatherAdapterSALAD
-from weather_vpr.models.io import adapter_model_kwargs
+from weather_vpr.inference.loading import load_weather_model
 from weather_vpr.data.evaluation_dataset import LabeledImages
 
 def sha256(path):
@@ -74,13 +73,9 @@ def main():
         if cfg['weather']!=a.weather or cfg['checkpoint_sha256']!=sha256(a.checkpoint) or \
            cfg['model_config']!=base.config or cfg['preprocessing']!=input_preprocessing(base.image_size):
             raise ValueError('Adapter does not match base model, weather, or preprocessing')
-    net=WeatherAdapterSALAD(base,(a.weather,) if cfg else (),
-                            **adapter_model_kwargs(cfg or {})).to(a.device).eval()
-    if cfg:
-        state=load_file(str(a.adapter_dir/'adapter.safetensors'),device='cpu')
-        net.adapters[a.weather].load_state_dict(state,strict=True)
-        if a.adapter_scale != 1.0:
-            net.set_lora_scale(a.weather,a.adapter_scale)
+    net=(load_weather_model(base,a.weather,a.adapter_dir,cfg,
+                            device=a.device,adapter_scale=a.adapter_scale) if cfg else
+         WeatherAdapterSALAD(base,(),adapter_type='output').to(a.device).eval())
     gallery_ds=LabeledImages(a.gallery_csv,base.image_size)
     query_ds=LabeledImages(a.query_csv,base.image_size)
     g,gl=extract(DataLoader(gallery_ds,batch_size=a.batch_size),net,'day',a.device)
@@ -90,6 +85,8 @@ def main():
     result={'gallery_size':len(gl),'query_size':len(ql),'weather':a.weather,
             'metrics':recalls,'gallery_csv':str(a.gallery_csv.resolve()),
             'query_csv':str(a.query_csv.resolve()),'adapter_dir':str(a.adapter_dir) if a.adapter_dir else None,
+            'adapter_type':cfg.get('adapter_type','output') if cfg else None,
+            'adapter_scale':a.adapter_scale if cfg else None,
             'warning':'Labels are user-supplied place IDs; test leakage and geographic ground truth must be independently checked'}
     a.output.write_text(json.dumps(result,indent=2,ensure_ascii=False),encoding='utf8')
     print(json.dumps(result,indent=2,ensure_ascii=False))

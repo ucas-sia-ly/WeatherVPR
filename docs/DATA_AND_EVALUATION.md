@@ -16,7 +16,7 @@ python scripts/build_night_manifest.py \
 
 SGPD 校准与当前完整 `dino_salad.ckpt` 的 SHA-256、DINOv2-B/14/SALAD 配置和 224×224 RGB 双线性归一化严格匹配。其 12 个校准地点均在 heldout 中。`scripts/prepare_calibration.py` 能重验并打包校准与地点排除文件。更换 checkpoint 或预处理后必须重新标定，不能修改 JSON 的哈希来绕过检查。
 
-合成验证可运行 `python scripts/evaluate_pairs.py --adapter-dir runs/night_lora_sgpd_01 --device cuda`。它使用验证清单中的原始白天图作为 Gallery，未适配与适配夜图共享这份 Gallery；同 `(city, place_id)` 判为检索正样本，并额外比较每对夜图与其**精确白天源图**的描述符余弦相似度。该指标只监控合成域，不能替代真实夜景 Recall。
+合成验证可运行 `python scripts/evaluate_pairs.py --adapter-dir runs/night_full_sgpd_01 --device cuda`。它使用验证清单中的原始白天图作为 Gallery，未适配与适配夜图共享这份 Gallery；同 `(city, place_id)` 判为检索正样本，并额外比较每对夜图与其**精确白天源图**的描述符余弦相似度。该指标只监控合成域，不能替代真实夜景 Recall。
 
 ## 真实夜间检索
 
@@ -24,17 +24,27 @@ SGPD 校准与当前完整 `dino_salad.ckpt` 的 SHA-256、DINOv2-B/14/SALAD 配
 
 ```bash
 python scripts/evaluate_svox.py --check-data
-python scripts/evaluate_svox.py --adapter-dir runs/night_lora_sgpd_01 \
-  --device cuda --output runs/night_lora_sgpd_01/svox_test.json
+python scripts/evaluate_svox.py --adapter-dir runs/night_full_real_01 \
+  --device cuda --output runs/night_full_real_01/svox_test.json
 ```
 
-评估先提取一次白天 Gallery，再用同一 Gallery 分别计算未适配夜图 baseline 与 Adapter 夜图。缓存绑定完整 checkpoint、预处理和有序图像字节；不同 Adapter 实验可以安全复用原始 Gallery。勿使用 SVOX test Recall 挑选 epoch 或调整超参数；合成验证划分用于开发阶段监控，最终固定配置后再测 SVOX。
+评估先提取一次白天 Gallery，再用同一 Gallery 分别计算未适配夜图 baseline 与 Night 模型夜图。缓存绑定完整 checkpoint、预处理和有序图像字节；不同 Night 实验可以安全复用原始 Gallery。勿使用 SVOX test Recall 挑选 epoch 或调整超参数；真实阶段从 SVOX train 内部留出的空间验证集选择 epoch。先前 LoRA 实验已经查看过 SVOX test 分数，因此本项目目前的 test 结果不应描述为首次盲测。
 
 需要在真实夜景上做开发阶段诊断时，可使用 `--split train`：它读取 SVOX 的 22,232 张 train/day Gallery 与 702 张 train/night Query，默认另存 `runs/cache/svox_train_gallery.safetensors`，不会混用 test Gallery。`--split test` 仍是默认的最终评估协议。
 
-## 当前 Night 实验记录
+### SVOX train 真实夜景微调
 
-默认推理强度 `--adapter-scale 1` 的两阶段训练均已跑完：阶段 1 是 Global + Contrast（1 epoch、1,816 步），阶段 2 从该 LoRA 接续 Global + Contrast + SGPD（2 epoch、3,632 步），Keep、OT 和幅度蒸馏均关闭。阶段 2 记录了 393,244 个 A 类可信 Patch，末段每批平均覆盖约 10.9%。每个阶段的 Adapter 权重约 0.59 MB。
+用户已允许将 SVOX train 用作 Night DINOv2 的额外监督数据。`configs/night_full_real.sh` 默认先按 test/day Gallery 和 test/night Query **文件名中的 UTM 坐标**排除 250 米内的 train 图像，避免官方划分中临近帧跨集合。这个过滤不打开 test 图像文件，但使用了 test 坐标元数据，所以研究结论应标注为**探索性官方文件划分评估**。当前数据保留 20,486 张 train/day Gallery 和 378 张 train/night Query；夜图进一步分为 255 张优化、76 张内部验证、47 张空间间隔缓冲。被保留的每张夜图有 4–44 张 25 米内的白天正样本。
+
+真实夜景阶段以冻结的原始白天 Gallery 描述符为目标，使用地理多正样本 InfoNCE：25 米内均为正样本，默认遮蔽 25–250 米的模糊图像，250 米外为负样本。另有可独立关闭的同夜图 Day Teacher 描述符约束和逐层学习率衰减。日志记录有效正负样本数、优化子集和内部验证集的 Recall，按内部验证 Recall@1/5/10 保存最佳 Night 主干。真实夜图和白天 Gallery **不是像素配对**，因此不为它们构造 SGPD Patch 对应。默认从原始白天主干初始化，也可传 `INIT_ADAPTER_DIR` 接续合成阶段的完整 Night DINOv2。
+
+## 当前全参数结果
+
+在内部验证选定的 Day→真实夜景全参数模型，test R@1 从 763/823 提高到 765/823（92.71%→92.95%），R@5/10 保持 98.42%/99.15%。仅修复 2 张查询，不能据此声称稳定显著收益。当前所选模型未使用 Qwen SGPD 初始化；合成 SGPD 的真实域额外收益尚未证实。全部来源、配置脚本修正与复现命令见 [全参数实验记录](NIGHT_FULL_RESULTS.md)。
+
+## 先前 LoRA 对照记录
+
+先前 `adapter_type=lora` 在默认推理强度 `--adapter-scale 1` 的两阶段训练均已跑完：阶段 1 是 Global + Contrast（1 epoch、1,816 步），阶段 2 从该 LoRA 接续 Global + Contrast + SGPD（2 epoch、3,632 步），Keep、OT 和幅度蒸馏均关闭。阶段 2 记录了 393,244 个 A 类可信 Patch，末段每批平均覆盖约 10.9%。每个阶段的 LoRA 权重约 0.59 MB。这些数字与新的全参数 Night DINOv2 是不同实验。
 
 | Night Query / 白天 Gallery | R@1 | R@5 | R@10 |
 | --- | ---: | ---: | ---: |

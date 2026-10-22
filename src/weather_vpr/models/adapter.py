@@ -1,11 +1,14 @@
-"""One frozen DINOv2-SALAD with independent lightweight adapters per weather.
+"""A frozen daytime DINOv2-SALAD with weather-specific student options.
 
 ``output`` keeps the original post-backbone Patch/CLS adapter. ``lora`` adapts
-qkv/proj in the last DINOv2 blocks. ``hybrid`` enables both. A direct call to
-the base model, including the daytime gallery path, always has LoRA disabled.
+qkv/proj in the last DINOv2 blocks. ``hybrid`` enables both. ``full`` copies
+only the initialized DINOv2 backbone for full weather-specific fine-tuning;
+the SALAD aggregator remains shared and frozen. A direct call to the base
+model, including the daytime gallery path, always uses the original weights.
 """
 from __future__ import annotations
 
+import copy
 from contextlib import contextmanager
 from contextvars import ContextVar
 import math
@@ -109,24 +112,25 @@ class _LoRALinear(nn.Module):
 
 
 class WeatherAdapterSALAD(nn.Module):
-    """Reuse one strictly loaded, frozen DINOv2-SALAD for teacher and student.
+    """Reuse a frozen daytime DINOv2-SALAD as the teacher and gallery model.
 
     ``adapter_type='output'`` preserves the original output-adapter interface.
     ``'lora'`` targets qkv/proj of the final four DINOv2 blocks by default.
-    ``'hybrid'`` combines them. Each ``net.adapters[weather]`` is a complete
-    lightweight module suitable for strict ``state_dict`` save/load.
+    ``'hybrid'`` combines them. ``'full'`` trains a separate backbone initialized
+    from the day backbone. Each ``net.adapters[weather]`` is suitable for strict
+    ``state_dict`` save/load; full mode contains only the Night DINOv2 backbone.
     """
 
     def __init__(self, base_salad: nn.Module, weather_names=("night",),
-                 bottleneck: int = 64, *, adapter_type: str = "lora",
+                 bottleneck: int = 64, *, adapter_type: str = "full",
                  lora_rank: int = 8, lora_alpha: float = 16.0,
                  lora_dropout: float = 0.0, lora_blocks: int = 4):
         super().__init__()
-        if adapter_type not in {"output", "lora", "hybrid"}:
-            raise ValueError("adapter_type must be output, lora, or hybrid")
+        if adapter_type not in {"output", "lora", "hybrid", "full"}:
+            raise ValueError("adapter_type must be output, lora, hybrid, or full")
         if bottleneck < 1:
             raise ValueError("bottleneck must be positive")
-        if adapter_type != "output" and (
+        if adapter_type in {"lora", "hybrid"} and (
                 type(lora_rank) is not int or lora_rank < 1
                 or not isinstance(lora_alpha, (int, float))
                 or not math.isfinite(lora_alpha) or lora_alpha <= 0
@@ -151,7 +155,7 @@ class WeatherAdapterSALAD(nn.Module):
             raise ValueError("Weather names must be unique, nonempty, and not 'day'")
         self._lora_scales = {name: 1.0 for name in names}
 
-        targets = self._install_lora(lora_blocks) if adapter_type != "output" else {}
+        targets = self._install_lora(lora_blocks) if adapter_type in {"lora", "hybrid"} else {}
         if adapter_type == "output":
             self.adapters = nn.ModuleDict({name: PatchCLSAdapter(channels, bottleneck)
                                            for name in names})
@@ -161,13 +165,31 @@ class WeatherAdapterSALAD(nn.Module):
                                          dropout=lora_dropout)
                 for name in names
             })
-        else:
+        elif adapter_type == "hybrid":
             self.adapters = nn.ModuleDict({
                 name: WeatherHybridAdapter(channels, bottleneck, targets,
                                            rank=lora_rank, alpha=lora_alpha,
                                            dropout=lora_dropout)
                 for name in names
             })
+        else:
+            self.adapters = nn.ModuleDict({
+                name: self._copy_full_backbone() for name in names
+            })
+
+    def _copy_full_backbone(self) -> nn.Module:
+        """Create an exact trainable DINOv2 copy without duplicating SALAD."""
+        source = self.base.backbone
+        blocks = getattr(getattr(source, "model", None), "blocks", None)
+        if blocks is None or not callable(getattr(source.model, "prepare_tokens_with_masks", None)):
+            raise ValueError("Full fine-tuning requires a DINOv2 backbone with token preparation and blocks")
+        backbone = copy.deepcopy(source)
+        if not hasattr(backbone, "full_finetune"):
+            raise ValueError("Full fine-tuning requires a backbone with the full_finetune forward switch")
+        backbone.full_finetune = True
+        backbone.num_trainable_blocks = len(blocks)
+        backbone.requires_grad_(True)
+        return backbone
 
     def _install_lora(self, blocks_to_adapt: int) -> dict[str, tuple[int, int]]:
         backbone = self.base.backbone
@@ -227,6 +249,8 @@ class WeatherAdapterSALAD(nn.Module):
             with torch.no_grad():
                 patch_features, cls = self.base.backbone(images)
             patch_features, cls = self.adapters[weather](patch_features, cls)
+        elif self.adapter_type == "full":
+            patch_features, cls = self.adapters[weather](images)
         else:
             with self._using_weather(weather):
                 patch_features, cls = self.base.backbone(images)

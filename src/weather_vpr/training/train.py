@@ -1,4 +1,4 @@
-"""Train one weather LoRA or output adapter using a shared frozen DINOv2-SALAD."""
+"""Train a weather DINOv2, LoRA, or output adapter against frozen day SALAD."""
 from __future__ import annotations
 import argparse
 import json
@@ -31,25 +31,30 @@ def parse_args(argv=None):
                    help='Locally cloned facebookresearch/dinov2 with hubconf.py')
     p.add_argument('--manifest', type=Path, default=project_root() / "data/splits/night_train.jsonl", help='Reviewed Qwen JSONL')
     p.add_argument('--weather', choices=('night','rain','fog','snow','sun'), required=True)
-    p.add_argument('--output-dir', type=Path, default=project_root() / "runs/night_lora_sgpd_01")
-    p.add_argument('--init-adapter-dir', type=Path, help='Initialize from a completed matching adapter run')
+    p.add_argument('--output-dir', type=Path, default=project_root() / "runs/night_full_sgpd_01")
+    p.add_argument('--init-adapter-dir', type=Path,
+                   help='Initialize from a completed matching run (including a full Night backbone)')
     p.add_argument('--exclude-places', type=Path, help='JSON [[city,place_id], ...] for held-out places')
     p.add_argument('--pair-calibration', type=Path,
                    default=project_root() / 'configs/dino_salad_stage2b_calibration.json',
                    help='Stage2B JSON calibration for the exact teacher checkpoint')
     p.add_argument('--calibration-index', type=int, default=0)
     p.add_argument('--batch-size', type=int, default=4)
+    p.add_argument('--gradient-accumulation-steps', type=int, default=1,
+                   help='Optimizer updates after this many batches; bounds activation memory')
     p.add_argument('--batch-sampling', choices=('distinct','random'), default='distinct')
-    p.add_argument('--epochs', type=int, default=3)
+    p.add_argument('--epochs', type=int, default=1)
     p.add_argument('--max-steps', type=int, default=0, help='0 = all')
-    p.add_argument('--save-every-steps', type=int, default=200)
-    p.add_argument('--adapter-type', choices=('output','lora'), default='lora')
+    p.add_argument('--save-every-steps', type=int, default=200,
+                   help='Checkpoint after this many batches; 0 saves only at epoch/end')
+    p.add_argument('--adapter-type', choices=('full','output','lora'), default='full')
     p.add_argument('--hidden', type=int, default=64)
     p.add_argument('--lora-rank', type=int, default=8)
     p.add_argument('--lora-alpha', type=float, default=16)
     p.add_argument('--lora-dropout', type=float, default=0)
     p.add_argument('--lora-blocks', type=int, default=4)
-    p.add_argument('--learning-rate', type=float, default=1e-4)
+    p.add_argument('--learning-rate', type=float, default=1e-6)
+    p.add_argument('--weight-decay', type=float, default=0.01)
     p.add_argument('--global-weight', type=float, default=1.0)
     p.add_argument('--contrast-weight', type=float, default=1.0)
     p.add_argument('--patch-weight', type=float, default=0.1)
@@ -74,8 +79,10 @@ def _validate(args):
     if args.max_steps < 0 or args.num_workers < 0 or args.contrast_queue_size < 0:
         raise ValueError('max-steps, num-workers and contrast-queue-size must be nonnegative')
     if min(args.batch_size, args.epochs, args.hidden, args.lora_rank,
-           args.lora_blocks, args.save_every_steps) < 1:
-        raise ValueError('batch-size, epochs, hidden, LoRA rank/blocks and save interval must be positive')
+           args.lora_blocks, args.gradient_accumulation_steps) < 1:
+        raise ValueError('batch-size, epochs, hidden, LoRA rank/blocks and accumulation must be positive')
+    if args.save_every_steps < 0:
+        raise ValueError('save-every-steps must be nonnegative')
     if not math.isfinite(args.lora_alpha) or args.lora_alpha <= 0:
         raise ValueError('lora-alpha must be finite and positive')
     if not math.isfinite(args.lora_dropout) or not 0 <= args.lora_dropout < 1:
@@ -86,6 +93,8 @@ def _validate(args):
         raise ValueError('temperature must be finite and positive')
     if not math.isfinite(args.learning_rate) or args.learning_rate <= 0:
         raise ValueError('learning-rate must be finite and positive')
+    if not math.isfinite(args.weight_decay) or args.weight_decay < 0:
+        raise ValueError('weight-decay must be finite and nonnegative')
     weights = ('global_weight','contrast_weight','patch_weight','keep_weight',
                'ot_weight','magnitude_weight')
     if any(not math.isfinite(getattr(args, name)) or getattr(args, name) < 0 for name in weights):
@@ -184,7 +193,8 @@ def main(argv=None):
     params = tuple(net.adapter_parameters(args.weather))
     if not params or any(not param.requires_grad for param in params):
         raise RuntimeError('Selected weather adapter has no trainable parameters')
-    optimizer = torch.optim.AdamW(params, lr=args.learning_rate, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(params, lr=args.learning_rate,
+                                  weight_decay=args.weight_decay)
     queue = DayDescriptorQueue(args.contrast_queue_size, storage_device='cpu')
     need_local = any(getattr(args, name) > 0 for name in
                      ('patch_weight','keep_weight','ot_weight','magnitude_weight'))
@@ -197,6 +207,25 @@ def main(argv=None):
     manifest_hash = sha256(dataset.manifest)
     calibration_hash = sha256(effective_calibration) if effective_calibration else None
     step = 0
+    optimizer_steps = 0
+    accumulation_count = 0
+    optimizer.zero_grad(set_to_none=True)
+
+    def optimizer_update(count):
+        """Finish one accumulation window, including a short final window."""
+        nonlocal optimizer_steps, accumulation_count
+        if not any(param.grad is not None for param in params):
+            raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
+        if count != args.gradient_accumulation_steps:
+            correction = args.gradient_accumulation_steps / count
+            for param in params:
+                if param.grad is not None:
+                    param.grad.mul_(correction)
+        torch.nn.utils.clip_grad_norm_(params, max_norm=1.0)
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+        optimizer_steps += 1
+        accumulation_count = 0
 
     def metadata(epochs_completed):
         return dict(
@@ -204,7 +233,14 @@ def main(argv=None):
             bottleneck=args.hidden, lora_rank=args.lora_rank, lora_alpha=args.lora_alpha,
             lora_dropout=args.lora_dropout, lora_blocks=args.lora_blocks,
             lora_targets=['attn.qkv', 'attn.proj'] if args.adapter_type == 'lora' else [],
-            steps=step, epochs_completed=epochs_completed, training_pairs=len(dataset),
+            steps=step, optimizer_steps=optimizer_steps,
+            gradient_accumulation_steps=args.gradient_accumulation_steps,
+            batch_size=args.batch_size,
+            effective_batch_size=args.batch_size * args.gradient_accumulation_steps,
+            save_every_steps=args.save_every_steps,
+            learning_rate=args.learning_rate, weight_decay=args.weight_decay,
+            precision='bf16' if args.bf16 else 'fp32',
+            epochs_completed=epochs_completed, training_pairs=len(dataset),
             loss_weights={'global': args.global_weight, 'contrast': args.contrast_weight,
                           'patch': args.patch_weight, 'keep': args.keep_weight,
                           'ot': args.ot_weight, 'magnitude': args.magnitude_weight},
@@ -218,7 +254,9 @@ def main(argv=None):
             init_adapter_dir=str(args.init_adapter_dir) if args.init_adapter_dir else None,
             batch_sampling=args.batch_sampling, contrast_queue_size=args.contrast_queue_size,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
-            importance_mode=args.importance_mode, code_version='weather_vpr_lora_v1',
+            importance_mode=args.importance_mode,
+            code_version=('weather_vpr_full_v1' if args.adapter_type == 'full'
+                          else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
     for epoch in range(args.epochs):
@@ -229,7 +267,7 @@ def main(argv=None):
             day = torch.stack([v['day_tensor'] for v in batch]).to(args.device)
             weather = torch.stack([v['weather_tensor'] for v in batch]).to(args.device)
             places = [item['place'] for item in batch]
-            # Pass 1: Day teacher. No adapter, no gradients, reusable base model.
+            # Pass 1: the original frozen Day teacher.
             teacher_output = net.teacher(day, return_aux=need_local)
             day_desc, day_aux = teacher_output if need_local else (teacher_output, None)
             if need_local:
@@ -252,8 +290,7 @@ def main(argv=None):
                 match, q = match.to(args.device), q.to(args.device)
             else:
                 match = q = None
-            # Pass 2: only the selected weather adapter receives gradients.
-            optimizer.zero_grad(set_to_none=True)
+            # Pass 2: only the selected weather parameters receive gradients.
             ctx = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                    if args.bf16 else nullcontext())
             with ctx:
@@ -293,16 +330,20 @@ def main(argv=None):
                      args.ot_weight*o_loss + args.magnitude_weight*m_loss)
             if not torch.isfinite(total):
                 raise FloatingPointError('Non-finite training loss')
-            total.backward()
+            (total / args.gradient_accumulation_steps).backward()
             if not any(param.grad is not None for param in params):
-                raise RuntimeError('No adapter gradients: check DINOv2 no_grad boundary')
-            torch.nn.utils.clip_grad_norm_(params, max_norm=1.0)
-            optimizer.step()
+                raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
+            accumulation_count += 1
+            did_update = accumulation_count == args.gradient_accumulation_steps
+            if did_update:
+                optimizer_update(accumulation_count)
             if args.contrast_weight > 0:
                 queue.enqueue(day_desc, places)
             step += 1
             total_positive_patches += coverage
-            metrics = dict(step=step, epoch=epoch+1, weather=args.weather,
+            metrics = dict(step=step, optimizer_step=optimizer_steps,
+                           accumulation_count=accumulation_count,
+                           epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            loss=float(total.detach()), global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
@@ -319,16 +360,19 @@ def main(argv=None):
                            positive_pairs=int(contrast['positive_pairs']), queue_size=len(queue))
             with log_path.open('a', encoding='utf-8') as f:
                 f.write(json.dumps(metrics) + '\n')
-            if step == 1 or step % args.save_every_steps == 0:
+            if ((step == 1 and args.adapter_type != 'full' and did_update) or
+                    (args.save_every_steps and step % args.save_every_steps == 0 and did_update)):
                 _save_run(out, net, args.weather, metadata(epoch + 1))
             if step == 1 or step % 20 == 0:
                 print(metrics, flush=True)
             if args.max_steps and step >= args.max_steps:
                 break
+        if accumulation_count:
+            optimizer_update(accumulation_count)
         _save_run(out, net, args.weather, metadata(epoch + 1))
         if args.max_steps and step >= args.max_steps:
             break
-    print(f'Saved only {args.weather} {args.adapter_type} parameters: {out / "adapter.safetensors"}')
+    print(f'Saved {args.weather} {args.adapter_type} parameters: {out / "adapter.safetensors"}')
     if need_local and total_positive_patches == 0:
         print('WARNING: trusted patch coverage was zero; local losses gave no training signal.')
 

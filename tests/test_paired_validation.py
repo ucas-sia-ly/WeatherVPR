@@ -71,7 +71,7 @@ class PairedValidationTests(unittest.TestCase):
                                backbone_repo=root / "missing_dinov2", adapter_dir=missing,
                                output=root / "result.json", device="cpu", num_workers=0)
             self.assertIn(str(missing), str(caught.exception))
-            self.assertIn("OUTPUT=runs/night_lora_sgpd_01 bash configs/night_sgpd.sh", str(caught.exception))
+            self.assertIn("OUTPUT=runs/night_full_sgpd_01 bash configs/night_full_sgpd.sh", str(caught.exception))
             self.assertIn("smoke", str(caught.exception))
 
             missing.mkdir(parents=True)

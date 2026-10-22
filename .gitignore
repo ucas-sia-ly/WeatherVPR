@@ -13,8 +13,13 @@ data/test/**
 data/svox/**
 !data/svox/README.md
 data/gsv-cities/
-third_party/dinov2/
-third_party/salad/
+# Ship the modified runtime backend and DINOv2 source with this project.
+# Historical SALAD data, checkpoints and experiment outputs stay local.
+third_party/salad/*
+!third_party/salad/workflow/
+!third_party/salad/models/
+!third_party/salad/configs/
+!third_party/salad/LICENSE
+!third_party/salad/README.md
 third_party/LoQI-VPR/
 data/*
-

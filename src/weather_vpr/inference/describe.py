@@ -1,4 +1,4 @@
-"""Load lightweight adapters, switch by named weather, emit one .npy descriptor."""
+"""Load a weather model, or the original day model, and emit one .npy descriptor."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -8,9 +8,8 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
-from safetensors.torch import load_file
 from weather_vpr.utils.backend import enable_backend_imports, project_root
-from weather_vpr.models.adapter import WeatherAdapterSALAD
+from weather_vpr.inference.loading import load_weather_model
 from weather_vpr.models.io import adapter_model_kwargs
 
 enable_backend_imports()
@@ -59,22 +58,19 @@ def main():
                 or metadata['model_config'] != base.config
                 or metadata['preprocessing'] != input_preprocessing(base.image_size)):
             raise ValueError(f'Adapter {name} incompatible with base checkpoint/config')
-        cfg[name] = adapter_model_kwargs(metadata)
-    configurations = list(cfg.values())
-    if configurations and any(value != configurations[0] for value in configurations[1:]):
-        raise ValueError('All weather adapters loaded together must share adapter type and dimensions')
-    net = WeatherAdapterSALAD(base, tuple(cfg),
-                              **(configurations[0] if configurations else adapter_model_kwargs({}))).to(args.device).eval()
-    for name, directory in models.items():
-        state = load_file(str(directory / 'adapter.safetensors'), device='cpu')
-        net.adapters[name].load_state_dict(state, strict=True)
-    if args.weather != 'day' and args.adapter_scale != 1.0:
-        net.set_lora_scale(args.weather, args.adapter_scale)
+        adapter_model_kwargs(metadata)
+        cfg[name] = metadata
+    # Only the requested weather model needs to be resident.  This also lets
+    # callers register different artifact types without duplicating DINOv2s.
+    net = (load_weather_model(base, args.weather, models[args.weather],
+                              cfg[args.weather], device=args.device,
+                              adapter_scale=args.adapter_scale)
+           if args.weather != 'day' else None)
     with Image.open(args.image) as im:
         img = preprocess_teacher_image(im, base.image_size).unsqueeze(0).to(args.device)
     with torch.no_grad():
         if args.weather == 'day':
-            descriptor = net.teacher(img, return_aux=False)
+            descriptor = base(img, return_aux=False)
         else:
             descriptor = net.student(img, args.weather, return_aux=False)
     args.output.parent.mkdir(parents=True, exist_ok=True)

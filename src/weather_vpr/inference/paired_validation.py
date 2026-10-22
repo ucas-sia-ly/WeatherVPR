@@ -13,11 +13,9 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-from safetensors.torch import load_file
-
 from weather_vpr.data.paired_dataset import resolve_file, sha256
 from weather_vpr.models.adapter import WeatherAdapterSALAD
-from weather_vpr.models.io import adapter_model_kwargs
+from weather_vpr.inference.loading import load_weather_model
 from weather_vpr.utils.backend import enable_backend_imports, project_root
 
 
@@ -30,8 +28,8 @@ def _require_night_adapter_dir(value: Path) -> Path:
         return directory
     if not directory.exists():
         problem = "directory does not exist"
-        next_step = ("Create it by training: OUTPUT=runs/night_lora_sgpd_01 "
-                     "bash configs/night_sgpd.sh.")
+        next_step = ("Create it by training: OUTPUT=runs/night_full_sgpd_01 "
+                     "bash configs/night_full_sgpd.sh.")
     elif not directory.is_dir():
         problem = "path is not a directory"
         next_step = "Pass a completed training output directory via --adapter-dir."
@@ -39,15 +37,15 @@ def _require_night_adapter_dir(value: Path) -> Path:
         problem = "incomplete directory; missing " + ", ".join(missing)
         next_step = ("Training may still be running; wait until both adapter.json and "
                      "adapter.safetensors are saved. If it stopped, start a new run in an "
-                     "unused directory, for example OUTPUT=runs/night_lora_sgpd_02 "
-                     "bash configs/night_sgpd.sh.")
+                     "unused directory, for example OUTPUT=runs/night_full_sgpd_02 "
+                     "bash configs/night_full_sgpd.sh.")
     smoke = project_root() / "runs/night_sgpd_smoke_20261021"
     smoke_hint = (
         "For a quick pipeline check, use --adapter-dir runs/night_sgpd_smoke_20261021 "
         "(a short smoke run, not a trained result)."
         if (smoke / "adapter.json").is_file() and (smoke / "adapter.safetensors").is_file()
         else "For a quick pipeline check, create a smoke adapter with "
-             "OUTPUT=runs/night_global_smoke bash configs/night_global.sh."
+             "OUTPUT=runs/night_full_global_smoke bash configs/night_full_global.sh."
     )
     raise FileNotFoundError(
         f"Night adapter {problem}: {directory}.\n"
@@ -196,13 +194,8 @@ def evaluate_pairs(*, manifest: Path, checkpoint: Path, backbone_repo: Path,
             or metadata.get("model_config") != base.config
             or metadata.get("preprocessing") != preprocessing):
         raise ValueError("Night adapter is incompatible with checkpoint, model configuration or preprocessing")
-    net = WeatherAdapterSALAD(base, ("night",), **adapter_model_kwargs(metadata)).to(device).eval()
-    net.adapters["night"].load_state_dict(
-        load_file(str(adapter_dir / "adapter.safetensors"), device="cpu"), strict=True)
-    if metadata.get('adapter_type', 'output') == 'lora':
-        net.set_lora_scale('night', adapter_scale)
-    elif adapter_scale != 1.0:
-        raise ValueError('adapter-scale applies only to LoRA adapters')
+    net = load_weather_model(base, "night", adapter_dir, metadata,
+                             device=device, adapter_scale=adapter_scale)
 
     print("Extracting original day gallery descriptors...", flush=True)
     gallery = extract_descriptors(base, dataset.references, base.image_size,
