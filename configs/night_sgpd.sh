@@ -25,7 +25,7 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --batch-sampling "${BATCH_SAMPLING:-distinct}" \
   --contrast-queue-size "${CONTRAST_QUEUE_SIZE:-256}" \
   --temperature "${TEMPERATURE:-0.1}" \
-  --batch-size "${BATCH_SIZE:-4}" --epochs "${EPOCHS:-3}" \
+  --batch-size "${BATCH_SIZE:-4}" --epochs "${EPOCHS:-2}" \
   --learning-rate "${LEARNING_RATE:-0.0001}" \
   --max-steps "${MAX_STEPS:-0}" --seed "${SEED:-42}" \
   --save-every-steps "${SAVE_EVERY_STEPS:-200}" \

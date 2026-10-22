@@ -14,6 +14,7 @@ from weather_vpr.losses.distillation import (
     sgpd_patch_loss,
     weighted_patch_losses,
 )
+from weather_vpr.utils.backend import enable_backend_imports
 
 
 class LossModeTests(unittest.TestCase):
@@ -132,6 +133,19 @@ class LossModeTests(unittest.TestCase):
         self.assertEqual(result["magnitude"].item(), 0.)
         self.assertTrue(torch.isfinite(result["ot"]))
         self.assertGreater(result["ot_mass"].item(), 0.)
+
+    def test_conditional_ot_agrees_with_salad_reference(self):
+        enable_backend_imports()
+        from workflow.synthetic_losses import conditional_ot_distillation_loss as reference
+        teacher = torch.log(torch.tensor([[[.3, .1], [.6, .2], [.1, .7]]]))
+        student = torch.log(torch.tensor([[[.2, .4], [.7, .4], [.1, .2]]]))
+        match = torch.tensor([[1, 0]])
+        confidence = torch.tensor([[.8, .5]])
+        actual = conditional_ot_distillation_loss(
+            student, teacher, match, confidence, min_teacher_keep=.01)
+        expected = reference(student, teacher, match, confidence,
+                             min_teacher_keep=.01)
+        torch.testing.assert_close(actual, expected, atol=1e-7, rtol=1e-7)
 
     def test_global_alignment_and_discrimination_detach_day(self):
         student = torch.eye(3, requires_grad=True)

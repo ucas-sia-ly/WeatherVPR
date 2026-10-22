@@ -2,7 +2,7 @@
 
 本项目以白天训练的 `dino_salad.ckpt` 为共享冻结主干。默认只训练 DINOv2 最后 4 个 Transformer block 中 `attn.qkv` / `attn.proj` 的夜间 LoRA（rank 8、alpha 16），DINOv2 原权重与 SALAD 均冻结。真实白天图作为 Teacher，逐一对应的 Qwen 生成夜图作为 Student。SGPD 只在可信 Patch 对应上蒸馏局部特征，并用白天 SALAD 的 `assignment_keep` 加权。Teacher 与白天 Gallery 均关闭天气 LoRA；夜间描述符直接检索**原始白天 SALAD Gallery**，无需重建图库。
 
-参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现的 SGPD 和跨域 InfoNCE 是新的实验设计，并非论文 ICKD、MSE、Triplet 的逐项复现。代码保留旧的输出端 Patch/CLS Adapter，设置 `ADAPTER_TYPE=output` 可做消融。目前只有 night 数据和实验准备完成；其它天气 Adapter 仅有接口设计，尚未训练。
+参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现的 SGPD 和跨域 InfoNCE 是新的实验设计，并非论文 ICKD、MSE、Triplet 的逐项复现。代码保留旧的输出端 Patch/CLS Adapter，设置 `ADAPTER_TYPE=output` 可做消融。目前仅完成 Night 的训练与评估；其它天气 Adapter 只有接口，尚未训练。
 
 ## 当前就绪状态
 
@@ -10,7 +10,18 @@
 - `data/train/manifest.jsonl` 是 7,719 对 SHA-256 核验过的 night/day 精确配对。`data/splits/night_train.jsonl` 有 7,263 对训练图，`night_val.jsonl` 有 385 对地点隔离的合成验证图；历史保留地点另排除 71 对。
 - `configs/dino_salad_stage2b_calibration.json` 与当前 checkpoint 和 224×224 预处理匹配。相应地点排除已纳入 split；SGPD 的 A 类可信 Patch 才参与局部损失。
 - `data/svox/images/test/` 有 17,166 张白天 Gallery 和 823 张真实夜间 Query。评估采用 SVOX 25 m UTM 正样本协议，报告 Recall@1/5/10。
-- `runs/night_sgpd_01` 是**旧 Output Adapter** 的 3 epoch SGPD 结果（7,263 对、5,448 步），不是本版 LoRA 结果。它在 SVOX 上的 R@1/5/10 为 **92.22% / 98.06% / 99.15%**，原始 SALAD baseline 为 **92.71% / 98.42% / 99.15%**。旧结果尚未改善真实夜景检索；新 LoRA 配置尚未完成训练和评估。
+- 已完成 Night 的 Global + Contrast（1 epoch）和接续 SGPD（2 epoch）两阶段 LoRA 训练，分别保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`。`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。
+
+### 已完成的 Night 评估
+
+| 模型 | 合成夜图验证 R@1（385 对） | SVOX test R@1 | R@5 | R@10 |
+| --- | ---: | ---: | ---: | ---: |
+| 原始白天 SALAD | 99.74% | **92.71%** | **98.42%** | **99.15%** |
+| LoRA 阶段 1：Global + Contrast | 100.00% | 92.22% | 98.06% | 98.66% |
+| LoRA 阶段 2：再加入 SGPD | 100.00% | 91.86% | 98.06% | 98.66% |
+| 旧 Output Adapter + SGPD | — | 92.22% | 98.06% | 99.15% |
+
+合成验证上的配对描述符余弦相似度从原始模型的 0.6778 升到阶段 1 的 0.7237、阶段 2 的 0.7288；真实 SVOX 夜图的 R@1 却下降。因此当前模型**尚未证实真实夜景收益**，不能以合成验证替代真实天气检索结论，也暂不推广训练其它天气。两个 LoRA Adapter 各只占约 0.59 MB，仍直接检索原始白天 Gallery。完整指标见各实验目录的 `synthetic_val.json`、`svox_test.json`；后续真实夜景诊断见 [数据和评估](docs/DATA_AND_EVALUATION.md)。
 
 当前目录所需的模型、源码和图像均已具备，**无需再下载文件**。另一台机器上的资源来源见 [下载与来源](docs/DOWNLOADS.md)。
 
@@ -55,7 +66,7 @@ OUTPUT=runs/night_lora_sgpd_01 \
 
 `evaluate_svox.py` 默认在 `runs/cache/` 保存经过 checkpoint、预处理和图库图像字节校验的**原始白天**描述符缓存。后续 LoRA/Output 消融可复用它，无需重新提取或重建白天 Gallery。只检查测试集协议可运行 `"$PYTHON" scripts/evaluate_svox.py --check-data`。
 
-在最终 test 之前，也可传 `--split train` 使用 SVOX 的独立 train/day Gallery 与 train/night Query 诊断真实夜景；该 split 有独立的 Gallery 缓存，默认 test 结果不会被覆盖。
+可传 `--split train` 使用 SVOX 的独立 train/day Gallery 与 train/night Query 诊断真实夜景；该 split 有独立的 Gallery 缓存，默认 test 结果不会被覆盖。`--adapter-scale` 可以缩放已训练 LoRA 的推理增量：`1` 是训练值，`0` 精确恢复原始模型。强度诊断应在 SVOX train 上进行，避免根据 test 指标选择设置。
 
 `evaluate_pairs.py` 使用 385 对未参与训练的 Qwen 合成夜图与其精确白天源图，报告同地点 Recall@1/5/10 和平均配对描述符余弦相似度。它与真实 SVOX 测试分开。`--limit-pairs 8` 可做短流程检查，输出明确标记为子集。
 

@@ -1,6 +1,6 @@
 # Night 训练配置
 
-`night_global.sh` 训练第一阶段的 LoRA：全局描述符对齐与跨域多正样本 InfoNCE。`night_sgpd.sh` 在第二阶段加入 Stage2B A 类可信 Patch 的 SGPD。两个脚本默认共用 `weights/dino_salad.ckpt` 的冻结 DINOv2-B/14 与 SALAD；只保存夜间 LoRA。首次运行请使用新的 `OUTPUT` 目录。
+`night_global.sh` 训练第一阶段的 LoRA：全局描述符对齐与跨域多正样本 InfoNCE，默认 1 epoch。`night_sgpd.sh` 在第二阶段加入 Stage2B A 类可信 Patch 的 SGPD，默认 2 epoch。两个脚本默认共用 `weights/dino_salad.ckpt` 的冻结 DINOv2-B/14 与 SALAD；只保存夜间 LoRA。首次运行请使用新的 `OUTPUT` 目录。
 
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python

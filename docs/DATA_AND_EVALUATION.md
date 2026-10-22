@@ -32,4 +32,26 @@ python scripts/evaluate_svox.py --adapter-dir runs/night_lora_sgpd_01 \
 
 需要在真实夜景上做开发阶段诊断时，可使用 `--split train`：它读取 SVOX 的 22,232 张 train/day Gallery 与 702 张 train/night Query，默认另存 `runs/cache/svox_train_gallery.safetensors`，不会混用 test Gallery。`--split test` 仍是默认的最终评估协议。
 
+## 当前 Night 实验记录
+
+默认推理强度 `--adapter-scale 1` 的两阶段训练均已跑完：阶段 1 是 Global + Contrast（1 epoch、1,816 步），阶段 2 从该 LoRA 接续 Global + Contrast + SGPD（2 epoch、3,632 步），Keep、OT 和幅度蒸馏均关闭。阶段 2 记录了 393,244 个 A 类可信 Patch，末段每批平均覆盖约 10.9%。每个阶段的 Adapter 权重约 0.59 MB。
+
+| Night Query / 白天 Gallery | R@1 | R@5 | R@10 |
+| --- | ---: | ---: | ---: |
+| SVOX test，原始 SALAD，823 Query | 92.71% | 98.42% | 99.15% |
+| SVOX test，阶段 1 LoRA 强度 1 | 92.22% | 98.06% | 98.66% |
+| SVOX test，阶段 2 LoRA 强度 1 | 91.86% | 98.06% | 98.66% |
+| SVOX train，原始 SALAD，702 Query | 88.46% | 95.16% | 96.01% |
+| SVOX train，阶段 1 LoRA 强度 0.05 | 88.46% | 95.30% | 96.30% |
+| SVOX train，阶段 1 LoRA 强度 1 | 87.32% | 94.73% | 95.73% |
+| SVOX train，阶段 2 LoRA 强度 0.1 | 88.18% | 95.30% | 96.30% |
+| SVOX train，阶段 2 LoRA 强度 1 | 85.19% | 93.87% | 96.01% |
+| SVOX test，阶段 1 LoRA 强度 0.05 | 92.71% | 98.42% | 99.15% |
+
+强度 0.05 是在 SVOX train 上依次比较 R@1、R@5、R@10，并在指标同分时取较小的非零增量；随后单独评估 test。强度 1 的 test 结果在这项强度诊断之前已经查看过，因此强度 0.05 的 test 数字也应视为**探索性诊断**，不能作为全新盲测结果。阶段 1 的 train 强度 0.25 达到相同的 R@1/5/10；阶段 2 在已试的 0.1、0.25、0.5、0.75、1.0 中均未超过原始模型的 R@1。完整逐次 JSON 存放在相应 `runs/night_lora_global_01/` 和 `runs/night_lora_sgpd_01/` 目录。
+
+合成验证本身几乎饱和：原始模型在 385 对中已命中 384 对 R@1，两阶段 LoRA 均命中 385 对。其配对余弦相似度确实提升，但真实 SVOX 的 R@1 没有提升。这说明当前合成验证不足以判定真实夜景收益；造成差距的具体因素仍需通过额外真实夜景训练或验证数据实验确认。
+
+阶段 2 同时增加了 SGPD 和训练步数，现有阶段 1/2 对比不能单独归因于 SGPD。若继续研究局部损失，应从同一阶段 1 权重出发，以相同步数另训 `PATCH_WEIGHT=0` 的对照实验，并在独立真实夜景验证划分上选择配置。
+
 仓库还保留了 `scripts/evaluate.py`，用于用户自行提供 `path,place_id` 的普通 CSV 数据集。它的同 ID 判正协议**不适用于** SVOX 地理半径真值；SVOX 应使用专门入口。

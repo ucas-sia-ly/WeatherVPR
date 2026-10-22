@@ -11,7 +11,7 @@
 1. `configs/night_global.sh` 默认用地点隔离的 night 训练集，仅优化全局 Descriptor Alignment 与跨域 InfoNCE。batch 尽量覆盖不同的 `(city, place_id)`；容量 256 的跨 batch 队列保存 detached 的白天 Teacher 描述符。当前 batch 和队列内的同地点描述符全是正样本，不会充当伪负例。训练日志记录每个 query 的有效负样本数。
 2. `configs/night_sgpd.sh` 用相同 LoRA 架构继续训练全局损失与 SGPD；设置 `INIT_ADAPTER_DIR` 指向第一阶段输出。加载时检查天气、完整 checkpoint、预处理和 Adapter 参数配置。也可不传 `INIT_ADAPTER_DIR`，从零增量直接训练 SGPD，以检验阶段训练的作用。
 
-两个阶段均默认 LoRA rank 8、alpha 16、最后 4 个 block 的 `qkv/proj`，batch size 4、3 epoch、BF16。当前项目提供匹配这份完整 checkpoint 与 224×224 预处理的 Stage2B 对应校准。仅第二阶段启用局部损失时需要它。
+两个阶段均默认 LoRA rank 8、alpha 16、最后 4 个 block 的 `qkv/proj`，batch size 4、BF16；第一阶段默认 1 epoch，第二阶段默认 2 epoch。当前项目提供匹配这份完整 checkpoint 与 224×224 预处理的 Stage2B 对应校准。仅启用局部损失时需要它。
 
 ## 损失与消融
 
