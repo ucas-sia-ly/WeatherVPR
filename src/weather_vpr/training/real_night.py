@@ -33,6 +33,12 @@ from weather_vpr.inference.svox import (
 from weather_vpr.models.adapter import WeatherAdapterSALAD
 from weather_vpr.models.io import adapter_model_kwargs
 from weather_vpr.utils.backend import enable_backend_imports, project_root
+from weather_vpr.data.student_augmentation import (
+    augmentation_metadata, sampled_augmentation_counts, merge_augmentation_counts,
+)
+from weather_vpr.training.augmentation import (
+    add_augmentation_arguments, load_augmentation_config, training_configuration,
+)
 
 enable_backend_imports()
 from workflow.evaluation import EvaluationSet, build_results, exact_retrieval, extract_descriptors  # noqa: E402
@@ -73,6 +79,7 @@ def parse_args(argv=None):
     p.add_argument('--bf16', action='store_true')
     p.add_argument('--num-workers', type=int, default=4)
     p.add_argument('--seed', type=int, default=42)
+    add_augmentation_arguments(p)
     p.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     p.add_argument('--check-data', action='store_true',
                    help='Report spatial exclusions and development split without loading model weights')
@@ -80,6 +87,7 @@ def parse_args(argv=None):
 
 
 def _validate(args):
+    load_augmentation_config(args)
     if min(args.batch_size, args.gradient_accumulation_steps, args.epochs) < 1:
         raise ValueError('Batch size, gradient accumulation, and epochs must be positive')
     if args.max_steps < 0 or args.num_workers < 0:
@@ -318,6 +326,9 @@ def main(argv=None):
     if image_size != (224, 224):
         raise ValueError(f'Native SVOX training needs 224x224, got {image_size}')
     preprocessing = input_preprocessing(image_size)
+    augmentation_config = load_augmentation_config(args)
+    augmentation_info = augmentation_metadata(augmentation_config, args.seed, image_size,
+                                              args.augmentation_epoch_offset)
     descriptor_dim = (base.config['agg_config']['num_clusters'] *
                       base.config['agg_config']['cluster_dim'] +
                       base.config['agg_config']['token_dim'])
@@ -351,10 +362,13 @@ def main(argv=None):
     optimizer = torch.optim.AdamW(night_layerwise_optimizer_groups(
         net.adapters['night'], learning_rate=args.learning_rate,
         weight_decay=args.weight_decay, decay=args.layerwise_lr_decay))
-    loader = DataLoader(SVOXNightQueryDataset(images, train_indices, image_size),
+    query_dataset = SVOXNightQueryDataset(images, train_indices, image_size,
+                                         night_augmentation=augmentation_config, seed=args.seed)
+    loader = DataLoader(query_dataset,
                         batch_size=args.batch_size, shuffle=True,
                         generator=torch.Generator().manual_seed(args.seed),
                         num_workers=args.num_workers,
+                        collate_fn=list,
                         pin_memory=device.type == 'cuda')
     dev_images = [images[index] for index in dev_indices]
     dev_positives = [real.filtered.positives[index] for index in dev_indices]
@@ -378,10 +392,8 @@ def main(argv=None):
     print(f'Initial Night model on internal development: {initial_dev}', flush=True)
 
     out.mkdir(parents=True, exist_ok=True)
-    (out / 'training_config.json').write_text(json.dumps({
-        key: str(value) if isinstance(value, Path) else value
-        for key, value in vars(args).items()
-    }, indent=2), encoding='utf-8')
+    (out / 'training_config.json').write_text(json.dumps(
+        training_configuration(args, augmentation_info), indent=2), encoding='utf-8')
     split_record = {
         'policy': 'test geometry exclusion then northern train-route development tail',
         'counts': counts,
@@ -398,6 +410,7 @@ def main(argv=None):
     best_epoch = 0
     stopped = False
     accumulation_count = 0
+    augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     optimizer.zero_grad(set_to_none=True)
 
     def update(count):
@@ -416,13 +429,18 @@ def main(argv=None):
         accumulation_count = 0
 
     for epoch in range(1, args.epochs + 1):
+        query_dataset.set_epoch(args.augmentation_epoch_offset + epoch - 1)
         net.train()
         epoch_losses = []
         epoch_night_baseline_losses = []
         positive_counts = negative_counts = ambiguous_counts = query_count = 0
-        for night_batch, indices in loader:
-            night_batch = night_batch.to(device, non_blocking=True)
-            indices = indices.to(device)
+        for batch in loader:
+            # Frozen baseline Teacher sees the original clean night query.
+            clean_night_batch = torch.stack([item['clean_tensor'] for item in batch]).to(device, non_blocking=True)
+            night_batch = torch.stack([item['student_tensor'] for item in batch]).to(device, non_blocking=True)
+            indices = torch.tensor([item['query_index'] for item in batch], device=device)
+            sampled_counts = sampled_augmentation_counts([item['augmentation_record'] for item in batch])
+            merge_augmentation_counts(augmentation_counts, sampled_counts)
             autocast = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                         if args.bf16 else nullcontext())
             with autocast:
@@ -453,7 +471,7 @@ def main(argv=None):
             if args.night_baseline_weight > 0:
                 with autocast:
                     night_baseline = night_baseline_descriptor_loss(
-                        net, night_batch, night_descriptors)
+                        net, clean_night_batch, night_descriptors)
                 if not torch.isfinite(night_baseline):
                     raise FloatingPointError('Nonfinite real-night baseline descriptor loss')
                 total_loss = total_loss + args.night_baseline_weight * night_baseline
@@ -479,6 +497,7 @@ def main(argv=None):
                 'effective_negative_keys': sum(result['effective_negative_counts']),
                 'masked_ambiguous_keys': sum(result['ambiguous_counts']),
                 'query_count': len(indices),
+                'augmentation': sampled_counts,
             }
             with metrics_file.open('a', encoding='utf-8') as stream:
                 stream.write(json.dumps(row) + '\n')
@@ -555,6 +574,8 @@ def main(argv=None):
                 'batch_size': args.batch_size,
                 'gradient_accumulation_steps': args.gradient_accumulation_steps,
                 'seed': args.seed,
+                'night_augmentation': augmentation_info,
+                'sampled_augmentation_counts': augmentation_counts,
                 'steps': step, 'optimizer_steps': optimizer_steps,
                 'epochs_completed': epoch, 'selected_epoch': epoch,
                 'selection_metric': 'SVOX train internal development Recall@1,5,10' if dev_recall else 'last epoch',

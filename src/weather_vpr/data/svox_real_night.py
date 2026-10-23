@@ -14,6 +14,8 @@ import math
 from PIL import Image
 import torch
 from torch.utils.data import Dataset
+from weather_vpr.data.night_augmentation import NightCameraAugmentation, NightAugmentationConfig
+from weather_vpr.data.student_augmentation import sample_augmentation_seed, student_training_tensor
 
 from weather_vpr.inference.svox import load_night_dataset
 from weather_vpr.utils.backend import enable_backend_imports
@@ -129,19 +131,31 @@ class SVOXNightQueryDataset(Dataset):
     """Read only selected SVOX train/night query images."""
 
     def __init__(self, images: list[EvaluationImage], selected: list[int],
-                 image_size: tuple[int, int] = (224, 224)):
+                 image_size: tuple[int, int] = (224, 224),
+                 night_augmentation: NightAugmentationConfig | None = None, seed: int = 42):
         self.images = images
         self.selected = list(selected)
         self.image_size = image_size
+        self.augmentation = NightCameraAugmentation(night_augmentation or NightAugmentationConfig())
+        self.seed = int(seed)
+        self.epoch = 0
         if not self.selected or any(i < 0 or i >= len(images) for i in self.selected):
             raise ValueError('Selected query indices are empty or out of range')
 
     def __len__(self):
         return len(self.selected)
 
+    def set_epoch(self, epoch: int):
+        self.epoch = int(epoch)
+
     def __getitem__(self, index):
         query_index = self.selected[index]
         path = self.images[query_index].path
         with Image.open(path) as image:
-            tensor = preprocess_teacher_image(image, self.image_size)
-        return tensor, query_index
+            clean = image.convert('RGB')
+        tensor = preprocess_teacher_image(clean, self.image_size)
+        student_tensor, record = student_training_tensor(
+            clean, self.image_size, self.augmentation,
+            seed=sample_augmentation_seed(self.seed, self.epoch, query_index))
+        return {'clean_tensor': tensor, 'student_tensor': student_tensor,
+                'query_index': query_index, 'augmentation_record': record}

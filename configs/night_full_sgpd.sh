@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 EXTRA_ARGS=()
+if [[ -n "${AUGMENTATION_CONFIG:-}" ]]; then EXTRA_ARGS+=(--augmentation-config "$AUGMENTATION_CONFIG"); fi
 if [[ "${BF16:-1}" == 1 ]]; then EXTRA_ARGS+=(--bf16); fi
 if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
 "${PYTHON:-python}" scripts/train.py \
@@ -14,6 +15,10 @@ if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
   --exclude-places "${EXCLUDE_PLACES:-data/splits/heldout_places.json}" \
   --weather night "${EXTRA_ARGS[@]}" \
   --adapter-type full \
+  --night-augmentation "${NIGHT_AUGMENTATION:-off}" \
+  --augmentation-strength "${AUGMENTATION_STRENGTH:-1}" \
+  --augmentation-probability "${AUGMENTATION_PROBABILITY:-0.8}" \
+  --augmentation-epoch-offset "${AUGMENTATION_EPOCH_OFFSET:-0}" \
   --init-adapter-dir "${INIT_ADAPTER_DIR:-runs/night_full_global_01}" \
   --importance-mode "${IMPORTANCE_MODE:-saliency}" \
   --patch-weight "${PATCH_WEIGHT:-0.1}" --keep-weight "${KEEP_WEIGHT:-0}" \

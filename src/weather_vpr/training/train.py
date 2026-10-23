@@ -19,6 +19,12 @@ from weather_vpr.models.adapter import WeatherAdapterSALAD
 from weather_vpr.models.io import adapter_model_kwargs
 from weather_vpr.losses.contrast_queue import DayDescriptorQueue
 from weather_vpr.losses.distillation import weighted_patch_losses, descriptor_alignment
+from weather_vpr.data.student_augmentation import (
+    augmentation_metadata, sampled_augmentation_counts, merge_augmentation_counts,
+)
+from weather_vpr.training.augmentation import (
+    add_augmentation_arguments, load_augmentation_config, training_configuration,
+)
 
 # Import the vendored SALAD backend from this project.
 enable_backend_imports()
@@ -71,11 +77,13 @@ def parse_args(argv=None):
     p.add_argument('--no-correspondence-cache', action='store_true',
                    help='Recompute trusted patch matches every epoch instead of caching them in RAM')
     p.add_argument('--seed', type=int, default=42)
+    add_augmentation_arguments(p)
     p.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     return p.parse_args(argv)
 
 
 def _validate(args):
+    load_augmentation_config(args)
     if args.max_steps < 0 or args.num_workers < 0 or args.contrast_queue_size < 0:
         raise ValueError('max-steps, num-workers and contrast-queue-size must be nonnegative')
     if min(args.batch_size, args.epochs, args.hidden, args.lora_rank,
@@ -162,8 +170,12 @@ def main(argv=None):
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     model_size = (224, 224)  # match Stage2B calibration and checkpoint preprocessing
+    augmentation_config = load_augmentation_config(args)
+    augmentation_info = augmentation_metadata(augmentation_config, args.seed, model_size,
+                                              args.augmentation_epoch_offset)
     dataset = AcceptedWeatherPairs(args.manifest, args.weather, model_size,
-                                  args.exclude_places, args.verify_hashes)
+                                  args.exclude_places, args.verify_hashes,
+                                  night_augmentation=augmentation_config, seed=args.seed)
     if args.batch_sampling == 'distinct':
         sampler = DistinctPlaceBatchSampler([row['place'] for row in dataset.rows],
                                             args.batch_size, seed=args.seed)
@@ -201,6 +213,8 @@ def main(argv=None):
     effective_calibration = args.pair_calibration if need_local else None
     cal = load_calibration(effective_calibration, args.checkpoint, model_size, args.calibration_index)
     out.mkdir(parents=True, exist_ok=True)
+    (out / 'training_config.json').write_text(
+        json.dumps(training_configuration(args, augmentation_info), indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
     match_cache = {} if need_local and not args.no_correspondence_cache else None
     total_positive_patches = 0
@@ -209,6 +223,7 @@ def main(argv=None):
     step = 0
     optimizer_steps = 0
     accumulation_count = 0
+    augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     optimizer.zero_grad(set_to_none=True)
 
     def optimizer_update(count):
@@ -255,17 +270,23 @@ def main(argv=None):
             batch_sampling=args.batch_sampling, contrast_queue_size=args.contrast_queue_size,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
             importance_mode=args.importance_mode,
+            night_augmentation=augmentation_info,
+            sampled_augmentation_counts=augmentation_counts,
             code_version=('weather_vpr_full_v1' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
     for epoch in range(args.epochs):
+        dataset.set_epoch(args.augmentation_epoch_offset + epoch)
         if sampler is not None:
             sampler.set_epoch(epoch)
         net.train()
         for batch in dl:
             day = torch.stack([v['day_tensor'] for v in batch]).to(args.device)
             weather = torch.stack([v['weather_tensor'] for v in batch]).to(args.device)
+            student_weather = torch.stack([v['student_tensor'] for v in batch]).to(args.device)
+            sampled_counts = sampled_augmentation_counts([v['augmentation_record'] for v in batch])
+            merge_augmentation_counts(augmentation_counts, sampled_counts)
             places = [item['place'] for item in batch]
             # Pass 1: the original frozen Day teacher.
             teacher_output = net.teacher(day, return_aux=need_local)
@@ -294,7 +315,7 @@ def main(argv=None):
             ctx = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                    if args.bf16 else nullcontext())
             with ctx:
-                student_output = net.student(weather, args.weather, return_aux=need_local)
+                student_output = net.student(student_weather, args.weather, return_aux=need_local)
             desc, aux = student_output if need_local else (student_output, None)
             zero = desc.float().sum() * 0.0
             g_loss = descriptor_alignment(desc, day_desc) if args.global_weight > 0 else zero
@@ -345,6 +366,7 @@ def main(argv=None):
                            accumulation_count=accumulation_count,
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
+                           augmentation=sampled_counts,
                            loss=float(total.detach()), global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
                            contrast=float(c_loss.detach()), patch=float(p_loss.detach()),

@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 EXTRA_ARGS=()
+if [[ -n "${AUGMENTATION_CONFIG:-}" ]]; then EXTRA_ARGS+=(--augmentation-config "$AUGMENTATION_CONFIG"); fi
 if [[ "${BF16:-1}" == 1 ]]; then EXTRA_ARGS+=(--bf16); fi
 if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
 if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT_ADAPTER_DIR"); fi
@@ -14,6 +15,10 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --exclude-places "${EXCLUDE_PLACES:-data/splits/heldout_places.json}" \
   --weather night "${EXTRA_ARGS[@]}" \
   --adapter-type full \
+  --night-augmentation "${NIGHT_AUGMENTATION:-off}" \
+  --augmentation-strength "${AUGMENTATION_STRENGTH:-1}" \
+  --augmentation-probability "${AUGMENTATION_PROBABILITY:-0.8}" \
+  --augmentation-epoch-offset "${AUGMENTATION_EPOCH_OFFSET:-0}" \
   --global-weight "${GLOBAL_WEIGHT:-1}" --contrast-weight "${CONTRAST_WEIGHT:-1}" \
   --patch-weight 0 --keep-weight 0 --ot-weight 0 --magnitude-weight 0 \
   --batch-sampling "${BATCH_SAMPLING:-distinct}" \

@@ -15,4 +15,13 @@ OUTPUT=runs/night_full_sgpd_01 \
 
 真实阶段默认 FP32、batch 4、3 epoch、学习率 1e-6、`LAYERWISE_LR_DECAY=0.7`、`NIGHT_BASELINE_WEIGHT=100`、`NEGATIVE_RADIUS_M=250`，对应当前选定的 Day→真实夜景基线。`NIGHT_BASELINE_WEIGHT=0` 关闭同夜图 Teacher 约束，`LAYERWISE_LR_DECAY=1` 关闭逐层衰减，`BF16=1` 启用混合精度。不同初始化和精度属于不同实验，应先在 train 内部验证后比较；当前 SGPD 初始化的额外真实收益尚未成立。
 
+`night_camera_replay.sh` 显式启用 `configs/night_camera.json`，重跑增强 Global、同预算 Global 接续、SGPD 接续，以及 Day/SGPD 初始化的真实阶段。训练外的验证和测试均使用原图：
+
+```bash
+PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
+EXPERIMENT=night_camera_replay_02 bash configs/night_camera_replay.sh
+```
+
+三个 full 脚本均支持 `NIGHT_AUGMENTATION=off|camera`、`AUGMENTATION_CONFIG`、`AUGMENTATION_STRENGTH`、`AUGMENTATION_PROBABILITY`、`AUGMENTATION_EPOCH_OFFSET`。单独提供 JSON 不会打开增强，需显式指定 `camera`。两个合成接续阶段都用 offset 1，保持同一批新采样。操作范围、独立关闭方式见 [增强说明](../docs/NIGHT_CAMERA_AUGMENTATION.md)，本轮数字见 [重跑结果](../docs/NIGHT_CAMERA_RESULTS.md)。
+
 `configs/dino_salad_stage2b_calibration.json` 只与当前完整 checkpoint 和 224×224 预处理匹配；训练脚本默认排除 `data/splits/heldout_places.json` 的地点。其它天气还没有训练数据与独立实验结果，需先准备相应配对清单和测试集。

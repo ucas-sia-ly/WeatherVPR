@@ -1,5 +1,7 @@
 # Night 全参数实验记录（2026-10-22）
 
+这是无相机退化增强的历史基线。2026-10-23 的新增强重跑见 [相机增强结果](NIGHT_CAMERA_RESULTS.md)。
+
 ## 当前结论与可用权重
 
 完整 Night DINOv2-B/14 已实现并实际训练。Night 的 Patch Embedding、CLS/位置编码、全部 Transformer Block 与最终 Norm 都进入优化器；原始 Day DINOv2 和共享 SALAD 冻结。Night 权重约 346 MB，只保存 Night 主干，仍直接检索原来的白天 Gallery。

@@ -6,6 +6,8 @@ from pathlib import Path
 from PIL import Image
 from torch.utils.data import Dataset
 from weather_vpr.utils.backend import project_root
+from weather_vpr.data.night_augmentation import NightCameraAugmentation, NightAugmentationConfig
+from weather_vpr.data.student_augmentation import sample_augmentation_seed, student_training_tensor
 
 def sha256(path: Path):
     digest = hashlib.sha256()
@@ -34,9 +36,13 @@ def resolve_file(value, manifest):
 
 class AcceptedWeatherPairs(Dataset):
     def __init__(self, manifest: Path, weather: str, image_size=(224, 224),
-                 exclude_places: Path | None = None, verify_hashes=False):
+                 exclude_places: Path | None = None, verify_hashes=False,
+                 night_augmentation: NightAugmentationConfig | None = None, seed: int = 42):
         self.manifest = manifest.expanduser().resolve(strict=True)
         self.size = tuple(image_size)
+        self.augmentation = NightCameraAugmentation(night_augmentation or NightAugmentationConfig())
+        self.seed = int(seed)
+        self.epoch = 0
         excluded = set()
         if exclude_places is not None:
             content = json.loads(exclude_places.read_text())
@@ -71,6 +77,10 @@ class AcceptedWeatherPairs(Dataset):
     def __len__(self):
         return len(self.rows)
 
+    def set_epoch(self, epoch: int):
+        # DataLoader workers are re-created for every epoch (persistent_workers=False).
+        self.epoch = int(epoch)
+
     def __getitem__(self, idx):
         row = self.rows[idx]
         with Image.open(row['source_file']) as im:
@@ -78,7 +88,11 @@ class AcceptedWeatherPairs(Dataset):
         with Image.open(row['target_file']) as im:
             weather = im.convert('RGB')
         from workflow.reliability_cache import preprocess_teacher_image
+        student_tensor, augmentation_record = student_training_tensor(
+            weather, self.size, self.augmentation,
+            seed=sample_augmentation_seed(self.seed, self.epoch, idx))
         return dict(index=idx, row=row, day_image=day, weather_image=weather,
                     day_tensor=preprocess_teacher_image(day, self.size),
                     weather_tensor=preprocess_teacher_image(weather, self.size),
+                    student_tensor=student_tensor, augmentation_record=augmentation_record,
                     place=row['place'])

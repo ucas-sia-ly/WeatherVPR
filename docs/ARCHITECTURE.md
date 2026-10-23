@@ -14,6 +14,8 @@
 
 两个合成阶段均默认全参数 Night DINOv2、batch size 8、BF16、AdamW、学习率 1e-6，各 1 epoch。真实阶段默认 batch 4、FP32、3 epoch，末层学习率 1e-6、逐层衰减 0.7，最早层学习率约 1.38e-8；所有参数均可训练。同夜图 Teacher 约束默认权重 100，可用 `NIGHT_BASELINE_WEIGHT=0` 独立关闭。可通过 `GRADIENT_ACCUMULATION_STEPS` 在显存较小时维持有效 batch 大小。当前项目提供匹配这份白天 checkpoint 与 224×224 预处理的 Stage2B 对应校准，仅启用局部损失时需要它。
 
+可选 `--night-augmentation camera` 在缩放之后、归一化之前添加曝光/Gamma、光晕过曝、模糊、噪声、JPEG、降饱和、暗角和随机光度操作。Dataset 保留 clean Teacher/对应输入与单独的 Student 增强输入；真实阶段的描述符 anchor 也以原始夜图为 Teacher 目标。策略不改变几何，原图验证/test 不调用增强。固定种子、逐项消融和相机计算顺序见 [增强设计](NIGHT_CAMERA_AUGMENTATION.md)。
+
 ## 损失与消融
 
 | 损失 | 实现 | 开关 |

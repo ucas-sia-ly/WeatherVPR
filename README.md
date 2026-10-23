@@ -10,18 +10,20 @@
 - `data/train/manifest.jsonl` 是 7,719 对 SHA-256 核验过的 night/day 精确配对。`data/splits/night_train.jsonl` 有 7,263 对训练图，`night_val.jsonl` 有 385 对地点隔离的合成验证图；历史保留地点另排除 71 对。
 - `configs/dino_salad_stage2b_calibration.json` 与当前 checkpoint 和 224×224 预处理匹配。相应地点排除已纳入 split；SGPD 的 A 类可信 Patch 才参与局部损失。
 - SVOX train 有 22,232 张白天 Gallery 和 702 张夜间 Query，可用于授权的真实夜景微调；test 有 17,166 张白天 Gallery 和 823 张夜间 Query。评估采用 25 m UTM 正样本协议。
-- 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。Night 全参数 DINOv2 使用新的 `runs/night_full_*` 实验目录。
+- 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。全参数基线使用 `runs/night_full_*`；相机增强重跑的五组训练保存在 `runs/night_camera_20261023/`。
 
-### 本轮全参数结果
+### 相机增强重跑结果（2026-10-23）
 
 | 模型 / 原始白天 Gallery | SVOX test R@1 | R@5 | R@10 |
 | --- | ---: | ---: | ---: |
 | 原始白天 SALAD | 92.71%（763/823） | 98.42% | 99.15% |
-| Day 初始化 → 真实夜景全参数微调 | **92.95%（765/823）** | 98.42% | 99.15% |
+| 上一轮无增强 Day→真实 Night | 92.95%（765/823） | 98.42% | 99.15% |
+| 相机增强 Day→真实 Night | 92.95%（765/823） | 98.30% | 99.27% |
+| 相机增强 Global→SGPD→真实 Night | **93.07%（766/823）** | 98.42% | 99.15% |
 
-所选权重是 `runs/night_full_real_day_layerdecay07_anchor100_01/adapter.safetensors`，从白天 DINOv2 直接初始化，使用 SVOX train、逐层学习率衰减与同夜图 Teacher 描述符约束；未经过 Qwen SGPD。模型在 train 内部空间验证集选定后再测 test，修复 2 个 R@1 错误，没有新增 R@1 错误。增益只有 0.24 个百分点，且过滤使用了 test 文件名坐标、先前 LoRA 也查看过 test，结论属于探索性实验。
+新增曝光/Gamma、光晕过曝、运动模糊、泊松高斯噪声、JPEG、降饱和、暗角和随机光度策略，只增强训练 Student；Teacher、可信对应、验证/test 与原白天 Gallery 保持干净。每项概率和范围可以独立消融，见 [增强策略](docs/NIGHT_CAMERA_AUGMENTATION.md) 和 [预览](runs/night_camera_20261023/augmentation_preview.jpg)。
 
-Qwen SGPD 的合成配对余弦从 0.6778 提高到 0.7474，但其完整 SVOX train R@1 为 87.46%，低于原始模型的 88.46%；目前**未证明 SGPD 对真实夜景的额外收益**。训练来源、脚本修正、逐阶段结果和复现命令见 [全参数实验记录](docs/NIGHT_FULL_RESULTS.md)，历史 LoRA 对照见 [数据和评估](docs/DATA_AND_EVALUATION.md)。
+开发集按 R@1/5/10 选择的是 `runs/night_camera_20261023/real_day/adapter.safetensors`（61/76、70/76、71/76）。完整 SGPD 路线位于 `real_sgpd/adapter.safetensors`，作为 test 前登记的另一条最终路线报告。其 test R@1 比上一轮只多命中 **1 张**，且会修复和新增不同错误；不能称为稳定显著提升。SGPD 与同预算纯全局接续的内部 Recall 相同，**SGPD 的独立增量收益尚未证实**。全部五组结果与来源见 [本轮实验记录](docs/NIGHT_CAMERA_RESULTS.md)；上一轮与历史 LoRA 分别见 [全参数基线记录](docs/NIGHT_FULL_RESULTS.md)、[数据和评估](docs/DATA_AND_EVALUATION.md)。
 
 当前目录所需的模型、源码和图像均已具备，**无需再下载文件**。另一台机器上的资源来源见 [下载与来源](docs/DOWNLOADS.md)。
 
@@ -30,6 +32,15 @@ Qwen SGPD 的合成配对余弦从 0.6778 提高到 0.7474，但其完整 SVOX t
 ## 运行
 
 以下命令从项目根目录执行。本机 `base` 环境的 PyTorch CUDA 构建与驱动不兼容；下列 `PYTHON` 指向已验证可用的 `a2b-lightvpr` 环境。每次训练必须使用新的 `OUTPUT` 目录。
+
+完整相机增强重跑（五组训练、原图合成验证及 SVOX train 空间验证，test 需选模后单独执行）：
+
+```bash
+PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
+EXPERIMENT=night_camera_replay_02 bash configs/night_camera_replay.sh
+```
+
+以下是无增强基线和独立阶段命令。给训练命令添加 `NIGHT_AUGMENTATION=camera AUGMENTATION_CONFIG=configs/night_camera.json` 可启用相机增强；原有入口默认 `off`，方便复现对照。
 
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
