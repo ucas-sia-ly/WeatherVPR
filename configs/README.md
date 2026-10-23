@@ -1,5 +1,11 @@
 # Night 训练配置
 
+## Night 专用 Query 目标
+
+`night_specialist.sh` 将 Student 限定为 Night Query 模型，默认关闭旧 Synthetic Guidance / Day Preservation。辅助分支从训练 Day 原图生成必做曝光衰减的低照度视图，Student 不直接处理干净 Day；目标仍为冻结 Day bank。参数见 `source_night.json`，用 `SOURCE_NIGHT_WEIGHT=0` 做无辅助对照；`SOURCE_NIGHT_SAMPLES` 控制每步辅助样本上限。真实夜图仅评估。
+
+默认 Global / Contrast / Relation 为 `0.1 / 0.1 / 0.1`，Source Night 为 `0.5`，SGPD / Keep / OT 默认关闭并可独立开启。两组新候选 test 只评估开发集所选分支：R@1/5/10 为 93.07% / 98.66% / 99.03%，R@10 比原始 Day 略低。方法与复现见 [Night 专用说明](../docs/NIGHT_SPECIALIST.md)、[实测结果](../docs/NIGHT_SPECIALIST_RESULTS.md)。
+
 ## 新增：检索指导与知识保留
 
 `night_guided_retrieval.sh` 用全部训练白天图构建固定 Teacher 特征库（7,263 keys / 6,441 地点），新增多正样本难负 InfoNCE、排除同地点的 Teacher 检索关系 KL、干净 Qwen 冻结指导及训练 Day 知识保留。仅使用合成图对与训练 Day，原 Day/SALAD/Gallery 保持冻结；真实夜图不参与梯度更新。

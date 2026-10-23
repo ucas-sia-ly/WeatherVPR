@@ -12,6 +12,14 @@
 - SVOX 仅用于真实夜景检索评估：test 有 17,166 张白天 Gallery 和 823 张夜间 Query；`--split train` 可对独立的 22,232 张白天 Gallery、702 张夜间 Query 做只读诊断。评估采用 25 m UTM 正样本协议。
 - 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。全参数合成基线使用 `runs/night_full_global*` 与 `runs/night_full_sgpd*`；相机增强的三组配对训练保存在 `runs/night_camera_20261023/`。
 
+### Night 专用目标（2026-10-24）
+
+Student 的职责是夜间 Query→原始 Day Gallery 检索。新增 `configs/night_specialist.sh` 默认关闭 Synthetic Guidance 和 Day Preservation；白天照片的辅助用途是产生强制低照度视图，再由 Night Student 检索干净 Day Teacher 特征库。Student 不必保持干净白天输入的表现。旧正则保留作独立消融，其价值以 Night Recall 判断。
+
+两组同预算实验已完成。所选 `runs/night_specialist_20261024/source_night` 在 SVOX test 的 R@1/5/10 为 **93.07% / 98.66% / 99.03%**，原始 Day 为 92.71% / 98.42% / 99.15%。R@1 多命中 3 张、R@5 多 2 张、R@10 少 1 张，属于小幅且不一致的收益。训练仅使用 Day/Qwen，Gallery 模型和特征库不变。
+
+[目标与损失说明](docs/NIGHT_SPECIALIST.md) · [完整实验与复现](docs/NIGHT_SPECIALIST_RESULTS.md)
+
 ### 相机增强配对训练（2026-10-23）
 
 | 配置 | 原图合成验证 R@1 | 平均配对描述符余弦 |

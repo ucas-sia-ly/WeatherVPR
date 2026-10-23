@@ -2,31 +2,39 @@
 from __future__ import annotations
 
 import hashlib
+from typing import TYPE_CHECKING
 from PIL import Image
 
 from weather_vpr.data.night_augmentation import NightCameraAugmentation, NightAugmentationConfig
 
+if TYPE_CHECKING:
+    from weather_vpr.data.source_night import SourceNightAugmentation
+
 
 SEED_POLICY = 'sha256(training_seed, zero_based_epoch, original_sample_index), first 64 bits'
+SOURCE_NIGHT_SEED_POLICY = (
+    'sha256(training_seed:zero_based_epoch:original_sample_index:source_night), first 64 bits'
+)
 
 
 def sample_augmentation_seed(training_seed: int, epoch: int, sample_index: int,
                              *, view: str = 'weather') -> int:
-    """Worker-independent seeds with separate Day and weather random streams.
+    """Worker-independent seeds with separate weather, Day and source-night streams.
 
     The default weather payload is unchanged, preserving historical runs.
     """
-    if view not in ('weather', 'day'):
-        raise ValueError("augmentation view must be 'weather' or 'day'")
+    if view not in ('weather', 'day', 'source_night'):
+        raise ValueError("augmentation view must be 'weather', 'day' or 'source_night'")
     payload = f'{int(training_seed)}:{int(epoch)}:{int(sample_index)}'
-    if view == 'day':
-        payload += ':day'
+    if view != 'weather':
+        payload += f':{view}'
     value = payload.encode('ascii')
     return int.from_bytes(hashlib.sha256(value).digest()[:8], 'big')
 
 
 def student_training_tensor(image: Image.Image, image_size: tuple[int, int],
-                            augmentation: NightCameraAugmentation, *, seed: int):
+                            augmentation: NightCameraAugmentation | SourceNightAugmentation,
+                            *, seed: int):
     """Degrade network-resolution pixels, then use original SALAD normalization."""
     from workflow.reliability_cache import preprocess_teacher_image
     height, width = image_size

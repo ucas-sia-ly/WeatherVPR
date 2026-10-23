@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
@@ -17,7 +18,10 @@ enable_backend_imports()
 from workflow.reliability_cache import preprocess_teacher_image
 from weather_vpr.data.night_augmentation import NightAugmentationConfig
 from weather_vpr.data.paired_dataset import AcceptedWeatherPairs
-from weather_vpr.data.student_augmentation import sample_augmentation_seed
+from weather_vpr.data.source_night import SourceNightConfig
+from weather_vpr.data.student_augmentation import (
+    SOURCE_NIGHT_SEED_POLICY, sample_augmentation_seed, student_training_tensor,
+)
 from weather_vpr.training.augmentation import load_augmentation_config
 from weather_vpr.training.train import parse_args as parse_pair_args
 
@@ -26,6 +30,13 @@ def _camera_config():
     # Probability one ensures a changed view for this consistency test.
     return NightAugmentationConfig(profile='camera', probability=1.0,
                                    operation_probabilities={'exposure': 1.0})
+
+
+def _source_night_config():
+    # Camera corruptions can be disabled without disabling explicit darkening.
+    return SourceNightConfig(camera_probability=0.0, illumination_probability=0.0,
+                             white_balance_probability=0.0,
+                             gain_range=(0.1, 0.1), gamma_range=(1.0, 1.0))
 
 
 class TrainingAugmentationTests(unittest.TestCase):
@@ -66,7 +77,8 @@ class TrainingAugmentationTests(unittest.TestCase):
     def test_epoch_seed_is_reproducible_across_worker_counts(self):
         dataset = AcceptedWeatherPairs(self.manifest, 'night',
                                         night_augmentation=_camera_config(), seed=24,
-                                        day_augmentation=_camera_config())
+                                        day_augmentation=_camera_config(),
+                                        source_night_config=_source_night_config())
         def read(workers):
             loader = DataLoader(dataset, batch_size=2, num_workers=workers,
                                 collate_fn=list, shuffle=False)
@@ -82,11 +94,22 @@ class TrainingAugmentationTests(unittest.TestCase):
                                        rtol=0, atol=0)
             self.assertNotEqual(one['augmentation_record']['seed'],
                                 one['day_augmentation_record']['seed'])
+            self.assertEqual(one['source_night_record'], two['source_night_record'])
+            torch.testing.assert_close(one['source_night_tensor'], two['source_night_tensor'],
+                                       rtol=0, atol=0)
+            self.assertEqual(one['source_night_record']['seed_domain'], 'source_night')
+            self.assertEqual(one['source_night_record']['seed_policy'], SOURCE_NIGHT_SEED_POLICY)
+            self.assertNotEqual(one['source_night_record']['seed'],
+                                one['augmentation_record']['seed'])
+            self.assertNotEqual(one['source_night_record']['seed'],
+                                one['day_augmentation_record']['seed'])
         dataset.set_epoch(4)
         next_epoch = read(2)
         self.assertTrue(all(one['augmentation_record']['seed'] != two['augmentation_record']['seed']
                             for one, two in zip(serial, next_epoch)))
         self.assertTrue(all(one['day_augmentation_record']['seed'] != two['day_augmentation_record']['seed']
+                            for one, two in zip(serial, next_epoch)))
+        self.assertTrue(all(one['source_night_record']['seed'] != two['source_night_record']['seed']
                             for one, two in zip(serial, next_epoch)))
         self.assertNotEqual(sample_augmentation_seed(24, 3, 0), sample_augmentation_seed(24, 3, 1))
 
@@ -98,6 +121,55 @@ class TrainingAugmentationTests(unittest.TestCase):
         self.assertIs(sample['day_student_tensor'], sample['day_tensor'])
         self.assertEqual(sample['day_augmentation_record']['profile'], 'off')
         self.assertFalse(sample['day_augmentation_record']['applied'])
+        self.assertIsNone(sample['source_night_tensor'])
+        self.assertIsNone(sample['source_night_record'])
+
+    def test_disabled_source_night_has_no_transform_or_random_stream(self):
+        with patch('weather_vpr.data.source_night.SourceNightAugmentation') as transform, \
+                patch('weather_vpr.data.paired_dataset.sample_augmentation_seed',
+                      wraps=sample_augmentation_seed) as seed, \
+                patch('weather_vpr.data.paired_dataset.student_training_tensor',
+                      wraps=student_training_tensor) as tensor:
+            sample = AcceptedWeatherPairs(self.manifest, 'night', seed=24,
+                                            source_night_config=None)[0]
+        transform.assert_not_called()
+        self.assertEqual(tensor.call_count, 1)  # Historical Qwen Student view only.
+        self.assertEqual(seed.call_count, 2)  # Historical weather and Day seeds only.
+        self.assertFalse(any(call.kwargs.get('view') == 'source_night'
+                             for call in seed.call_args_list))
+        self.assertIsNone(sample['source_night_tensor'])
+        self.assertIsNone(sample['source_night_record'])
+
+    def test_source_night_is_dark_without_camera_and_preserves_existing_views(self):
+        options = dict(night_augmentation=_camera_config(), seed=24,
+                       day_augmentation=_camera_config())
+        reference = AcceptedWeatherPairs(self.manifest, 'night', **options)[0]
+        dataset = AcceptedWeatherPairs(self.manifest, 'night', **options,
+                                        source_night_config=_source_night_config())
+        original_transform = dataset.source_night_augmentation
+        with patch.object(dataset, 'source_night_augmentation',
+                          wraps=original_transform) as transform:
+            sample = dataset[0]
+        self.assertEqual(transform.call_count, 1)
+        self.assertEqual(transform.call_args.args[0].size, (224, 224))
+        self.assertEqual(sample['source_night_tensor'].shape, sample['day_tensor'].shape)
+        self.assertTrue(torch.isfinite(sample['source_night_tensor']).all())
+        self.assertTrue((sample['source_night_tensor'] < sample['day_tensor']).all())
+        self.assertTrue(sample['source_night_record']['applied'])
+        self.assertIn('exposure', sample['source_night_record']['operations'])
+        self.assertFalse(any(name.startswith('camera_')
+                             for name in sample['source_night_record']['operations']))
+        self.assertEqual(sample['source_night_record']['seed'],
+                         sample_augmentation_seed(24, 0, 0, view='source_night'))
+        for key in ('day_tensor', 'weather_tensor', 'student_tensor', 'day_student_tensor'):
+            torch.testing.assert_close(sample[key], reference[key], rtol=0, atol=0)
+        for key in ('day_image', 'weather_image'):
+            np.testing.assert_array_equal(np.asarray(sample[key]), np.asarray(reference[key]))
+        for key in ('augmentation_record', 'day_augmentation_record'):
+            self.assertEqual(sample[key], reference[key])
+        for key, path in (('day_image', self.day), ('weather_image', self.night)):
+            with Image.open(path) as image:
+                np.testing.assert_array_equal(np.asarray(sample[key]), np.asarray(image))
 
     def test_day_student_augmentation_leaves_all_clean_and_weather_views_unchanged(self):
         reference = AcceptedWeatherPairs(self.manifest, 'night',
@@ -128,13 +200,18 @@ class TrainingAugmentationTests(unittest.TestCase):
         self.assertEqual(sample['day_augmentation_record']['operations'], {})
         self.assertFalse(sample['day_augmentation_record']['applied'])
 
-    def test_weather_seed_history_and_day_domain_separation(self):
+    def test_weather_seed_history_and_domain_separation(self):
         expected_weather = int.from_bytes(hashlib.sha256(b'24:3:0').digest()[:8], 'big')
         expected_day = int.from_bytes(hashlib.sha256(b'24:3:0:day').digest()[:8], 'big')
+        expected_source_night = int.from_bytes(
+            hashlib.sha256(b'24:3:0:source_night').digest()[:8], 'big')
         self.assertEqual(sample_augmentation_seed(24, 3, 0), expected_weather)
         self.assertEqual(sample_augmentation_seed(24, 3, 0, view='weather'), expected_weather)
         self.assertEqual(sample_augmentation_seed(24, 3, 0, view='day'), expected_day)
         self.assertNotEqual(expected_day, expected_weather)
+        self.assertEqual(sample_augmentation_seed(24, 3, 0, view='source_night'),
+                         expected_source_night)
+        self.assertEqual(len({expected_day, expected_weather, expected_source_night}), 3)
         for view in ('night', '', None):
             with self.subTest(view=view), self.assertRaisesRegex(ValueError, 'view'):
                 sample_augmentation_seed(24, 3, 0, view=view)

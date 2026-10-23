@@ -8,6 +8,7 @@ from contextlib import nullcontext
 from pathlib import Path
 import random
 import tempfile
+import time
 import torch
 from torch.utils.data import DataLoader
 from safetensors.torch import load_file, save_file
@@ -81,13 +82,19 @@ def parse_args(argv=None):
     p.add_argument('--relation-teacher-temperature', type=float, default=0.1)
     p.add_argument('--relation-hard-negatives', type=int, default=64)
     p.add_argument('--synthetic-guidance-weight', type=float, default=0.0,
-                   help='Preserve frozen base descriptors on clean Qwen images; no real night training')
+                   help='Optional anchor to the base model response on clean Qwen Night; validate its utility using Night Recall')
     p.add_argument('--day-preservation-weight', type=float, default=0.0,
-                   help='Preserve the original descriptor space when Night backbone sees training Day images')
+                   help='Historical Day Student preservation/restoration auxiliary; not required for Night-to-Day retrieval')
     p.add_argument('--day-preservation-samples', type=int, default=1,
                    help='Day samples per microbatch; sequential backward bounds activation memory')
     p.add_argument('--day-view-augmentation', choices=('off', 'camera'), default='off',
                    help='Optional camera-degraded training Day Student views; clean Day Teacher targets')
+    p.add_argument('--source-night-weight', type=float, default=0.0,
+                   help='Retrieval supervision on explicitly darkened training Day photos, targeting frozen clean Day keys')
+    p.add_argument('--source-night-samples', type=int, default=2,
+                   help='Source-derived night views per microbatch; never clean Day Student inputs')
+    p.add_argument('--source-night-config', type=Path,
+                   help='JSON configuration for mandatory darkening and optional camera corruption')
     p.add_argument('--layer-decay', type=float, default=1.0,
                    help='Full-backbone layer-wise learning rate decay; all parameters remain trainable')
     p.add_argument('--lr-schedule', choices=('constant', 'cosine'), default='constant')
@@ -135,6 +142,8 @@ def _validate(args):
         raise ValueError('min-lr-ratio must be finite in [0,1]')
     if args.day_preservation_samples < 1:
         raise ValueError('day-preservation-samples must be positive')
+    if args.source_night_samples < 1:
+        raise ValueError('source-night-samples must be positive')
     if args.lr_schedule == 'constant' and args.warmup_steps:
         raise ValueError('warmup-steps requires lr-schedule cosine')
     if not math.isfinite(args.learning_rate) or args.learning_rate <= 0:
@@ -143,11 +152,15 @@ def _validate(args):
         raise ValueError('weight-decay must be finite and nonnegative')
     weights = ('global_weight','contrast_weight','patch_weight','keep_weight',
                'ot_weight','magnitude_weight','relation_weight',
-               'synthetic_guidance_weight','day_preservation_weight')
+               'synthetic_guidance_weight','day_preservation_weight','source_night_weight')
     if any(not math.isfinite(getattr(args, name)) or getattr(args, name) < 0 for name in weights):
         raise ValueError('Loss weights must be finite and nonnegative')
     if not any(getattr(args, name) > 0 for name in weights):
         raise ValueError('At least one loss weight must be positive')
+    if args.source_night_weight > 0 and args.global_weight == args.contrast_weight == 0:
+        raise ValueError('Source night retrieval needs global-weight or contrast-weight > 0')
+    if args.source_night_weight > 0 and args.weather != 'night':
+        raise ValueError('Source night views are currently specified only for weather night')
     if (args.contrast_weight > 0 and args.batch_size < 2 and args.contrast_queue_size == 0
             and args.fixed_day_bank is None
             and not any(getattr(args, name) > 0 for name in weights if name != 'contrast_weight')):
@@ -202,6 +215,7 @@ def _save_run(out, net, weather, metadata):
 
 
 def main(argv=None):
+    run_started = time.monotonic()
     args = parse_args(argv)
     _validate(args)
     out = args.output_dir.expanduser().resolve()
@@ -223,10 +237,27 @@ def main(argv=None):
     day_augmentation_info.update(
         scope='training Day Student view only; Day Teacher, Qwen matching and Gallery remain clean',
         seed_policy='historical weather seed input plus :day domain suffix')
+    source_night_config = None
+    source_night_info = {'enabled': False}
+    if args.source_night_weight > 0:
+        from weather_vpr.data.source_night import SourceNightConfig
+        from weather_vpr.data.student_augmentation import SOURCE_NIGHT_SEED_POLICY
+        values = (json.loads(args.source_night_config.expanduser().resolve(strict=True)
+                             .read_text(encoding='utf-8'))
+                  if args.source_night_config is not None else {})
+        source_night_config = SourceNightConfig.from_dict(values)
+        source_night_info = {
+            'enabled': True, 'config': source_night_config.to_dict(),
+            'seed_policy': SOURCE_NIGHT_SEED_POLICY,
+            'scope': 'Student receives only a simulated low-light view of training Day; frozen target is clean Day',
+            'loss': 'source_night_weight * (global_weight * global + contrast_weight * cross_domain_infonce)',
+            'geometry': 'unchanged; no source-view patch supervision is introduced',
+        }
     dataset = AcceptedWeatherPairs(args.manifest, args.weather, model_size,
                                   args.exclude_places, args.verify_hashes,
                                   night_augmentation=augmentation_config, seed=args.seed,
-                                  day_augmentation=day_augmentation)
+                                  day_augmentation=day_augmentation,
+                                  source_night_config=source_night_config)
     if args.batch_sampling == 'distinct':
         sampler = DistinctPlaceBatchSampler([row['place'] for row in dataset.rows],
                                             args.batch_size, seed=args.seed)
@@ -298,6 +329,7 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     resolved_config = training_configuration(args, augmentation_info)
     resolved_config['effective_day_view_augmentation'] = day_augmentation_info
+    resolved_config['effective_source_night'] = source_night_info
     (out / 'training_config.json').write_text(
         json.dumps(resolved_config, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
@@ -310,6 +342,7 @@ def main(argv=None):
     accumulation_count = 0
     augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     day_augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+    source_night_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     last_gradient_norm = 0.0
     optimizer.zero_grad(set_to_none=True)
 
@@ -338,6 +371,9 @@ def main(argv=None):
     def metadata(epochs_completed):
         return dict(
             weather=args.weather, adapter_type=args.adapter_type,
+            elapsed_seconds=time.monotonic() - run_started,
+            peak_cuda_allocated_bytes=(torch.cuda.max_memory_allocated(args.device)
+                                       if torch.device(args.device).type == 'cuda' else 0),
             bottleneck=args.hidden, lora_rank=args.lora_rank, lora_alpha=args.lora_alpha,
             lora_dropout=args.lora_dropout, lora_blocks=args.lora_blocks,
             lora_targets=['attn.qkv', 'attn.proj'] if args.adapter_type == 'lora' else [],
@@ -357,7 +393,8 @@ def main(argv=None):
                           'ot': args.ot_weight, 'magnitude': args.magnitude_weight,
                           'relation': args.relation_weight,
                           'synthetic_guidance': args.synthetic_guidance_weight,
-                          'day_preservation': args.day_preservation_weight},
+                          'day_preservation': args.day_preservation_weight,
+                          'source_night': args.source_night_weight},
             positive_patches_seen=total_positive_patches,
             checkpoint_sha256=teacher_hash, model_config=base.config,
             preprocessing=preprocessing, manifest=str(dataset.manifest),
@@ -374,11 +411,14 @@ def main(argv=None):
             day_preservation_samples=args.day_preservation_samples,
             day_view_augmentation=day_augmentation_info,
             sampled_day_augmentation_counts=day_augmentation_counts,
+            source_night=source_night_info,
+            source_night_samples=args.source_night_samples,
+            sampled_source_night_counts=source_night_counts,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
             importance_mode=args.importance_mode,
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_full_retrieval_v2' if args.adapter_type == 'full'
+            code_version=('weather_vpr_full_night_specialist_v4' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
@@ -500,6 +540,39 @@ def main(argv=None):
                  args.gradient_accumulation_steps).backward()
                 preservation_value = float(preservation.detach())
                 del preservation_desc, preservation, day_student
+            source_value = source_global_value = source_contrast_value = 0.0
+            source_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+            source_positive_pairs = source_negative_pairs = 0
+            if args.source_night_weight > 0:
+                count = min(len(batch), args.source_night_samples)
+                source_tensor = torch.stack([item['source_night_tensor']
+                                             for item in batch[:count]]).to(args.device)
+                source_sampled_counts = sampled_augmentation_counts(
+                    [item['source_night_record'] for item in batch[:count]])
+                merge_augmentation_counts(source_night_counts, source_sampled_counts)
+                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+                      if args.bf16 else nullcontext()):
+                    source_desc = net.student(source_tensor, args.weather, return_aux=False)
+                source_zero = source_desc.float().sum() * 0.0
+                source_global = (descriptor_alignment(source_desc, day_desc[:count])
+                                 if args.global_weight > 0 else source_zero)
+                if args.contrast_weight > 0:
+                    source_contrast = queue.contrastive_loss(
+                        source_desc, day_desc[:count], places[:count], args.temperature,
+                        hard_negatives=args.contrast_hard_negatives)
+                    source_c_loss = source_contrast['loss']
+                    source_positive_pairs = int(source_contrast['positive_pairs'])
+                    source_negative_pairs = int(source_contrast['effective_negative_pairs'])
+                else:
+                    source_c_loss = source_zero
+                source_loss = args.global_weight * source_global + args.contrast_weight * source_c_loss
+                if not torch.isfinite(source_loss):
+                    raise FloatingPointError('Non-finite source night retrieval loss')
+                (args.source_night_weight * source_loss / args.gradient_accumulation_steps).backward()
+                source_value = float(source_loss.detach())
+                source_global_value = float(source_global.detach())
+                source_contrast_value = float(source_c_loss.detach())
+                del source_tensor, source_desc, source_loss, source_global, source_c_loss, source_zero
             if not any(param.grad is not None for param in params):
                 raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
             accumulation_count += 1
@@ -515,7 +588,8 @@ def main(argv=None):
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            augmentation=sampled_counts,
-                           loss=float(total.detach()) + args.day_preservation_weight * preservation_value,
+                           loss=(float(total.detach()) + args.day_preservation_weight * preservation_value +
+                                 args.source_night_weight * source_value),
                            global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
                            contrast=float(c_loss.detach()), patch=float(p_loss.detach()),
@@ -528,6 +602,12 @@ def main(argv=None):
                            synthetic_guidance_loss=float(s_loss.detach()),
                            day_preservation_loss=preservation_value,
                            day_augmentation=day_sampled_counts,
+                           source_night_loss=source_value,
+                           source_night_global_loss=source_global_value,
+                           source_night_contrast_loss=source_contrast_value,
+                           source_night_augmentation=source_sampled_counts,
+                           source_night_positive_pairs=source_positive_pairs,
+                           source_night_negative_pairs=source_negative_pairs,
                            gradient_norm_pre_clip=last_gradient_norm if did_update else None,
                            max_learning_rate=max(group['lr'] for group in optimizer.param_groups),
                            min_learning_rate=min(group['lr'] for group in optimizer.param_groups),

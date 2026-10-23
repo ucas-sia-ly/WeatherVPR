@@ -51,6 +51,23 @@ class AdapterIOTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _validate(args)
 
+    def test_source_night_loss_has_only_night_retrieval_targets(self):
+        args = parse_args(['--weather', 'night', '--source-night-weight', '.5',
+                           '--source-night-samples', '2', '--synthetic-guidance-weight', '0',
+                           '--day-preservation-weight', '0'])
+        _validate(args)
+        self.assertEqual(args.source_night_weight, .5)
+        for name, bad in [('source_night_weight', -1), ('source_night_samples', 0),
+                          ('weather', 'rain')]:
+            old = getattr(args, name)
+            setattr(args, name, bad)
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                _validate(args)
+            setattr(args, name, old)
+        args.global_weight = args.contrast_weight = 0
+        with self.assertRaisesRegex(ValueError, 'Source night retrieval'):
+            _validate(args)
+
 
 if __name__ == '__main__':
     unittest.main()

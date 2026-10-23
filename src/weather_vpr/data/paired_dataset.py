@@ -3,11 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 from PIL import Image
 from torch.utils.data import Dataset
 from weather_vpr.utils.backend import project_root
 from weather_vpr.data.night_augmentation import NightCameraAugmentation, NightAugmentationConfig
-from weather_vpr.data.student_augmentation import sample_augmentation_seed, student_training_tensor
+from weather_vpr.data.student_augmentation import (
+    SOURCE_NIGHT_SEED_POLICY, sample_augmentation_seed, student_training_tensor,
+)
+
+if TYPE_CHECKING:
+    from weather_vpr.data.source_night import SourceNightConfig
 
 def sha256(path: Path):
     digest = hashlib.sha256()
@@ -38,11 +44,16 @@ class AcceptedWeatherPairs(Dataset):
     def __init__(self, manifest: Path, weather: str, image_size=(224, 224),
                  exclude_places: Path | None = None, verify_hashes=False,
                  night_augmentation: NightAugmentationConfig | None = None, seed: int = 42,
-                 *, day_augmentation: NightAugmentationConfig | None = None):
+                 *, day_augmentation: NightAugmentationConfig | None = None,
+                 source_night_config: SourceNightConfig | None = None):
         self.manifest = manifest.expanduser().resolve(strict=True)
         self.size = tuple(image_size)
         self.augmentation = NightCameraAugmentation(night_augmentation or NightAugmentationConfig())
         self.day_augmentation = NightCameraAugmentation(day_augmentation or NightAugmentationConfig())
+        self.source_night_augmentation = None
+        if source_night_config is not None:
+            from weather_vpr.data.source_night import SourceNightAugmentation
+            self.source_night_augmentation = SourceNightAugmentation(source_night_config)
         self.seed = int(seed)
         self.epoch = 0
         excluded = set()
@@ -102,10 +113,24 @@ class AcceptedWeatherPairs(Dataset):
         else:
             day_student_tensor, day_augmentation_record = student_training_tensor(
                 day, self.size, self.day_augmentation, seed=day_seed)
+        # This independent view is made only when requested. Clean Day targets,
+        # Qwen correspondence inputs and the historical random streams stay intact.
+        source_night_tensor = source_night_record = None
+        if self.source_night_augmentation is not None:
+            source_night_tensor, source_night_record = student_training_tensor(
+                day, self.size, self.source_night_augmentation,
+                seed=sample_augmentation_seed(self.seed, self.epoch, idx, view='source_night'))
+            source_night_record = {
+                **source_night_record,
+                'seed_domain': 'source_night',
+                'seed_policy': SOURCE_NIGHT_SEED_POLICY,
+            }
         return dict(index=idx, row=row, day_image=day, weather_image=weather,
                     day_tensor=day_tensor,
                     day_student_tensor=day_student_tensor,
                     day_augmentation_record=day_augmentation_record,
+                    source_night_tensor=source_night_tensor,
+                    source_night_record=source_night_record,
                     weather_tensor=preprocess_teacher_image(weather, self.size),
                     student_tensor=student_tensor, augmentation_record=augmentation_record,
                     place=row['place'])
