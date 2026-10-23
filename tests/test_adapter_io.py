@@ -32,6 +32,25 @@ class AdapterIOTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             adapter_model_kwargs({'adapter_type': 'unknown'})
 
+    def test_retrieval_guidance_flags_are_independent_and_validate(self):
+        args = parse_args(['--weather', 'night', '--fixed-day-bank', 'runs/cache/day.safetensors',
+                           '--relation-weight', '.1', '--day-preservation-weight', '.5',
+                           '--synthetic-guidance-weight', '.1', '--contrast-hard-negatives', '64',
+                           '--layer-decay', '.8', '--lr-schedule', 'cosine',
+                           '--warmup-steps', '32', '--gradient-checkpointing'])
+        _validate(args)
+        for name, bad in (('relation_weight', -1), ('relation_temperature', 0),
+                          ('layer_decay', 1.1), ('min_lr_ratio', float('nan')),
+                          ('contrast_hard_negatives', -1), ('day_preservation_samples', 0)):
+            old = getattr(args, name)
+            setattr(args, name, bad)
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                _validate(args)
+            setattr(args, name, old)
+        args.adapter_type = 'lora'
+        with self.assertRaises(ValueError):
+            _validate(args)
+
 
 if __name__ == '__main__':
     unittest.main()

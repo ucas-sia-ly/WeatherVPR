@@ -71,6 +71,30 @@ def parse_args(argv=None):
     p.add_argument('--min-teacher-keep', type=float, default=0.01)
     p.add_argument('--temperature', type=float, default=0.1)
     p.add_argument('--contrast-queue-size', type=int, default=256)
+    p.add_argument('--fixed-day-bank', type=Path,
+                   help='Cache all training Day descriptors; use a fixed bank instead of a FIFO queue')
+    p.add_argument('--contrast-hard-negatives', type=int, default=0,
+                   help='Keep all same-place positives and K hardest negative keys; 0 uses every key')
+    p.add_argument('--relation-weight', type=float, default=0.0,
+                   help='Distill Day retrieval neighborhoods over different-place Day keys')
+    p.add_argument('--relation-temperature', type=float, default=0.1)
+    p.add_argument('--relation-teacher-temperature', type=float, default=0.1)
+    p.add_argument('--relation-hard-negatives', type=int, default=64)
+    p.add_argument('--synthetic-guidance-weight', type=float, default=0.0,
+                   help='Preserve frozen base descriptors on clean Qwen images; no real night training')
+    p.add_argument('--day-preservation-weight', type=float, default=0.0,
+                   help='Preserve the original descriptor space when Night backbone sees training Day images')
+    p.add_argument('--day-preservation-samples', type=int, default=1,
+                   help='Day samples per microbatch; sequential backward bounds activation memory')
+    p.add_argument('--day-view-augmentation', choices=('off', 'camera'), default='off',
+                   help='Optional camera-degraded training Day Student views; clean Day Teacher targets')
+    p.add_argument('--layer-decay', type=float, default=1.0,
+                   help='Full-backbone layer-wise learning rate decay; all parameters remain trainable')
+    p.add_argument('--lr-schedule', choices=('constant', 'cosine'), default='constant')
+    p.add_argument('--warmup-steps', type=int, default=0, help='Optimizer updates, not microbatches')
+    p.add_argument('--min-lr-ratio', type=float, default=0.1)
+    p.add_argument('--gradient-checkpointing', action='store_true',
+                   help='Recompute full DINOv2 blocks during backward to reduce activation memory')
     p.add_argument('--bf16', action='store_true')
     p.add_argument('--verify-hashes', action='store_true')
     p.add_argument('--num-workers', type=int, default=0)
@@ -84,8 +108,9 @@ def parse_args(argv=None):
 
 def _validate(args):
     load_augmentation_config(args)
-    if args.max_steps < 0 or args.num_workers < 0 or args.contrast_queue_size < 0:
-        raise ValueError('max-steps, num-workers and contrast-queue-size must be nonnegative')
+    if min(args.max_steps, args.num_workers, args.contrast_queue_size,
+           args.contrast_hard_negatives, args.relation_hard_negatives, args.warmup_steps) < 0:
+        raise ValueError('Step counts, worker counts, queue size and hard-negative counts must be nonnegative')
     if min(args.batch_size, args.epochs, args.hidden, args.lora_rank,
            args.lora_blocks, args.gradient_accumulation_steps) < 1:
         raise ValueError('batch-size, epochs, hidden, LoRA rank/blocks and accumulation must be positive')
@@ -99,17 +124,32 @@ def _validate(args):
         raise ValueError('min-teacher-keep must be finite in [0,1)')
     if not math.isfinite(args.temperature) or args.temperature <= 0:
         raise ValueError('temperature must be finite and positive')
+    if any(not math.isfinite(value) or value <= 0 for value in
+           (args.relation_temperature, args.relation_teacher_temperature)):
+        raise ValueError('Relation temperatures must be finite and positive')
+    if not math.isfinite(args.layer_decay) or not 0 < args.layer_decay <= 1:
+        raise ValueError('layer-decay must be finite in (0,1]')
+    if args.adapter_type != 'full' and (args.layer_decay != 1 or args.gradient_checkpointing):
+        raise ValueError('Layer decay and gradient checkpointing require adapter-type full')
+    if not math.isfinite(args.min_lr_ratio) or not 0 <= args.min_lr_ratio <= 1:
+        raise ValueError('min-lr-ratio must be finite in [0,1]')
+    if args.day_preservation_samples < 1:
+        raise ValueError('day-preservation-samples must be positive')
+    if args.lr_schedule == 'constant' and args.warmup_steps:
+        raise ValueError('warmup-steps requires lr-schedule cosine')
     if not math.isfinite(args.learning_rate) or args.learning_rate <= 0:
         raise ValueError('learning-rate must be finite and positive')
     if not math.isfinite(args.weight_decay) or args.weight_decay < 0:
         raise ValueError('weight-decay must be finite and nonnegative')
     weights = ('global_weight','contrast_weight','patch_weight','keep_weight',
-               'ot_weight','magnitude_weight')
+               'ot_weight','magnitude_weight','relation_weight',
+               'synthetic_guidance_weight','day_preservation_weight')
     if any(not math.isfinite(getattr(args, name)) or getattr(args, name) < 0 for name in weights):
         raise ValueError('Loss weights must be finite and nonnegative')
     if not any(getattr(args, name) > 0 for name in weights):
         raise ValueError('At least one loss weight must be positive')
     if (args.contrast_weight > 0 and args.batch_size < 2 and args.contrast_queue_size == 0
+            and args.fixed_day_bank is None
             and not any(getattr(args, name) > 0 for name in weights if name != 'contrast_weight')):
         raise ValueError('Contrast-only training needs batch-size >= 2 or a queue')
     if any(getattr(args, name) > 0 for name in ('patch_weight','keep_weight','ot_weight',
@@ -173,9 +213,20 @@ def main(argv=None):
     augmentation_config = load_augmentation_config(args)
     augmentation_info = augmentation_metadata(augmentation_config, args.seed, model_size,
                                               args.augmentation_epoch_offset)
+    from weather_vpr.data.night_augmentation import NightAugmentationConfig
+    day_augmentation = (NightAugmentationConfig(
+        **{**augmentation_config.to_dict(), 'profile': args.day_view_augmentation})
+        if args.day_preservation_weight > 0 and args.day_view_augmentation != 'off' else None)
+    day_augmentation_info = (augmentation_metadata(
+        day_augmentation, args.seed, model_size, args.augmentation_epoch_offset)
+        if day_augmentation is not None else {'profile': 'off'})
+    day_augmentation_info.update(
+        scope='training Day Student view only; Day Teacher, Qwen matching and Gallery remain clean',
+        seed_policy='historical weather seed input plus :day domain suffix')
     dataset = AcceptedWeatherPairs(args.manifest, args.weather, model_size,
                                   args.exclude_places, args.verify_hashes,
-                                  night_augmentation=augmentation_config, seed=args.seed)
+                                  night_augmentation=augmentation_config, seed=args.seed,
+                                  day_augmentation=day_augmentation)
     if args.batch_sampling == 'distinct':
         sampler = DistinctPlaceBatchSampler([row['place'] for row in dataset.rows],
                                             args.batch_size, seed=args.seed)
@@ -199,22 +250,56 @@ def main(argv=None):
                               adapter_type=args.adapter_type, lora_rank=args.lora_rank,
                               lora_alpha=args.lora_alpha, lora_dropout=args.lora_dropout,
                               lora_blocks=args.lora_blocks).to(args.device)
+    if args.gradient_checkpointing:
+        net.adapters[args.weather].gradient_checkpointing = True
     teacher_hash = sha256(args.checkpoint)
     preprocessing = input_preprocessing(model_size)
     _load_initial_adapter(net, args, teacher_hash, base, preprocessing)
     params = tuple(net.adapter_parameters(args.weather))
     if not params or any(not param.requires_grad for param in params):
         raise RuntimeError('Selected weather adapter has no trainable parameters')
-    optimizer = torch.optim.AdamW(params, lr=args.learning_rate,
+    from weather_vpr.training.optimization import (
+        full_backbone_parameter_groups, warmup_cosine_multiplier,
+    )
+    groups = (full_backbone_parameter_groups(
+        net.adapters[args.weather], learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay, layer_decay=args.layer_decay)
+        if args.adapter_type == 'full' and args.layer_decay < 1 else params)
+    optimizer = torch.optim.AdamW(groups, lr=args.learning_rate,
                                   weight_decay=args.weight_decay)
-    queue = DayDescriptorQueue(args.contrast_queue_size, storage_device='cpu')
+    initial_lrs = [group['lr'] for group in optimizer.param_groups]
+    remaining_batches = args.max_steps or len(dl) * args.epochs
+    planned_updates = 0
+    for _ in range(args.epochs):
+        batches = min(len(dl), remaining_batches)
+        planned_updates += math.ceil(batches / args.gradient_accumulation_steps)
+        remaining_batches -= batches
+    if args.lr_schedule == 'cosine':
+        warmup_cosine_multiplier(0, planned_updates, warmup_steps=args.warmup_steps,
+                                 min_multiplier=args.min_lr_ratio)
+    bank_descriptors = None
+    bank_info = None
+    if args.fixed_day_bank is not None:
+        from weather_vpr.training.day_bank import load_or_build_day_bank
+        print(f'Preparing frozen Day bank from {len(dataset)} training pairs...', flush=True)
+        bank_descriptors, bank_places, bank_info = load_or_build_day_bank(
+            net, dataset, teacher_hash, preprocessing, args.fixed_day_bank,
+            args.device, batch_size=args.batch_size, num_workers=args.num_workers)
+        queue = DayDescriptorQueue(len(bank_places), storage_device='cpu',
+                                   include_current_keys=False)
+        queue.enqueue(bank_descriptors, bank_places)
+        print(f'Fixed training Day bank: {len(queue)} keys; {bank_info["cache_status"]}', flush=True)
+    else:
+        queue = DayDescriptorQueue(args.contrast_queue_size, storage_device='cpu')
     need_local = any(getattr(args, name) > 0 for name in
                      ('patch_weight','keep_weight','ot_weight','magnitude_weight'))
     effective_calibration = args.pair_calibration if need_local else None
     cal = load_calibration(effective_calibration, args.checkpoint, model_size, args.calibration_index)
     out.mkdir(parents=True, exist_ok=True)
+    resolved_config = training_configuration(args, augmentation_info)
+    resolved_config['effective_day_view_augmentation'] = day_augmentation_info
     (out / 'training_config.json').write_text(
-        json.dumps(training_configuration(args, augmentation_info), indent=2), encoding='utf-8')
+        json.dumps(resolved_config, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
     match_cache = {} if need_local and not args.no_correspondence_cache else None
     total_positive_patches = 0
@@ -224,11 +309,13 @@ def main(argv=None):
     optimizer_steps = 0
     accumulation_count = 0
     augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+    day_augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+    last_gradient_norm = 0.0
     optimizer.zero_grad(set_to_none=True)
 
     def optimizer_update(count):
         """Finish one accumulation window, including a short final window."""
-        nonlocal optimizer_steps, accumulation_count
+        nonlocal optimizer_steps, accumulation_count, last_gradient_norm
         if not any(param.grad is not None for param in params):
             raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
         if count != args.gradient_accumulation_steps:
@@ -236,7 +323,13 @@ def main(argv=None):
             for param in params:
                 if param.grad is not None:
                     param.grad.mul_(correction)
-        torch.nn.utils.clip_grad_norm_(params, max_norm=1.0)
+        multiplier = (warmup_cosine_multiplier(
+            optimizer_steps, planned_updates, warmup_steps=args.warmup_steps,
+            min_multiplier=args.min_lr_ratio) if args.lr_schedule == 'cosine' else 1.0)
+        for group, initial_lr in zip(optimizer.param_groups, initial_lrs):
+            group['lr'] = initial_lr * multiplier
+        norm = torch.nn.utils.clip_grad_norm_(params, max_norm=1.0, error_if_nonfinite=True)
+        last_gradient_norm = float(norm)
         optimizer.step()
         optimizer.zero_grad(set_to_none=True)
         optimizer_steps += 1
@@ -254,11 +347,17 @@ def main(argv=None):
             effective_batch_size=args.batch_size * args.gradient_accumulation_steps,
             save_every_steps=args.save_every_steps,
             learning_rate=args.learning_rate, weight_decay=args.weight_decay,
+            layer_decay=args.layer_decay, lr_schedule=args.lr_schedule,
+            warmup_steps=args.warmup_steps, min_lr_ratio=args.min_lr_ratio,
+            gradient_checkpointing=args.gradient_checkpointing,
             precision='bf16' if args.bf16 else 'fp32',
             epochs_completed=epochs_completed, training_pairs=len(dataset),
             loss_weights={'global': args.global_weight, 'contrast': args.contrast_weight,
                           'patch': args.patch_weight, 'keep': args.keep_weight,
-                          'ot': args.ot_weight, 'magnitude': args.magnitude_weight},
+                          'ot': args.ot_weight, 'magnitude': args.magnitude_weight,
+                          'relation': args.relation_weight,
+                          'synthetic_guidance': args.synthetic_guidance_weight,
+                          'day_preservation': args.day_preservation_weight},
             positive_patches_seen=total_positive_patches,
             checkpoint_sha256=teacher_hash, model_config=base.config,
             preprocessing=preprocessing, manifest=str(dataset.manifest),
@@ -268,11 +367,18 @@ def main(argv=None):
             exclude_places=str(args.exclude_places) if args.exclude_places else None,
             init_adapter_dir=str(args.init_adapter_dir) if args.init_adapter_dir else None,
             batch_sampling=args.batch_sampling, contrast_queue_size=args.contrast_queue_size,
+            fixed_day_bank=bank_info, contrast_hard_negatives=args.contrast_hard_negatives,
+            relation_temperature=args.relation_temperature,
+            relation_teacher_temperature=args.relation_teacher_temperature,
+            relation_hard_negatives=args.relation_hard_negatives,
+            day_preservation_samples=args.day_preservation_samples,
+            day_view_augmentation=day_augmentation_info,
+            sampled_day_augmentation_counts=day_augmentation_counts,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
             importance_mode=args.importance_mode,
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_full_v1' if args.adapter_type == 'full'
+            code_version=('weather_vpr_full_retrieval_v2' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
@@ -289,14 +395,19 @@ def main(argv=None):
             merge_augmentation_counts(augmentation_counts, sampled_counts)
             places = [item['place'] for item in batch]
             # Pass 1: the original frozen Day teacher.
-            teacher_output = net.teacher(day, return_aux=need_local)
-            day_desc, day_aux = teacher_output if need_local else (teacher_output, None)
+            if bank_descriptors is not None and not need_local:
+                day_desc = bank_descriptors[[item['index'] for item in batch]].to(args.device)
+                day_aux = None
+            else:
+                teacher_output = net.teacher(day, return_aux=need_local)
+                day_desc, day_aux = teacher_output if need_local else (teacher_output, None)
+            generated_day_desc = None
             if need_local:
                 indices = [item['index'] for item in batch]
                 if match_cache is None or any(index not in match_cache for index in indices):
                     # Frozen generated-view features verify correspondence only;
                     # student targets still come exclusively from the day branch.
-                    _, generated_teacher_aux = net.teacher(weather, return_aux=True)
+                    generated_day_desc, generated_teacher_aux = net.teacher(weather, return_aux=True)
                     fresh_match, fresh_q = correspondence(batch, day_aux, generated_teacher_aux,
                                                           cal, dataset.manifest)
                     if match_cache is not None:
@@ -311,6 +422,8 @@ def main(argv=None):
                 match, q = match.to(args.device), q.to(args.device)
             else:
                 match = q = None
+            if args.synthetic_guidance_weight > 0 and generated_day_desc is None:
+                generated_day_desc = net.teacher(weather, return_aux=False)
             # Pass 2: only the selected weather parameters receive gradients.
             ctx = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                    if args.bf16 else nullcontext())
@@ -320,7 +433,9 @@ def main(argv=None):
             zero = desc.float().sum() * 0.0
             g_loss = descriptor_alignment(desc, day_desc) if args.global_weight > 0 else zero
             if args.contrast_weight > 0:
-                contrast = queue.contrastive_loss(desc, day_desc, places, args.temperature)
+                contrast = queue.contrastive_loss(
+                    desc, day_desc, places, args.temperature,
+                    hard_negatives=args.contrast_hard_negatives)
                 c_loss = contrast['loss']
             else:
                 contrast = {'effective_negative_pairs': 0,
@@ -328,6 +443,18 @@ def main(argv=None):
                             'mean_effective_negatives': 0.0,
                             'positive_pairs': 0}
                 c_loss = zero
+            if args.relation_weight > 0:
+                relation = queue.relational_distillation_loss(
+                    desc, day_desc, places,
+                    student_temperature=args.relation_temperature,
+                    teacher_temperature=args.relation_teacher_temperature,
+                    hard_negatives=args.relation_hard_negatives)
+                r_loss = relation['loss']
+            else:
+                relation = {'valid_queries': 0, 'mean_support': 0., 'teacher_entropy': 0.}
+                r_loss = zero
+            s_loss = (descriptor_alignment(desc, generated_day_desc)
+                      if args.synthetic_guidance_weight > 0 else zero)
             if match is not None:
                 local = weighted_patch_losses(
                     aux, day_aux, match, q, importance_mode=args.importance_mode,
@@ -348,17 +475,38 @@ def main(argv=None):
                 low_teacher_keep = 0
             total = (args.global_weight*g_loss + args.contrast_weight*c_loss +
                      args.patch_weight*p_loss + args.keep_weight*k_loss +
-                     args.ot_weight*o_loss + args.magnitude_weight*m_loss)
+                     args.ot_weight*o_loss + args.magnitude_weight*m_loss +
+                     args.relation_weight*r_loss + args.synthetic_guidance_weight*s_loss)
             if not torch.isfinite(total):
                 raise FloatingPointError('Non-finite training loss')
             (total / args.gradient_accumulation_steps).backward()
+            # A second, short Day forward is backpropagated only after the Night
+            # graph is freed. The frozen original Day target never changes.
+            preservation_value = 0.0
+            day_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+            if args.day_preservation_weight > 0:
+                count = min(len(batch), args.day_preservation_samples)
+                day_student = torch.stack([item['day_student_tensor'] for item in batch[:count]]).to(args.device)
+                day_sampled_counts = sampled_augmentation_counts(
+                    [item['day_augmentation_record'] for item in batch[:count]])
+                merge_augmentation_counts(day_augmentation_counts, day_sampled_counts)
+                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+                      if args.bf16 else nullcontext()):
+                    preservation_desc = net.student(day_student, args.weather, return_aux=False)
+                preservation = descriptor_alignment(preservation_desc, day_desc[:count])
+                if not torch.isfinite(preservation):
+                    raise FloatingPointError('Non-finite Day preservation loss')
+                (args.day_preservation_weight * preservation /
+                 args.gradient_accumulation_steps).backward()
+                preservation_value = float(preservation.detach())
+                del preservation_desc, preservation, day_student
             if not any(param.grad is not None for param in params):
                 raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
             accumulation_count += 1
             did_update = accumulation_count == args.gradient_accumulation_steps
             if did_update:
                 optimizer_update(accumulation_count)
-            if args.contrast_weight > 0:
+            if bank_descriptors is None and (args.contrast_weight > 0 or args.relation_weight > 0):
                 queue.enqueue(day_desc, places)
             step += 1
             total_positive_patches += coverage
@@ -367,11 +515,23 @@ def main(argv=None):
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            augmentation=sampled_counts,
-                           loss=float(total.detach()), global_loss=float(g_loss.detach()),
+                           loss=float(total.detach()) + args.day_preservation_weight * preservation_value,
+                           global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
                            contrast=float(c_loss.detach()), patch=float(p_loss.detach()),
                            keep=float(k_loss.detach()), ot=float(o_loss.detach()),
                            magnitude=float(m_loss.detach()), positive_patches=coverage,
+                           relation_loss=float(r_loss.detach()),
+                           relation_valid_queries=int(relation['valid_queries']),
+                           relation_mean_support=float(relation['mean_support']),
+                           relation_teacher_entropy=float(relation['teacher_entropy']),
+                           synthetic_guidance_loss=float(s_loss.detach()),
+                           day_preservation_loss=preservation_value,
+                           day_augmentation=day_sampled_counts,
+                           gradient_norm_pre_clip=last_gradient_norm if did_update else None,
+                           max_learning_rate=max(group['lr'] for group in optimizer.param_groups),
+                           min_learning_rate=min(group['lr'] for group in optimizer.param_groups),
+                           candidate_negative_pairs=int(contrast.get('candidate_negative_pairs', 0)),
                            patch_coverage=coverage / (q.numel() if q is not None else len(batch) * 256),
                            positive_mass=patch_mass, teacher_keep_mass=saliency_mass,
                            patch_weight_mass=patch_weight_mass,
@@ -379,7 +539,9 @@ def main(argv=None):
                            effective_negative_pairs=int(contrast['effective_negative_pairs']),
                            effective_negatives_per_query=contrast['effective_negatives_per_query'],
                            mean_effective_negatives=float(contrast['mean_effective_negatives']),
-                           positive_pairs=int(contrast['positive_pairs']), queue_size=len(queue))
+                           positive_pairs=int(contrast['positive_pairs']),
+                           mean_positive_keys_per_query=int(contrast['positive_pairs']) / len(batch),
+                           queue_size=len(queue), fixed_day_bank=bank_descriptors is not None)
             with log_path.open('a', encoding='utf-8') as f:
                 f.write(json.dumps(metrics) + '\n')
             if ((step == 1 and args.adapter_type != 'full' and did_update) or

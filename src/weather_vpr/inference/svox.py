@@ -175,16 +175,83 @@ def _validate_device(value: str) -> str:
     return str(device)
 
 
+def _validate_query_scales(scales, num_clusters: int | None = None):
+    if scales is None:
+        return None
+    if (not isinstance(scales, (tuple, list)) or not scales
+            or any(type(scale) is not int or scale <= 0 or scale % 14 for scale in scales)
+            or len(set(scales)) != len(scales)):
+        raise ValueError('query-scales must be distinct positive integer multiples of 14')
+    if num_clusters is not None and any((scale // 14) ** 2 <= num_clusters for scale in scales):
+        raise ValueError('Each query scale must provide more patches than SALAD clusters')
+    return tuple(scales)
+
+
+def _parse_query_scales(value: str):
+    try:
+        return _validate_query_scales(tuple(int(part.strip()) for part in value.split(',')))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            'query-scales must be a comma-separated list of distinct positive multiples of 14, e.g. 224,336'
+        ) from exc
+
+
+def _scaled_query_batch_size(batch_size: int, scale: int) -> int:
+    return max(1, batch_size * 224 * 224 // (scale * scale))
+
+
+def _unit_query_vectors(vectors, count: int, descriptor_dim: int):
+    if not isinstance(vectors, torch.Tensor) or tuple(vectors.shape) != (count, descriptor_dim):
+        raise ValueError('Query extraction must return [query_count, descriptor_dim] descriptors')
+    vectors = vectors.detach().float().cpu()
+    if not torch.isfinite(vectors).all():
+        raise ValueError('Query descriptors must be finite in FP32')
+    norms = torch.linalg.vector_norm(vectors, dim=1, keepdim=True)
+    if not torch.isfinite(norms).all() or (norms <= 1e-12).any():
+        raise ValueError('Query descriptors must have finite nonzero norms')
+    return vectors / norms
+
+
+def _extract_multiscale_queries(model, images, scales, device: str, batch_size: int,
+                                num_workers: int, descriptor_dim: int):
+    """Resize each original image independently; average unit FP32 descriptors."""
+    from workflow.evaluation import extract_descriptors
+
+    total = None
+    for scale in scales:
+        # The extractor reopens the original paths for every scale. Passing the
+        # original image metadata prevents 224 -> 336 resampling cascades.
+        vectors = extract_descriptors(model, images, (scale, scale), device,
+                                      _scaled_query_batch_size(batch_size, scale), num_workers)
+        vectors = _unit_query_vectors(vectors, len(images), descriptor_dim)
+        if total is None:
+            total = vectors
+        else:
+            total += vectors
+    if total is None:
+        raise ValueError('At least one query scale is required')
+    return _unit_query_vectors(total / len(scales), len(images), descriptor_dim)
+
+
+def _default_output_path(split: str, query_scales=None):
+    name = 'svox_night_evaluation' if split == 'test' else 'svox_train_night_evaluation'
+    if query_scales is not None:
+        name += '_query' + '-'.join(map(str, query_scales))
+    return project_root() / 'runs' / (name + '.json')
+
+
 def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Path,
                         adapter_dir: Path | None, output: Path, cache_path: Path | None,
                         device: str, retrieval_device: str, batch_size: int,
                         num_workers: int, query_chunk_size: int,
                         reference_chunk_size: int, reference_cache_mib: int,
                         save_hard_cases: bool = False, split: str = "test",
-                        adapter_scale: float = 1.0) -> dict:
+                        adapter_scale: float = 1.0,
+                        query_scales: tuple[int, ...] | None = None) -> dict:
     """Write baseline and optional adapter R@1/5/10 against one unchanged gallery."""
     if batch_size < 1 or num_workers < 0 or query_chunk_size < 1 or reference_chunk_size < 1 or reference_cache_mib < 0:
         raise ValueError("Batch/chunk sizes must be positive; workers and cache MiB nonnegative")
+    query_scales = _validate_query_scales(query_scales)
     if adapter_dir is not None:
         adapter_dir = _require_night_adapter_dir(adapter_dir)
     device = _validate_device(device)
@@ -212,6 +279,19 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
     descriptor_dim = (base.config["agg_config"]["num_clusters"] *
                       base.config["agg_config"]["cluster_dim"] +
                       base.config["agg_config"]["token_dim"])
+    _validate_query_scales(query_scales, base.config['agg_config']['num_clusters'])
+    query_preprocessing = {
+        'mode': 'native_single_scale' if query_scales is None else 'query_multiscale',
+        'scales': [224] if query_scales is None else list(query_scales),
+        'per_scale': [preprocessing] if query_scales is None else [
+            input_preprocessing((scale, scale)) for scale in query_scales],
+        'aggregation': ('original_model_descriptor' if query_scales is None else
+                        'FP32 L2 per scale -> equal-weight mean -> L2'),
+        'resize_source': 'original RGB image independently at each scale',
+        'batch_sizes': [batch_size] if query_scales is None else [
+            _scaled_query_batch_size(batch_size, scale) for scale in query_scales],
+        'scope': 'same query policy for baseline and Night; frozen 224 Day Gallery unchanged',
+    }
     student = None
     metadata = None
     if adapter_dir is not None:
@@ -244,8 +324,12 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
             print(f"Saved day gallery descriptors: {cache_path}", flush=True)
 
     print("Extracting unadapted night query descriptors...", flush=True)
-    baseline_vectors = extract_descriptors(base, dataset.queries, base.image_size,
-                                           device, batch_size, num_workers)
+    if query_scales is None:
+        baseline_vectors = extract_descriptors(base, dataset.queries, base.image_size,
+                                               device, batch_size, num_workers)
+    else:
+        baseline_vectors = _extract_multiscale_queries(
+            base, dataset.queries, query_scales, device, batch_size, num_workers, descriptor_dim)
 
     def score(queries, label):
         print(f"Ranking {label} queries against the original day gallery...", flush=True)
@@ -259,14 +343,19 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
     result = {"dataset": "SVOX", "split": split, "query_group": "queries_night",
               "checkpoint": str(checkpoint), "checkpoint_sha256": checkpoint_hash,
               "image_size": list(base.image_size), "preprocessing": preprocessing,
+              "query_preprocessing": query_preprocessing,
               "gallery_cache": str(cache_path) if cache_path else None,
               "gallery_sha256": gallery_hash,
               "baseline": baseline, "adapter": None, "delta_recall": None}
 
     if student is not None:
         print("Extracting trained night query descriptors...", flush=True)
-        adapted_vectors = extract_descriptors(student, dataset.queries,
-                                              base.image_size, device, batch_size, num_workers)
+        if query_scales is None:
+            adapted_vectors = extract_descriptors(student, dataset.queries,
+                                                  base.image_size, device, batch_size, num_workers)
+        else:
+            adapted_vectors = _extract_multiscale_queries(
+                student, dataset.queries, query_scales, device, batch_size, num_workers, descriptor_dim)
         adapted = score(adapted_vectors, "adapter")
         result["adapter"] = {"directory": str(adapter_dir),
                              "metadata": metadata, "scale": adapter_scale,
@@ -308,6 +397,8 @@ def parse_args(argv=None):
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, cuda:0, ...")
     parser.add_argument("--retrieval-device", help="Ranking device; defaults to --device")
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument('--query-scales', type=_parse_query_scales,
+                        help='Optional query-only square sizes, e.g. 224,336; same policy for baseline and Night')
     parser.add_argument("--num-workers", type=int, default=2)
     parser.add_argument("--query-chunk-size", type=int, default=32)
     parser.add_argument("--reference-chunk-size", type=int, default=4096)
@@ -331,9 +422,7 @@ def main(argv=None):
             _require_night_adapter_dir(args.adapter_dir)
         except FileNotFoundError as exc:
             raise SystemExit(str(exc)) from None
-    default_name = ('svox_night_evaluation.json' if args.split == 'test'
-                    else 'svox_train_night_evaluation.json')
-    output = args.output or project_root() / 'runs' / default_name
+    output = args.output or _default_output_path(args.split, args.query_scales)
     cache = args.gallery_cache or project_root() / 'runs/cache' / f'svox_{args.split}_gallery.safetensors'
     evaluate_svox_night(
         svox_root=args.svox_root, checkpoint=args.checkpoint,
@@ -346,6 +435,7 @@ def main(argv=None):
         reference_cache_mib=args.reference_cache_mib,
         save_hard_cases=args.save_hard_cases, split=args.split,
         adapter_scale=args.adapter_scale,
+        query_scales=args.query_scales,
     )
 
 

@@ -1,4 +1,4 @@
-"""Training-only camera degradations for synthetic and real night images.
+"""Training-only camera degradations for generated night Student images.
 
 The caller owns when to enable this transform. It never changes image geometry,
 so clean images can still supply patch correspondence and Teacher targets. All

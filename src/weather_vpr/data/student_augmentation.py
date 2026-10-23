@@ -10,9 +10,18 @@ from weather_vpr.data.night_augmentation import NightCameraAugmentation, NightAu
 SEED_POLICY = 'sha256(training_seed, zero_based_epoch, original_sample_index), first 64 bits'
 
 
-def sample_augmentation_seed(training_seed: int, epoch: int, sample_index: int) -> int:
-    """Independent of worker count, worker scheduling, and batch order."""
-    value = f'{int(training_seed)}:{int(epoch)}:{int(sample_index)}'.encode('ascii')
+def sample_augmentation_seed(training_seed: int, epoch: int, sample_index: int,
+                             *, view: str = 'weather') -> int:
+    """Worker-independent seeds with separate Day and weather random streams.
+
+    The default weather payload is unchanged, preserving historical runs.
+    """
+    if view not in ('weather', 'day'):
+        raise ValueError("augmentation view must be 'weather' or 'day'")
+    payload = f'{int(training_seed)}:{int(epoch)}:{int(sample_index)}'
+    if view == 'day':
+        payload += ':day'
+    value = payload.encode('ascii')
     return int.from_bytes(hashlib.sha256(value).digest()[:8], 'big')
 
 

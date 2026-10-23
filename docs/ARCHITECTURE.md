@@ -10,11 +10,10 @@
 
 1. `configs/night_full_global.sh` 默认用地点隔离的 night 训练集，仅优化全局 Descriptor Alignment 与跨域 InfoNCE。batch 尽量覆盖不同的 `(city, place_id)`；容量 256 的跨 batch 队列保存 detached 的白天 Teacher 描述符。当前 batch 和队列内的同地点描述符全是正样本，不会充当伪负例。训练日志记录每个 query 的有效负样本数。
 2. `configs/night_full_sgpd.sh` 从第一阶段完整 Night 主干初始化，继续训练全局损失与 SGPD。加载时检查天气、原始 checkpoint、预处理和模型类型。若要从原始白天权重直接训练 SGPD，可调用 `scripts/train.py` 并省略 `--init-adapter-dir`，以检验阶段训练的作用。
-3. `configs/night_full_real.sh` 可选地使用 SVOX train 的真实夜图训练完整 Night 主干。白天 SALAD Gallery 固定，25 米内所有白天图是正样本，25–250 米从分母排除，250 米以外提供负样本。另用冻结 Day 模型对**同一夜图**的描述符作余弦约束，缓解小样本训练漂移；它与合成图对的 Day→Night Descriptor Alignment 是不同的监督来源。真实夜图没有可信逐 Patch 对应，所以此阶段不启用 SGPD。默认按北向坐标保留内部空间验证集，以 Recall@1/5/10 选择最佳 epoch；不指定 `INIT_ADAPTER_DIR` 时从原始白天 DINOv2 初始化。
 
-两个合成阶段均默认全参数 Night DINOv2、batch size 8、BF16、AdamW、学习率 1e-6，各 1 epoch。真实阶段默认 batch 4、FP32、3 epoch，末层学习率 1e-6、逐层衰减 0.7，最早层学习率约 1.38e-8；所有参数均可训练。同夜图 Teacher 约束默认权重 100，可用 `NIGHT_BASELINE_WEIGHT=0` 独立关闭。可通过 `GRADIENT_ACCUMULATION_STEPS` 在显存较小时维持有效 batch 大小。当前项目提供匹配这份白天 checkpoint 与 224×224 预处理的 Stage2B 对应校准，仅启用局部损失时需要它。
+两个配对训练阶段均默认全参数 Night DINOv2、batch size 8、BF16、AdamW、学习率 1e-6，各 1 epoch。可通过 `GRADIENT_ACCUMULATION_STEPS` 在显存较小时维持有效 batch 大小。当前项目提供匹配这份白天 checkpoint 与 224×224 预处理的 Stage2B 对应校准，仅启用局部损失时需要它。
 
-可选 `--night-augmentation camera` 在缩放之后、归一化之前添加曝光/Gamma、光晕过曝、模糊、噪声、JPEG、降饱和、暗角和随机光度操作。Dataset 保留 clean Teacher/对应输入与单独的 Student 增强输入；真实阶段的描述符 anchor 也以原始夜图为 Teacher 目标。策略不改变几何，原图验证/test 不调用增强。固定种子、逐项消融和相机计算顺序见 [增强设计](NIGHT_CAMERA_AUGMENTATION.md)。
+可选 `--night-augmentation camera` 在缩放之后、归一化之前添加曝光/Gamma、光晕过曝、模糊、噪声、JPEG、降饱和、暗角和随机光度操作。Dataset 保留 clean Teacher/对应输入与单独的 Student 增强输入。策略不改变几何，原图验证/test 不调用增强。固定种子、逐项消融和相机计算顺序见 [增强设计](NIGHT_CAMERA_AUGMENTATION.md)。
 
 ## 损失与消融
 
@@ -35,7 +34,7 @@
 
 训练图对由 Qwen `sample_id` 和真实源图 basename 显式匹配，并核验 SHA-256。Stage2B 的 A 类对应经过双向局部特征匹配、相对结构和校准阈值检查。Student 的监督目标始终来自**真实白天图**；对生成夜图做的额外冻结 Teacher 前向仅用于判断哪些局部对应可信。未知或不可靠的 Patch 不计算局部损失。
 
-项目内的 `configs/dino_salad_stage2b_calibration.json` 绑定当前完整 checkpoint 和 224×224 预处理。其历史标定地点与当前 night 原始训练清单有 4 个地点重叠；默认 `data/splits/night_train.jsonl` 已排除历史保留的验证/校准地点，并与 `night_val.jsonl` 按地点隔离。直接改用未经划分的 `data/train/manifest.jsonl` 时，必须通过 `--exclude-places` 排除这些地点。SVOX 官方 train/test 划分存在空间近邻；真实夜景阶段使用 test 文件名坐标建立 250 米隔离带，既不解码 test 图像，也不使用 test 描述符或 Recall 优化参数。由于过滤使用了 test 几何信息，最终结果应标记为探索性官方划分评估。
+项目内的 `configs/dino_salad_stage2b_calibration.json` 绑定当前完整 checkpoint 和 224×224 预处理。其历史标定地点与当前 night 原始训练清单有 4 个地点重叠；默认 `data/splits/night_train.jsonl` 已排除历史保留的验证/校准地点，并与 `night_val.jsonl` 按地点隔离。直接改用未经划分的 `data/train/manifest.jsonl` 时，必须通过 `--exclude-places` 排除这些地点。SVOX 图像只进入检索评估，训练输入来自上述 Qwen 配对清单。
 
 ## 评估
 

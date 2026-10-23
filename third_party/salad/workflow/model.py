@@ -147,7 +147,12 @@ class DINOBackbone(nn.Module):
             for block in self.model.blocks[:split]:
                 tokens = block(tokens)
         for block in self.model.blocks[split:]:
-            tokens = block(tokens)
+            if (getattr(self, 'gradient_checkpointing', False) and self.full_finetune
+                    and self.training and torch.is_grad_enabled()):
+                from torch.utils.checkpoint import checkpoint
+                tokens = checkpoint(block, tokens, use_reentrant=False)
+            else:
+                tokens = block(tokens)
         if self.norm_layer:
             tokens = self.model.norm(tokens)
         features = tokens[:, 1:].reshape(batch, height // 14, width // 14, self.num_channels)

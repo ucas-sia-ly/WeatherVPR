@@ -9,23 +9,45 @@
 - `weights/dino_salad.ckpt`、`third_party/salad/`、`third_party/dinov2/` 已在项目内；运行时不查找外部 WORKSPACE。
 - `data/train/manifest.jsonl` 是 7,719 对 SHA-256 核验过的 night/day 精确配对。`data/splits/night_train.jsonl` 有 7,263 对训练图，`night_val.jsonl` 有 385 对地点隔离的合成验证图；历史保留地点另排除 71 对。
 - `configs/dino_salad_stage2b_calibration.json` 与当前 checkpoint 和 224×224 预处理匹配。相应地点排除已纳入 split；SGPD 的 A 类可信 Patch 才参与局部损失。
-- SVOX train 有 22,232 张白天 Gallery 和 702 张夜间 Query，可用于授权的真实夜景微调；test 有 17,166 张白天 Gallery 和 823 张夜间 Query。评估采用 25 m UTM 正样本协议。
-- 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。全参数基线使用 `runs/night_full_*`；相机增强重跑的五组训练保存在 `runs/night_camera_20261023/`。
+- SVOX 仅用于真实夜景检索评估：test 有 17,166 张白天 Gallery 和 823 张夜间 Query；`--split train` 可对独立的 22,232 张白天 Gallery、702 张夜间 Query 做只读诊断。评估采用 25 m UTM 正样本协议。
+- 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。全参数合成基线使用 `runs/night_full_global*` 与 `runs/night_full_sgpd*`；相机增强的三组配对训练保存在 `runs/night_camera_20261023/`。
 
-### 相机增强重跑结果（2026-10-23）
+### 相机增强配对训练（2026-10-23）
 
-| 模型 / 原始白天 Gallery | SVOX test R@1 | R@5 | R@10 |
-| --- | ---: | ---: | ---: |
-| 原始白天 SALAD | 92.71%（763/823） | 98.42% | 99.15% |
-| 上一轮无增强 Day→真实 Night | 92.95%（765/823） | 98.42% | 99.15% |
-| 相机增强 Day→真实 Night | 92.95%（765/823） | 98.30% | 99.27% |
-| 相机增强 Global→SGPD→真实 Night | **93.07%（766/823）** | 98.42% | 99.15% |
+| 配置 | 原图合成验证 R@1 | 平均配对描述符余弦 |
+| --- | ---: | ---: |
+| 原始白天 SALAD | 384/385 | 0.6778 |
+| 增强 Global，`global_01` | 385/385 | 0.7295 |
+| 增强 Global→Global，`global_02` | 385/385 | 0.7358 |
+| 增强 Global→SGPD，`sgpd_02` | 385/385 | 0.7359 |
 
-新增曝光/Gamma、光晕过曝、运动模糊、泊松高斯噪声、JPEG、降饱和、暗角和随机光度策略，只增强训练 Student；Teacher、可信对应、验证/test 与原白天 Gallery 保持干净。每项概率和范围可以独立消融，见 [增强策略](docs/NIGHT_CAMERA_AUGMENTATION.md) 和 [预览](runs/night_camera_20261023/augmentation_preview.jpg)。
+新增曝光/Gamma、光晕过曝、运动模糊、泊松高斯噪声、JPEG、降饱和、暗角和随机光度策略，只增强训练 Student；Teacher、可信对应、验证/test 与原白天 Gallery 使用原图。每项概率和范围可以独立消融，见 [增强策略](docs/NIGHT_CAMERA_AUGMENTATION.md) 和 [预览](runs/night_camera_20261023/augmentation_preview.jpg)。
 
-开发集按 R@1/5/10 选择的是 `runs/night_camera_20261023/real_day/adapter.safetensors`（61/76、70/76、71/76）。完整 SGPD 路线位于 `real_sgpd/adapter.safetensors`，作为 test 前登记的另一条最终路线报告。其 test R@1 比上一轮只多命中 **1 张**，且会修复和新增不同错误；不能称为稳定显著提升。SGPD 与同预算纯全局接续的内部 Recall 相同，**SGPD 的独立增量收益尚未证实**。全部五组结果与来源见 [本轮实验记录](docs/NIGHT_CAMERA_RESULTS.md)；上一轮与历史 LoRA 分别见 [全参数基线记录](docs/NIGHT_FULL_RESULTS.md)、[数据和评估](docs/DATA_AND_EVALUATION.md)。
+Global 接续和 SGPD 接续从相同权重出发，训练预算与增强采样一致。合成验证已接近饱和，配对余弦的差异不能证明真实夜景检索收益。原始 Day SALAD 在 SVOX test 的 R@1/5/10 为 **92.71% / 98.42% / 99.15%**；当前不宣称相机增强或 SGPD 已带来稳定的真实域收益。完整数字见 [相机增强实验记录](docs/NIGHT_CAMERA_RESULTS.md)、[全参数合成基线](docs/NIGHT_FULL_RESULTS.md) 和 [评估协议](docs/DATA_AND_EVALUATION.md)。
 
 当前目录所需的模型、源码和图像均已具备，**无需再下载文件**。另一台机器上的资源来源见 [下载与来源](docs/DOWNLOADS.md)。
+
+### 面向 Recall 的新增实验
+
+新增 [检索指导方案](docs/GUIDED_RETRIEVAL.md)：用 7,263 个训练白天描述符（6,441 个地点）组成固定库，提供多正样本难负 InfoNCE 和排除同地点的 Teacher 检索关系 KL；增加干净 Qwen 的冻结指导与训练 Day 知识保留。训练仅使用 Qwen 图对与训练白天图，Night 主干全参数更新，原 Day Teacher、SALAD 和 Gallery 保持冻结。
+
+该方案参考本地 GCISG 与低质 VPR 蒸馏论文，并根据原 Day Gallery 约束改造；原论文方法、当前实现及差异见上述说明。采用小 batch 梯度累积、activation checkpoint、逐层学习率衰减与 cosine warmup；各损失独立开关。固定相机退化与训练 Day distractors 的精确配对验证仍接近饱和，因此增加排除精确源图的跨视角检查。
+
+另有 `configs/night_guided_restore.sh` 候选，强化干净 Qwen 的冻结指导，并训练 Night 主干从训练白天原片的相机退化视图恢复干净 Day 描述符。`DAY_VIEW_AUGMENTATION` 独立控制该视图；Teacher 和可信匹配始终干净。辅助验证可缓存冻结 Day Gallery，并自动报告排除精确源图的跨视角子集（当前 90 Query / 45 地点），帮助识别精确配对验证饱和。方法、限制及命令见 [检索指导方案](docs/GUIDED_RETRIEVAL.md)。
+
+两组完整实验已完成，开发集选择 `runs/night_guided_20261023/restore_01`。以下均为原始 224 输入及同一 Day Gallery，无多尺度增强：
+
+| 模型 | SVOX 开发 R@1 | test R@1 / R@5 / R@10 |
+| --- | ---: | --- |
+| 原始 Day | 88.46% | 92.71% / 98.42% / 99.15% |
+| 新 `restore_01` | 89.17% | 92.71% / 98.54% / 99.27% |
+
+**test R@1 尚未突破**；R@5、R@10 各增加 1 张命中，不能称为稳定提升。两组配置、跨视角验证、错误变化与权重路径见 [实测记录](docs/GUIDED_RETRIEVAL_RESULTS.md)。
+
+```bash
+PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
+OUTPUT=runs/night_guided_retrieval_01 bash configs/night_guided_retrieval.sh
+```
 
 新 Python 环境先安装与本机驱动兼容的 PyTorch，再执行 `pip install -r requirements-extra.txt`。无需安装 DINOv2 仓库中针对旧 CUDA 版本固定的整套依赖。
 
@@ -33,7 +55,7 @@
 
 以下命令从项目根目录执行。本机 `base` 环境的 PyTorch CUDA 构建与驱动不兼容；下列 `PYTHON` 指向已验证可用的 `a2b-lightvpr` 环境。每次训练必须使用新的 `OUTPUT` 目录。
 
-完整相机增强重跑（五组训练、原图合成验证及 SVOX train 空间验证，test 需选模后单独执行）：
+相机增强配对训练重跑（三组训练及原图合成验证）：
 
 ```bash
 PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
@@ -70,17 +92,10 @@ OUTPUT="runs/${EXPERIMENT}_sgpd" \
 "$PYTHON" scripts/evaluate_pairs.py --adapter-dir "runs/${EXPERIMENT}_sgpd" \
   --device cuda --output "runs/${EXPERIMENT}_sgpd/synthetic_val.json"
 
-# 真实夜景基线：直接从 Day 初始化，仅使用 SVOX train；内部空间验证选最佳 epoch
-OUTPUT="runs/${EXPERIMENT}_real_day" INIT_ADAPTER_DIR= BF16=0 bash configs/night_full_real.sh
-
-# 如需验证 SGPD 初始化的额外作用，另开独立实验；当前尚无真实收益证据
-# OUTPUT="runs/${EXPERIMENT}_real_sgpd" INIT_ADAPTER_DIR="runs/${EXPERIMENT}_sgpd" \
-#   BF16=1 bash configs/night_full_real.sh
-
-# 最终比较：与未适配 SALAD baseline 共用原始白天 Gallery
-"$PYTHON" scripts/evaluate_svox.py --adapter-dir "runs/${EXPERIMENT}_real_day" \
-  --device cuda --batch-size 32 --num-workers 4 \
-  --output "runs/${EXPERIMENT}_real_day/svox_test.json"
+# 真实夜景检索评估：与未适配 SALAD baseline 共用原始白天 Gallery
+"$PYTHON" scripts/evaluate_svox.py --adapter-dir "runs/${EXPERIMENT}_sgpd" \
+  --device cuda --batch-size 16 --num-workers 2 \
+  --output "runs/${EXPERIMENT}_sgpd/svox_test.json"
 ```
 
 两个合成阶段脚本默认使用 batch 8、BF16、AdamW、学习率 1e-6，各训练 1 epoch，优化 Night DINOv2 的所有参数（含 Patch Embedding、位置/CLS Token、全部 Block 与 Norm）。白天 DINOv2 和 SALAD 始终冻结。地点分散 batch 与容量 256 的 detached 白天描述符队列提供跨域多正样本 InfoNCE；同一 `(city, place_id)` 的多个白天描述符不会变成伪负例。训练日志记录有效负样本数。`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT` 默认均为 0；SGPD 脚本的 `PATCH_WEIGHT` 默认为 0.1。`INIT_ADAPTER_DIR` 只接受天气、checkpoint、预处理及模型类型一致的已有结果。
@@ -90,10 +105,6 @@ OUTPUT="runs/${EXPERIMENT}_real_day" INIT_ADAPTER_DIR= BF16=0 bash configs/night
 可传 `--split train` 使用 SVOX 的独立 train/day Gallery 与 train/night Query 诊断真实夜景；该 split 有独立的 Gallery 缓存，默认 test 结果不会被覆盖。`--adapter-scale` 只适用于旧 LoRA 实验，不适用于全参数 Night 主干。
 
 `evaluate_pairs.py` 使用 385 对未参与训练的 Qwen 合成夜图与其精确白天源图，报告同地点 Recall@1/5/10 和平均配对描述符余弦相似度。它与真实 SVOX 测试分开。`--limit-pairs 8` 可做短流程检查，输出明确标记为子集。
-
-`configs/night_full_real.sh` 使用 SVOX train 的真实夜图，以**冻结的原始白天 Gallery**作多正样本检索目标：25 米内为正样本，25–250 米不参与损失，250 米外为负样本。默认 batch 4、FP32、3 epoch、末层学习率 1e-6、逐层衰减 0.7、同夜图冻结 Teacher 描述符约束权重 100；全部 Night 参数仍有非零学习率。`NIGHT_BASELINE_WEIGHT=0` 可关闭约束，`LAYERWISE_LR_DECAY=1` 可关闭逐层衰减，`BF16=1` 可启用混合精度。真实图没有逐 Patch 可信对应，该阶段不计算 SGPD。
-
-真实阶段默认从 test Gallery 与 Query 的**文件名坐标**建立 250 米排除带，在剩余 train 夜图中按空间位置留出内部验证集并保存最佳 epoch。训练不读取 test 图像内容。直接从 Day 初始化时省略 `INIT_ADAPTER_DIR`；有效初始化和精度写入 `adapter.json`，应以元数据确认训练来源。
 
 ## 独立消融
 

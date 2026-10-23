@@ -77,6 +77,22 @@ class TinyAggregator(nn.Module):
 
 
 class FullBackboneTests(unittest.TestCase):
+    def test_checkpointing_preserves_full_backbone_outputs_and_gradients(self):
+        torch.manual_seed(111)
+        plain = WeatherAdapterSALAD(TinySALAD(), ('night',), adapter_type='full').train()
+        recompute = WeatherAdapterSALAD(copy.deepcopy(plain.base), ('night',),
+                                         adapter_type='full').train()
+        recompute.adapters['night'].gradient_checkpointing = True
+        image = torch.randn(2, 3, 28, 28)
+        expected = plain.student(image, 'night', return_aux=False)
+        actual = recompute.student(image, 'night', return_aux=False)
+        torch.testing.assert_close(actual, expected)
+        expected.square().mean().backward()
+        actual.square().mean().backward()
+        for a, b in zip(plain.adapter_parameters('night'), recompute.adapter_parameters('night')):
+            torch.testing.assert_close(a.grad, b.grad)
+        self.assertFalse(any(p.grad is not None for p in recompute.base.parameters()))
+
     def test_night_copy_is_exact_and_all_dino_parameters_receive_gradients(self):
         torch.manual_seed(112)
         base = TinySALAD().eval()

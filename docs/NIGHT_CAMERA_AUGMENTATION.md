@@ -16,8 +16,6 @@ Qwen 配对训练保留三份用途明确的输入：
 
 增强不执行裁剪、旋转、透视、翻转或其他几何变换，Patch 网格位置和原可信对应仍然一致。模糊与噪声可能降低局部特征可辨识度，因此增强强度和 SGPD 权重需要独立验证。
 
-真实夜图阶段同样只增强训练 Night Student 输入。`--night-baseline-weight` 启用时，冻结原 Day 模型读取**同一张干净真实夜图**生成 Descriptor anchor；Student 使用增强视图。该约束帮助模型在学习地点判别时保留原描述符空间。可选 `--anchor-weight` 的同图白天 anchor 也保留干净输入。真实夜图不因加入相机增强而获得像素级 Day–Night 对应，不在该阶段凭相同坐标增加 SGPD。
-
 ## 默认策略
 
 整个 `camera` 策略以 `probability=0.8` 触发。触发后，各操作按下表独立采样；表中概率是**条件于策略已触发**的概率。参数范围对应 `strength=1`，并非每张图都执行全部操作。
@@ -55,7 +53,7 @@ Qwen 配对训练保留三份用途明确的输入：
 
 ## 开关和消融
 
-两个训练入口 `scripts/train.py` 和 `scripts/train_real_night.py` 共用参数：
+配对训练入口 `scripts/train.py` 支持以下参数：
 
 ```text
 --night-augmentation off|camera
@@ -102,9 +100,9 @@ EXPERIMENT=night_camera_replay_01 \
 bash configs/night_camera_replay.sh
 ```
 
-脚本使用同一套增强配置，依次运行全局训练、同等追加训练的 Global 对照、加入 SGPD 的追加训练，以及 Day 初始化和 SGPD 初始化的真实夜图阶段。它在新建目录已存在时退出，以免覆盖实验。`PYTHON=python` 或其他环境中的 Python 均可；训练数据、冻结基础权重和已有 Stage 2B 校准配置需要按项目说明准备好。
+脚本使用同一套增强配置，依次运行 Qwen 配对的全局训练、同等追加训练的 Global 对照，以及加入 SGPD 的追加训练。它在新建目录已存在时退出，以免覆盖实验。`PYTHON=python` 或其他环境中的 Python 均可；训练数据、冻结基础权重和已有 Stage 2B 校准配置需要按项目说明准备好。
 
-Global 与 SGPD 两个追加阶段从相同 `global_01` 权重开始，均设置 `AUGMENTATION_EPOCH_OFFSET=1`，使用对应的下一轮采样。真实夜图阶段默认从 offset 0 开始。脚本最后仅执行干净 synthetic validation 和 SVOX train 内部开发划分评估；最终 test 评估应在依据开发集完成模型选择后单独运行。
+Global 与 SGPD 两个追加阶段从相同 `global_01` 权重开始，均设置 `AUGMENTATION_EPOCH_OFFSET=1`，使用对应的下一轮采样。脚本最后执行干净的合成验证。真实夜景检索使用 `scripts/evaluate_svox.py` 单独评估，test 结果不能用于挑选 epoch 或调整增强参数。
 
 ## 随机性与日志
 

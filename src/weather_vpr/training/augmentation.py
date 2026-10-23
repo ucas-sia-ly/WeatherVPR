@@ -1,4 +1,4 @@
-"""Shared explicit augmentation configuration for the two training stages."""
+"""Explicit Student augmentation configuration for paired training."""
 from __future__ import annotations
 
 import json

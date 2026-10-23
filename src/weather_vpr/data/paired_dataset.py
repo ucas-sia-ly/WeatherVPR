@@ -37,10 +37,12 @@ def resolve_file(value, manifest):
 class AcceptedWeatherPairs(Dataset):
     def __init__(self, manifest: Path, weather: str, image_size=(224, 224),
                  exclude_places: Path | None = None, verify_hashes=False,
-                 night_augmentation: NightAugmentationConfig | None = None, seed: int = 42):
+                 night_augmentation: NightAugmentationConfig | None = None, seed: int = 42,
+                 *, day_augmentation: NightAugmentationConfig | None = None):
         self.manifest = manifest.expanduser().resolve(strict=True)
         self.size = tuple(image_size)
         self.augmentation = NightCameraAugmentation(night_augmentation or NightAugmentationConfig())
+        self.day_augmentation = NightCameraAugmentation(day_augmentation or NightAugmentationConfig())
         self.seed = int(seed)
         self.epoch = 0
         excluded = set()
@@ -91,8 +93,19 @@ class AcceptedWeatherPairs(Dataset):
         student_tensor, augmentation_record = student_training_tensor(
             weather, self.size, self.augmentation,
             seed=sample_augmentation_seed(self.seed, self.epoch, idx))
+        day_tensor = preprocess_teacher_image(day, self.size)
+        day_seed = sample_augmentation_seed(self.seed, self.epoch, idx, view='day')
+        if self.day_augmentation.config.profile == 'off':
+            # Preserve the exact clean tensor for the default/disabled view.
+            _, day_augmentation_record = self.day_augmentation(day, seed=day_seed)
+            day_student_tensor = day_tensor
+        else:
+            day_student_tensor, day_augmentation_record = student_training_tensor(
+                day, self.size, self.day_augmentation, seed=day_seed)
         return dict(index=idx, row=row, day_image=day, weather_image=weather,
-                    day_tensor=preprocess_teacher_image(day, self.size),
+                    day_tensor=day_tensor,
+                    day_student_tensor=day_student_tensor,
+                    day_augmentation_record=day_augmentation_record,
                     weather_tensor=preprocess_teacher_image(weather, self.size),
                     student_tensor=student_tensor, augmentation_record=augmentation_record,
                     place=row['place'])
