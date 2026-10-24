@@ -1,6 +1,7 @@
 """Train a weather DINOv2, LoRA, or output adapter against frozen day SALAD."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -13,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader
 from safetensors.torch import load_file, save_file
 from weather_vpr.utils.backend import enable_backend_imports, project_root
-from weather_vpr.data.paired_dataset import AcceptedWeatherPairs, sha256
+from weather_vpr.data.paired_dataset import AcceptedWeatherPairs, sha256, compact_training_batch
 from weather_vpr.data.correspondence import correspondence, load_calibration
 from weather_vpr.data.place_sampler import DistinctPlaceBatchSampler
 from weather_vpr.models.adapter import WeatherAdapterSALAD
@@ -25,6 +26,10 @@ from weather_vpr.data.student_augmentation import (
 )
 from weather_vpr.training.augmentation import (
     add_augmentation_arguments, load_augmentation_config, training_configuration,
+)
+from weather_vpr.training.auxiliary import (
+    build_auxiliary_branch, prepare_auxiliary_dataset,
+    paired_global_alignment, AuxiliaryGradientProbe,
 )
 
 # Import the vendored SALAD backend from this project.
@@ -83,6 +88,8 @@ def parse_args(argv=None):
     p.add_argument('--contrast-queue-size', type=int, default=256)
     p.add_argument('--fixed-day-bank', type=Path,
                    help='Cache all training Day descriptors; use a fixed bank instead of a FIFO queue')
+    p.add_argument('--day-bank-device', choices=('cpu', 'cuda', 'auto'), default='cpu',
+                   help='Keep negative keys on GPU to avoid transferring the entire bank for every loss')
     p.add_argument('--contrast-hard-negatives', type=int, default=0,
                    help='Keep all same-place positives and K hardest negative keys; 0 uses every key')
     p.add_argument('--relation-weight', type=float, default=0.0,
@@ -98,6 +105,24 @@ def parse_args(argv=None):
                    help='Source-derived night views per microbatch; never clean Day Student inputs')
     p.add_argument('--source-night-config', type=Path,
                    help='JSON configuration for mandatory darkening and optional camera corruption')
+    p.add_argument('--auxiliary-mode', choices=('none', 'real', 'synthetic'), default='none',
+                   help='Stage-one additional paired global supervision; never replaces the main batch')
+    p.add_argument('--auxiliary-weight', type=float, default=0.1,
+                   help='Weight of the separately averaged paired cosine; zero bypasses all auxiliary work')
+    p.add_argument('--auxiliary-samples', type=int, default=2,
+                   help='Extra Student views per main microbatch, separate from Source Night')
+    p.add_argument('--real-pairs-root', type=Path,
+                   help='Cleaned DarkDriving root; required for active real auxiliary supervision')
+    p.add_argument('--real-pairs-review', type=Path,
+                   help='Explicit source-bound review JSONL with scene/split assignments')
+    p.add_argument('--auxiliary-day-cache', type=Path,
+                   help='Independent real Day targets; synthetic reuses the fixed GSV Day bank when available')
+    p.add_argument('--auxiliary-gradient-every', type=int, default=0,
+                   help='Probe first microbatch of each Nth update before clipping; 0 disables diagnostics')
+    p.add_argument('--auxiliary-cache-batch-size', type=int, default=0,
+                   help='Independent Teacher extraction batch; 0 uses auxiliary-samples')
+    p.add_argument('--auxiliary-cache-workers', type=int, default=0,
+                   help='Parallel Day decoding during one-time real Teacher target extraction')
     p.add_argument('--layer-decay', type=float, default=1.0,
                    help='Layer-wise LR decay over selected full-backbone parameters')
     p.add_argument('--lr-schedule', choices=('constant', 'cosine'), default='constant')
@@ -108,6 +133,10 @@ def parse_args(argv=None):
     p.add_argument('--bf16', action='store_true')
     p.add_argument('--verify-hashes', action='store_true')
     p.add_argument('--num-workers', type=int, default=0)
+    p.add_argument('--prefetch-factor', type=int, default=2,
+                   help='Queued tensor batches per worker; ignored with zero workers')
+    p.add_argument('--compact-batches', action='store_true',
+                   help='Global-only training: omit full-resolution PIL images from DataLoader output')
     p.add_argument('--no-correspondence-cache', action='store_true',
                    help='Recompute trusted patch matches every epoch instead of caching them in RAM')
     p.add_argument('--seed', type=int, default=42)
@@ -121,6 +150,28 @@ def parse_args(argv=None):
 
 def _validate(args):
     load_augmentation_config(args)
+    if (args.prefetch_factor < 1 or args.auxiliary_cache_batch_size < 0
+            or args.auxiliary_cache_workers < 0):
+        raise ValueError('Prefetch must be positive; cache batch/worker counts nonnegative')
+    if args.day_bank_device == 'cuda' and torch.device(args.device).type != 'cuda':
+        raise ValueError('CUDA Day bank requires CUDA training')
+    if args.compact_batches and any(getattr(args, name) > 0 for name in (
+            'patch_weight', 'keep_weight', 'ot_weight', 'magnitude_weight', 'attention_weight')):
+        raise ValueError('Compact tensor batches require global-only training (local weights zero)')
+    if (not math.isfinite(args.auxiliary_weight) or args.auxiliary_weight < 0
+            or args.auxiliary_samples < 1 or args.auxiliary_gradient_every < 0):
+        raise ValueError('Auxiliary weight must be finite/nonnegative, samples positive, probe interval nonnegative')
+    auxiliary_enabled = args.auxiliary_mode != 'none' and args.auxiliary_weight > 0
+    if auxiliary_enabled and (args.weather != 'night' or args.adapter_type != 'full'):
+        raise ValueError('Paired auxiliary supervision requires the independent full Night backbone')
+    if auxiliary_enabled and args.auxiliary_mode == 'real' and (
+            args.real_pairs_root is None or args.real_pairs_review is None):
+        raise ValueError('Real auxiliary requires --real-pairs-root and --real-pairs-review')
+    if auxiliary_enabled and args.auxiliary_day_cache is not None and args.fixed_day_bank is not None:
+        if args.auxiliary_day_cache.expanduser().resolve() == args.fixed_day_bank.expanduser().resolve():
+            raise ValueError('Paired Day cache must not overwrite the GSV Day bank')
+    if args.auxiliary_gradient_every and not auxiliary_enabled:
+        raise ValueError('Auxiliary gradient diagnostics require an active auxiliary branch')
     if min(args.max_steps, args.num_workers, args.contrast_queue_size,
            args.contrast_hard_negatives, args.relation_hard_negatives, args.warmup_steps) < 0:
         raise ValueError('Step counts, worker counts, queue size and hard-negative counts must be nonnegative')
@@ -257,17 +308,21 @@ def main(argv=None):
                                   args.exclude_places, args.verify_hashes,
                                   night_augmentation=augmentation_config, seed=args.seed,
                                   source_night_config=source_night_config)
+    reviewed_pairs = prepare_auxiliary_dataset(args, model_size)
+    loader_options = dict(num_workers=args.num_workers,
+                          collate_fn=compact_training_batch if args.compact_batches else list,
+                          pin_memory=torch.device(args.device).type == 'cuda')
+    if args.num_workers:
+        loader_options['prefetch_factor'] = args.prefetch_factor
     if args.batch_sampling == 'distinct':
         sampler = DistinctPlaceBatchSampler([row['place'] for row in dataset.rows],
                                             args.batch_size, seed=args.seed)
-        dl = DataLoader(dataset, batch_sampler=sampler, num_workers=args.num_workers,
-                        collate_fn=list, pin_memory=torch.device(args.device).type == 'cuda')
+        dl = DataLoader(dataset, batch_sampler=sampler, **loader_options)
     else:
         sampler = None
         dl = DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
                         generator=torch.Generator().manual_seed(args.seed),
-                        num_workers=args.num_workers, collate_fn=list, drop_last=False,
-                        pin_memory=torch.device(args.device).type == 'cuda')
+                        drop_last=False, **loader_options)
     if torch.device(args.device).type == 'cpu':
         os.environ['XFORMERS_DISABLED'] = '1'
     base = load_checkpoint_model(args.checkpoint, device=args.device,
@@ -320,12 +375,17 @@ def main(argv=None):
         bank_descriptors, bank_places, bank_info = load_or_build_day_bank(
             net, dataset, teacher_hash, preprocessing, args.fixed_day_bank,
             args.device, batch_size=args.batch_size, num_workers=args.num_workers)
-        queue = DayDescriptorQueue(len(bank_places), storage_device='cpu',
+        queue_device = (args.device if args.day_bank_device in ('cuda', 'auto')
+                        and torch.device(args.device).type == 'cuda' else 'cpu')
+        queue = DayDescriptorQueue(len(bank_places), storage_device=queue_device,
                                    include_current_keys=False)
         queue.enqueue(bank_descriptors, bank_places)
         print(f'Fixed training Day bank: {len(queue)} keys; {bank_info["cache_status"]}', flush=True)
     else:
         queue = DayDescriptorQueue(args.contrast_queue_size, storage_device='cpu')
+    auxiliary = build_auxiliary_branch(
+        args, dataset, net, teacher_hash, preprocessing,
+        day_descriptors=bank_descriptors, day_bank_info=bank_info, reviewed_pairs=reviewed_pairs)
     need_local = any(getattr(args, name) > 0 for name in
                      ('patch_weight','keep_weight','ot_weight','magnitude_weight','attention_weight'))
     need_attention = args.attention_weight > 0
@@ -344,8 +404,26 @@ def main(argv=None):
     resolved_config['effective_source_night'] = source_night_info
     resolved_config['effective_full_train_scope'] = scope_info
     resolved_config['effective_patch_visibility'] = visibility_info
+    resolved_config['effective_auxiliary'] = (auxiliary.metadata() if auxiliary is not None
+                                             else {'enabled': False, 'mode': args.auxiliary_mode})
     (out / 'training_config.json').write_text(
         json.dumps(resolved_config, indent=2), encoding='utf-8')
+    # Persist the input/optimization contract before the first update. This is
+    # a run plan, not a declaration that an exploratory run is a final test.
+    (out / 'experiment_plan.json').write_text(json.dumps({
+        'checkpoint_sha256': teacher_hash, 'initial_adapter':
+        str(args.init_adapter_dir) if args.init_adapter_dir else None,
+        'manifest_sha256': sha256(dataset.manifest), 'seed': args.seed,
+        'planned_optimizer_updates': planned_updates,
+        'main_batch_size': args.batch_size,
+        'gradient_accumulation_steps': args.gradient_accumulation_steps,
+        'source_night_samples': args.source_night_samples if args.source_night_weight else 0,
+        'full_train_scope': scope_info, 'preprocessing': preprocessing,
+        'auxiliary': resolved_config['effective_auxiliary'],
+        'train_code_sha256': sha256(Path(__file__)),
+        'auxiliary_code_sha256': sha256(Path(__file__).with_name('auxiliary.py')),
+        'statement': 'Fixed training run budget; no test-driven selection is performed by this script',
+    }, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
     match_cache = {} if need_local and not args.no_correspondence_cache else None
     total_positive_patches = 0
@@ -357,6 +435,9 @@ def main(argv=None):
     augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     source_night_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     last_gradient_norm = 0.0
+    student_views = {'qwen': 0, 'source_night': 0, 'real_auxiliary': 0, 'synthetic_auxiliary': 0}
+    main_stream_digest = hashlib.sha256()
+    auxiliary_skipped_batches = auxiliary_empty_streak = 0
     optimizer.zero_grad(set_to_none=True)
 
     def optimizer_update(count):
@@ -423,6 +504,12 @@ def main(argv=None):
             relation_teacher_temperature=args.relation_teacher_temperature,
             relation_hard_negatives=args.relation_hard_negatives,
             source_night=source_night_info,
+            auxiliary=(auxiliary.metadata() if auxiliary is not None else {
+                'enabled': False, 'mode': args.auxiliary_mode, 'weight': args.auxiliary_weight}),
+            auxiliary_gradient_every=args.auxiliary_gradient_every,
+            auxiliary_skipped_batches=auxiliary_skipped_batches,
+            student_views=dict(student_views),
+            main_stream_sha256=main_stream_digest.hexdigest(),
             source_night_samples=args.source_night_samples,
             sampled_source_night_counts=source_night_counts,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
@@ -434,7 +521,8 @@ def main(argv=None):
                 'teacher': 'frozen clean Day; no identity-coordinate fallback'},
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_full_night_patch_attention_v7' if args.adapter_type == 'full'
+            code_version=('weather_vpr_stage1_paired_auxiliary_v8' if auxiliary is not None else
+                          'weather_vpr_full_night_patch_attention_v7' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
@@ -443,9 +531,18 @@ def main(argv=None):
         if sampler is not None:
             sampler.set_epoch(epoch)
         net.train()
-        for batch in dl:
-            day = torch.stack([v['day_tensor'] for v in batch]).to(args.device)
-            weather = torch.stack([v['weather_tensor'] for v in batch]).to(args.device)
+        for batch_index, batch in enumerate(dl):
+            main_indices = [item['index'] for item in batch]
+            main_stream_digest.update(json.dumps(
+                [epoch, main_indices], separators=(',', ':')).encode('utf-8'))
+            probe = (AuxiliaryGradientProbe(params, args.gradient_accumulation_steps)
+                     if auxiliary is not None and args.auxiliary_gradient_every
+                     and (optimizer_steps + 1) % args.auxiliary_gradient_every == 0
+                     and accumulation_count == 0 else None)
+            day = (torch.stack([v['day_tensor'] for v in batch]).to(args.device, non_blocking=True)
+                   if bank_descriptors is None or need_local else None)
+            weather = (torch.stack([v['weather_tensor'] for v in batch]).to(args.device, non_blocking=True)
+                       if need_local or args.synthetic_guidance_weight > 0 else None)
             student_weather = torch.stack([v['student_tensor'] for v in batch]).to(args.device)
             sampled_counts = sampled_augmentation_counts([v['augmentation_record'] for v in batch])
             merge_augmentation_counts(augmentation_counts, sampled_counts)
@@ -572,6 +669,7 @@ def main(argv=None):
             if not torch.isfinite(total):
                 raise FloatingPointError('Non-finite training loss')
             (total / args.gradient_accumulation_steps).backward()
+            student_views['qwen'] += len(batch)
             source_value = source_global_value = source_contrast_value = 0.0
             source_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
             source_positive_pairs = source_negative_pairs = 0
@@ -604,11 +702,56 @@ def main(argv=None):
                 source_value = float(source_loss.detach())
                 source_global_value = float(source_global.detach())
                 source_contrast_value = float(source_c_loss.detach())
+                student_views['source_night'] += count
                 del source_tensor, source_desc, source_loss, source_global, source_c_loss, source_zero
+            if probe is not None:
+                probe.after_main()
+            auxiliary_value = auxiliary_weighted_value = 0.0
+            auxiliary_count = 0
+            auxiliary_ids, auxiliary_groups = [], []
+            auxiliary_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
+            auxiliary_gradient = None
+            if auxiliary is not None:
+                # Keep data decoding, stochastic model operations AND backward
+                # recomputation out of the historical main RNG streams.
+                with auxiliary.rng_context(args.augmentation_epoch_offset + epoch, step):
+                    extra = auxiliary.next_batch(args.augmentation_epoch_offset + epoch, step)
+                    auxiliary_images = extra['images'].to(args.device)
+                    auxiliary_targets = extra['targets'].to(args.device)
+                    auxiliary_weights = extra['weights'].to(args.device)
+                    with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+                          if args.bf16 else nullcontext()):
+                        auxiliary_desc = net.student(auxiliary_images, args.weather, return_aux=False)
+                    alignment = paired_global_alignment(auxiliary_desc, auxiliary_targets, auxiliary_weights)
+                    auxiliary_loss = alignment['loss']
+                    auxiliary_count = alignment['valid_samples']
+                    if not auxiliary_count:
+                        auxiliary_skipped_batches += 1
+                        auxiliary_empty_streak += 1
+                        if auxiliary_empty_streak >= 3:
+                            raise RuntimeError('Three consecutive auxiliary batches have no accepted pairs; review pipeline')
+                    else:
+                        auxiliary_empty_streak = 0
+                    if not torch.isfinite(auxiliary_loss):
+                        raise FloatingPointError('Non-finite paired auxiliary loss')
+                    if auxiliary_count:
+                        (args.auxiliary_weight * auxiliary_loss / args.gradient_accumulation_steps).backward()
+                    auxiliary_value = float(auxiliary_loss.detach())
+                    auxiliary_weighted_value = args.auxiliary_weight * auxiliary_value
+                    auxiliary_ids, auxiliary_groups = extra['sample_ids'], extra['groups']
+                    auxiliary_sampled_counts = extra['augmentation']
+                    student_views[args.auxiliary_mode + '_auxiliary'] += len(auxiliary_images)
+                    del auxiliary_images, auxiliary_targets, auxiliary_weights, auxiliary_desc
+                    del auxiliary_loss, alignment, extra
+                if probe is not None:
+                    auxiliary_gradient = probe.after_auxiliary()
+            del probe
             if not any(param.grad is not None for param in params):
                 raise RuntimeError('No weather-backbone/adapter gradients: check DINOv2 no_grad boundary')
             accumulation_count += 1
-            did_update = accumulation_count == args.gradient_accumulation_steps
+            final_microbatch = (batch_index + 1 == len(dl)
+                                or (args.max_steps and step + 1 >= args.max_steps))
+            did_update = accumulation_count == args.gradient_accumulation_steps or final_microbatch
             if did_update:
                 optimizer_update(accumulation_count)
             if bank_descriptors is None and (args.contrast_weight > 0 or args.relation_weight > 0):
@@ -616,12 +759,16 @@ def main(argv=None):
             step += 1
             total_positive_patches += coverage
             metrics = dict(step=step, optimizer_step=optimizer_steps,
+                           elapsed_seconds=time.monotonic() - run_started,
                            accumulation_count=accumulation_count,
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
+                           main_sample_indices=main_indices,
+                           source_sample_indices=main_indices[:min(len(batch), args.source_night_samples)]
+                           if args.source_night_weight > 0 else [],
                            augmentation=sampled_counts,
                            loss=(float(total.detach()) +
-                                 args.source_night_weight * source_value),
+                                 args.source_night_weight * source_value + auxiliary_weighted_value),
                            global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
                            contrast=float(c_loss.detach()), patch=float(p_loss.detach()),
@@ -648,6 +795,15 @@ def main(argv=None):
                            source_night_augmentation=source_sampled_counts,
                            source_night_positive_pairs=source_positive_pairs,
                            source_night_negative_pairs=source_negative_pairs,
+                           auxiliary_loss=auxiliary_value,
+                           auxiliary_weighted_loss=auxiliary_weighted_value,
+                           auxiliary_samples=auxiliary_count,
+                           auxiliary_sample_ids=auxiliary_ids,
+                           auxiliary_groups=auxiliary_groups,
+                           auxiliary_augmentation=auxiliary_sampled_counts,
+                           auxiliary_gradient=auxiliary_gradient,
+                           auxiliary_skipped_batches=auxiliary_skipped_batches,
+                           cumulative_student_views=dict(student_views),
                            gradient_norm_pre_clip=last_gradient_norm if did_update else None,
                            max_learning_rate=max(group['lr'] for group in optimizer.param_groups),
                            min_learning_rate=min(group['lr'] for group in optimizer.param_groups),

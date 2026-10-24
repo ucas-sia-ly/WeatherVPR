@@ -195,6 +195,15 @@ class DayBankTests(unittest.TestCase):
             _, _, rebuilt = self.build()
         self.assertEqual(rebuilt["cache_status"], "rebuilt")
 
+    def test_cold_and_warm_builds_preserve_the_main_torch_rng(self):
+        before = torch.random.get_rng_state().clone()
+        cold, _, cold_info = self.build(batch_size=1)
+        torch.testing.assert_close(torch.random.get_rng_state(), before, rtol=0, atol=0)
+        warm, _, warm_info = self.build(batch_size=1)
+        torch.testing.assert_close(torch.random.get_rng_state(), before, rtol=0, atol=0)
+        torch.testing.assert_close(cold, warm, rtol=0, atol=0)
+        self.assertEqual((cold_info['cache_status'], warm_info['cache_status']), ('built', 'hit'))
+
     def test_memory_bank_keeps_mode_and_never_publishes(self):
         self.net.eval()
         descriptors, _, metadata = self.build(path=False, num_workers=1)

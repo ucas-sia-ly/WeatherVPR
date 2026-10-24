@@ -23,3 +23,5 @@ third_party/salad/*
 !third_party/salad/README.md
 third_party/LoQI-VPR/
 data/*
+# Recoverable image backups stay local, like the source datasets.
+outputs/darkdriving_base_cleanup/**/quarantine/

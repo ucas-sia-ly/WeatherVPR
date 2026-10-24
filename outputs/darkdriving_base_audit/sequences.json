@@ -1,0 +1,209 @@
+[
+  {
+    "prefix": "1_1",
+    "count": 203,
+    "min_timestamp_ns": 1729239248523289344,
+    "max_timestamp_ns": 1729239335838362368,
+    "duration_seconds": 87.315073024,
+    "min_interval_seconds": 0.298812928,
+    "max_interval_seconds": 3.601532928
+  },
+  {
+    "prefix": "1_2",
+    "count": 265,
+    "min_timestamp_ns": 1729239249123592448,
+    "max_timestamp_ns": 1729239336138721536,
+    "duration_seconds": 87.015129088,
+    "min_interval_seconds": 0.296690944,
+    "max_interval_seconds": 1.19967872
+  },
+  {
+    "prefix": "1_3",
+    "count": 244,
+    "min_timestamp_ns": 1729239868710930432,
+    "max_timestamp_ns": 1729239953105523456,
+    "duration_seconds": 84.394593024,
+    "min_interval_seconds": 0.298272,
+    "max_interval_seconds": 1.499894016
+  },
+  {
+    "prefix": "2_1",
+    "count": 248,
+    "min_timestamp_ns": 1729241118375293440,
+    "max_timestamp_ns": 1729241210174111488,
+    "duration_seconds": 91.798818048,
+    "min_interval_seconds": 0.298689792,
+    "max_interval_seconds": 1.800461056
+  },
+  {
+    "prefix": "2_2",
+    "count": 253,
+    "min_timestamp_ns": 1729241118075844608,
+    "max_timestamp_ns": 1729241209573757440,
+    "duration_seconds": 91.497912832,
+    "min_interval_seconds": 0.298237696,
+    "max_interval_seconds": 3.000432128
+  },
+  {
+    "prefix": "2_3",
+    "count": 276,
+    "min_timestamp_ns": 1729240774132435456,
+    "max_timestamp_ns": 1729240865900661504,
+    "duration_seconds": 91.768226048,
+    "min_interval_seconds": 0.297006848,
+    "max_interval_seconds": 1.499979008
+  },
+  {
+    "prefix": "3_1",
+    "count": 336,
+    "min_timestamp_ns": 1730538679248670976,
+    "max_timestamp_ns": 1730538801045895936,
+    "duration_seconds": 121.79722496,
+    "min_interval_seconds": 0.29873408,
+    "max_interval_seconds": 16.799402752
+  },
+  {
+    "prefix": "3_2",
+    "count": 314,
+    "min_timestamp_ns": 1730538679248670976,
+    "max_timestamp_ns": 1730538801045895936,
+    "duration_seconds": 121.79722496,
+    "min_interval_seconds": 0.298642944,
+    "max_interval_seconds": 17.700011008
+  },
+  {
+    "prefix": "3_3",
+    "count": 327,
+    "min_timestamp_ns": 1730537755824829184,
+    "max_timestamp_ns": 1730537869828176128,
+    "duration_seconds": 114.003346944,
+    "min_interval_seconds": 0.298786048,
+    "max_interval_seconds": 10.501329152
+  },
+  {
+    "prefix": "4_1",
+    "count": 295,
+    "min_timestamp_ns": 1730536442695956992,
+    "max_timestamp_ns": 1730536547097778944,
+    "duration_seconds": 104.401821952,
+    "min_interval_seconds": 0.298328832,
+    "max_interval_seconds": 7.80080512
+  },
+  {
+    "prefix": "4_2",
+    "count": 287,
+    "min_timestamp_ns": 1730536442695956992,
+    "max_timestamp_ns": 1730536546497798912,
+    "duration_seconds": 103.80184192,
+    "min_interval_seconds": 0.298328832,
+    "max_interval_seconds": 7.200944384
+  },
+  {
+    "prefix": "4_3",
+    "count": 252,
+    "min_timestamp_ns": 1730535796376550912,
+    "max_timestamp_ns": 1730535897476721152,
+    "duration_seconds": 101.10017024,
+    "min_interval_seconds": 0.29662208,
+    "max_interval_seconds": 8.399645952
+  },
+  {
+    "prefix": "in_1",
+    "count": 1151,
+    "min_timestamp_ns": 1728606194369200896,
+    "max_timestamp_ns": 1728606725397711872,
+    "duration_seconds": 531.028510976,
+    "min_interval_seconds": 0.295672064,
+    "max_interval_seconds": 34.80534912
+  },
+  {
+    "prefix": "in_2",
+    "count": 1466,
+    "min_timestamp_ns": 1728607693231229952,
+    "max_timestamp_ns": 1728608249940395776,
+    "duration_seconds": 556.709165824,
+    "min_interval_seconds": 0.295993088,
+    "max_interval_seconds": 10.80001024
+  },
+  {
+    "prefix": "in_3",
+    "count": 1219,
+    "min_timestamp_ns": 1728608647054265088,
+    "max_timestamp_ns": 1728609181579594752,
+    "duration_seconds": 534.525329664,
+    "min_interval_seconds": 0.29750784,
+    "max_interval_seconds": 45.0016448
+  },
+  {
+    "prefix": "in_4",
+    "count": 1256,
+    "min_timestamp_ns": 1728609965687761920,
+    "max_timestamp_ns": 1728610504756851968,
+    "duration_seconds": 539.069090048,
+    "min_interval_seconds": 0.296098048,
+    "max_interval_seconds": 34.495597056
+  },
+  {
+    "prefix": "in_5",
+    "count": 1,
+    "min_timestamp_ns": 1728611381860056832,
+    "max_timestamp_ns": 1728611381860056832,
+    "duration_seconds": 0.0,
+    "min_interval_seconds": null,
+    "max_interval_seconds": null
+  },
+  {
+    "prefix": "in_6",
+    "count": 114,
+    "min_timestamp_ns": 1728610851054485760,
+    "max_timestamp_ns": 1728610890954416896,
+    "duration_seconds": 39.899931136,
+    "min_interval_seconds": 0.29899904,
+    "max_interval_seconds": 4.899841024
+  },
+  {
+    "prefix": "in_7",
+    "count": 114,
+    "min_timestamp_ns": 1728611012855386880,
+    "max_timestamp_ns": 1728611050755755776,
+    "duration_seconds": 37.900368896,
+    "min_interval_seconds": 0.297958144,
+    "max_interval_seconds": 1.200417792
+  },
+  {
+    "prefix": "out_1",
+    "count": 326,
+    "min_timestamp_ns": 1728604216471010816,
+    "max_timestamp_ns": 1728604336423278848,
+    "duration_seconds": 119.952268032,
+    "min_interval_seconds": 0.298530304,
+    "max_interval_seconds": 13.195426048
+  },
+  {
+    "prefix": "out_2",
+    "count": 287,
+    "min_timestamp_ns": 1728604523566128896,
+    "max_timestamp_ns": 1728604656788138752,
+    "duration_seconds": 133.222009856,
+    "min_interval_seconds": 0.298823168,
+    "max_interval_seconds": 11.703351808
+  },
+  {
+    "prefix": "out_3",
+    "count": 155,
+    "min_timestamp_ns": 1728605134239154688,
+    "max_timestamp_ns": 1728605199943115008,
+    "duration_seconds": 65.70396032,
+    "min_interval_seconds": 0.299019776,
+    "max_interval_seconds": 7.800101888
+  },
+  {
+    "prefix": "out_4",
+    "count": 149,
+    "min_timestamp_ns": 1728605336759074048,
+    "max_timestamp_ns": 1728605435167723776,
+    "duration_seconds": 98.408649728,
+    "min_interval_seconds": 0.298760704,
+    "max_interval_seconds": 31.802491904
+  }
+]

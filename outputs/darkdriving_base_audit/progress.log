@@ -1,0 +1,208 @@
+500/19076 files; errors=0; elapsed=7.5s
+1000/19076 files; errors=0; elapsed=14.0s
+1500/19076 files; errors=0; elapsed=21.6s
+2000/19076 files; errors=0; elapsed=28.2s
+2500/19076 files; errors=0; elapsed=35.4s
+3000/19076 files; errors=0; elapsed=43.7s
+3500/19076 files; errors=0; elapsed=51.5s
+4000/19076 files; errors=1; elapsed=59.9s
+4500/19076 files; errors=1; elapsed=68.3s
+5000/19076 files; errors=1; elapsed=74.6s
+5500/19076 files; errors=1; elapsed=81.5s
+6000/19076 files; errors=1; elapsed=89.3s
+6500/19076 files; errors=1; elapsed=95.3s
+7000/19076 files; errors=1; elapsed=103.6s
+7500/19076 files; errors=1; elapsed=112.1s
+8000/19076 files; errors=1; elapsed=120.5s
+8500/19076 files; errors=2; elapsed=128.5s
+9000/19076 files; errors=2; elapsed=136.9s
+9500/19076 files; errors=2; elapsed=143.5s
+10000/19076 files; errors=2; elapsed=150.6s
+10500/19076 files; errors=2; elapsed=157.6s
+11000/19076 files; errors=2; elapsed=164.8s
+11500/19076 files; errors=2; elapsed=173.7s
+12000/19076 files; errors=2; elapsed=182.0s
+12500/19076 files; errors=2; elapsed=189.9s
+13000/19076 files; errors=4; elapsed=197.4s
+13500/19076 files; errors=4; elapsed=204.7s
+14000/19076 files; errors=5; elapsed=211.1s
+14500/19076 files; errors=5; elapsed=218.4s
+15000/19076 files; errors=6; elapsed=224.6s
+15500/19076 files; errors=6; elapsed=231.9s
+16000/19076 files; errors=6; elapsed=240.1s
+16500/19076 files; errors=6; elapsed=247.7s
+17000/19076 files; errors=7; elapsed=255.6s
+17500/19076 files; errors=8; elapsed=264.3s
+18000/19076 files; errors=8; elapsed=271.8s
+18500/19076 files; errors=8; elapsed=278.8s
+19000/19076 files; errors=8; elapsed=285.9s
+19076/19076 files; errors=8; elapsed=286.7s
+{
+  "total_files": 19076,
+  "total_bytes": 20108997552,
+  "splits": {
+    "Day": {
+      "count": 9538,
+      "valid_count": 9536,
+      "bytes": 9956545639,
+      "dimensions": {
+        "2448x2048": 9538
+      },
+      "modes": {
+        "RGB": 9538
+      },
+      "formats": {
+        "JPEG": 9538
+      },
+      "sequences": {
+        "1_1": 203,
+        "1_2": 265,
+        "1_3": 244,
+        "2_1": 248,
+        "2_2": 253,
+        "2_3": 276,
+        "3_1": 336,
+        "3_2": 314,
+        "3_3": 327,
+        "4_1": 295,
+        "4_2": 287,
+        "4_3": 252,
+        "in_1": 1151,
+        "in_2": 1466,
+        "in_3": 1219,
+        "in_4": 1256,
+        "in_5": 1,
+        "in_6": 114,
+        "in_7": 114,
+        "out_1": 326,
+        "out_2": 287,
+        "out_3": 155,
+        "out_4": 149
+      },
+      "unparsed_names": [],
+      "mean_luma": {
+        "min": 90.24786376953125,
+        "p01": 114.94651145935059,
+        "p05": 117.50129699707031,
+        "p25": 127.5512466430664,
+        "median": 133.2116241455078,
+        "p75": 136.63051986694336,
+        "p95": 140.55767059326172,
+        "p99": 165.42610931396482,
+        "max": 170.05450439453125
+      },
+      "std_luma": {
+        "min": 38.42240905761719,
+        "p01": 41.393581581115725,
+        "p05": 45.432936668395996,
+        "p25": 52.887084007263184,
+        "median": 59.22281265258789,
+        "p75": 68.19064331054688,
+        "p95": 79.05162239074707,
+        "p99": 82.29888801574707,
+        "max": 83.69031524658203
+      },
+      "extreme_images": [],
+      "nonstandard_orientation": []
+    },
+    "Night": {
+      "count": 9538,
+      "valid_count": 9532,
+      "bytes": 10152451913,
+      "dimensions": {
+        "2448x2048": 9538
+      },
+      "modes": {
+        "RGB": 9538
+      },
+      "formats": {
+        "JPEG": 9538
+      },
+      "sequences": {
+        "1_1": 203,
+        "1_2": 265,
+        "1_3": 244,
+        "2_1": 248,
+        "2_2": 253,
+        "2_3": 276,
+        "3_1": 336,
+        "3_2": 314,
+        "3_3": 327,
+        "4_1": 295,
+        "4_2": 287,
+        "4_3": 252,
+        "in_1": 1151,
+        "in_2": 1466,
+        "in_3": 1219,
+        "in_4": 1256,
+        "in_5": 1,
+        "in_6": 114,
+        "in_7": 114,
+        "out_1": 326,
+        "out_2": 287,
+        "out_3": 155,
+        "out_4": 149
+      },
+      "unparsed_names": [],
+      "mean_luma": {
+        "min": 27.957500457763672,
+        "p01": 30.507785873413084,
+        "p05": 32.67690105438233,
+        "p25": 43.53549098968506,
+        "median": 49.6252326965332,
+        "p75": 53.881290435791016,
+        "p95": 61.45015430450438,
+        "p99": 67.87902740478516,
+        "max": 88.8206787109375
+      },
+      "std_luma": {
+        "min": 23.73012351989746,
+        "p01": 25.53202344894409,
+        "p05": 27.293688583374024,
+        "p25": 39.854387283325195,
+        "median": 47.728694915771484,
+        "p75": 53.03839302062988,
+        "p95": 57.36109924316406,
+        "p99": 61.303518028259305,
+        "max": 70.33370208740234
+      },
+      "extreme_images": [],
+      "nonstandard_orientation": []
+    }
+  },
+  "filename_coverage": {
+    "common_names": 9538,
+    "day_only": [],
+    "night_only": []
+  },
+  "pair_diagnostics": {
+    "same_bytes": [],
+    "same_pixels": [],
+    "dimension_mismatch": [],
+    "night_not_darker": [],
+    "night_day_luma_ratio": {
+      "min": 0.2052640508302043,
+      "p01": 0.22742381251003674,
+      "p05": 0.24764449865460014,
+      "p25": 0.3236792713691629,
+      "median": 0.3724302057588367,
+      "p75": 0.4178711930877039,
+      "p95": 0.4974308126297006,
+      "p99": 0.5502667405453572,
+      "max": 0.6504026305936232
+    },
+    "luma_correlation": {
+      "min": -0.6571251933113789,
+      "p01": -0.5427253042199899,
+      "p05": -0.46631900904148205,
+      "p25": -0.32898531068568626,
+      "median": -0.2278163552264807,
+      "p75": -0.10518784926674733,
+      "p95": 0.07274638569051116,
+      "p99": 0.20217111869527946,
+      "max": 0.7380905071002777
+    }
+  },
+  "duration_seconds": 288.0904207320127
+}
+duplicate byte groups: 228 duplicate pixel groups: 228

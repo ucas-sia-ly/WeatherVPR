@@ -124,7 +124,9 @@ class DayDescriptorQueue:
             key_places.extend(place for place in queued_places if place is not None)
         if not keys:
             raise ValueError('A fixed Day bank must be populated before computing losses')
-        all_keys = torch.cat(keys, dim=0)
+        # A fixed bank has a single immutable key tensor. Avoid duplicating
+        # hundreds of MB on the GPU separately for every contrast/relation loss.
+        all_keys = keys[0] if len(keys) == 1 else torch.cat(keys, dim=0)
         label_index = {place: index for index, place in enumerate(dict.fromkeys(key_places))}
         if any(place not in label_index for place in places):
             raise ValueError('Every query place must have a positive in the Day bank')

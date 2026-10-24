@@ -1,5 +1,9 @@
 # Night 训练配置
 
+## 可选：真实配对阶段一
+
+`night_real_stage1.sh` 保留 8 个 Qwen + 2 个 Source Night 视图，B/D 再加入 2 个审核真实配对全局监督；A 为无额外分支，C 为等量合成配对全局对齐。入口固定原始 Day 初始化与 Late4，禁止加载历史 Night adapter，默认不改变 `night_specialist.sh` 的训练行为。数据审核格式、参数和逐项运行命令见 [阶段一说明](../docs/NIGHT_REAL_PAIRS.md)。
+
 ## 默认：独立 Night 主干的后四层微调
 
 `night_specialist.sh` 从原始 Day checkpoint 初始化独立 Night DINOv2-B/14，默认 `FULL_TRAIN_SCOPE=late FULL_TRAIN_BLOCKS=4`，直接更新 blocks 8–11 的原始权重。其余 Night 参数（包括最终 Norm）冻结，Day Teacher 与共享 SALAD 全部冻结；输入梯度可穿过 Norm 与 SALAD。权重仍保存完整 Night 主干，便于独立推理；这不是 LoRA。

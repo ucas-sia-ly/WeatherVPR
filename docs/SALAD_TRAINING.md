@@ -56,13 +56,31 @@ b6748afc4c026c46bb2d8057ee4636cf88a2bb882af51eeae17fbef29ad61190
 
 主目标仍为 `S(aug(Qwen Night)) → T(clean Day)`，辅以训练 Day 模拟低照度视图的相同跨域目标。保留可独立关闭的 Global、Contrast、Relation、SGPD、Keep、Conditional OT、特征幅度项。固定 Day bank 使用 `(city, place_id)` 处理多正样本；SGPD 只接受 Stage 2B 验证的 A 类对应，不能按相同坐标假设 Qwen 编辑对齐。
 
-已移除 Day Anchor / Preservation / Restoration 的 CLI、数据视图、训练分支及调度器，旧参数会报错。Source Night 是强制低照度输入的检索训练分支，继续保留。真实夜景数据只作只读评估。
+已移除 Day Anchor / Preservation / Restoration 的 CLI、数据视图、训练分支及调度器，旧参数会报错。Source Night 是强制低照度输入的检索训练分支，继续保留。默认真实夜景只作只读评估；可选真实配对阶段一显式使用审核训练图对。
 
 失败的正则/旧 Guided 实验、相关文档与专用审计入口及重复 smoke 输出已清理；清单和保留模型哈希见 [清理记录](../outputs/maintenance/cleanup_20261024.json)。基础权重、数据、Stage 2B 校准、完整有效对照及 Gallery/训练 bank 缓存均保留。旧保留模型中的历史元数据不改写。
 
 ## 32 GB 主机上的运行方式
 
 每次使用新的 `OUTPUT`，所有训练和评估串行执行。`run_bounded.py` 要求 Linux cgroup v2 + systemd user scope；任务及后代 `MemoryMax=8 GiB`、`MemoryHigh=6 GiB`、swap 关闭，启动需至少 12 GiB 系统可用内存，运行时低于 4 GiB 则结束实验任务。限制不控制浏览器等其它程序。默认 worker 为 0。
+
+### 本机 4090 48 GiB / RAM 32 GB：优先吞吐
+
+用户希望优先使用设备资源缩短任务时间。阶段一推荐 `configs/night_real_stage1_fast.sh`：白天负样本库常驻 CUDA，关闭 activation checkpoint 重计算，4 个数据 worker、每 worker 预取 1 批，worker 只传训练 Tensor/ID，Teacher 真实 Day 目标独立采用 batch 64 / 4 workers 提取。缓存 Day 目标后，真实训练只解码 Night，并检查对应 Day 文件版本未变化。
+
+这些选项保持有效批量、主样本顺序、增强种子、损失权重、学习率和更新预算不变。关闭重计算使用更多显存以节省反向计算；CUDA bank 避免每个 InfoNCE/Relation 项重复搬运整库。吞吐配置不以占满显存为目标，选择依据是实际样本/秒。
+
+本机其它程序已占用较多主机内存，不能把 32 GB 总容量全部分配给训练。当前后台队列采用 7 GiB 任务硬上限、6 GiB 回收阈值、2 GiB 系统可用余量及禁用任务 swap；启动要求 9 GiB 可用 RAM。这是用户优先吞吐偏好下的显式设置，不改变 `run_bounded.py` 的保守默认值。
+
+```bash
+export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
+STAGE1_ARM=B OUTPUT=runs/night_real_fast_B \
+  REAL_PAIRS_REVIEW=<completed_review.jsonl> \
+  "$PYTHON" scripts/run_bounded.py --max-gib 7 --high-gib 6 --reserve-gib 2 \
+  --log runs/night_real_fast_B.memory.jsonl -- bash configs/night_real_stage1_fast.sh
+```
+
+2026-10-25 的短程实测：主微批 4、累积 2、Source 1，稳定段约 117.5 个 Qwen 视图/秒；旧 A 整轮平均约 17.7 个/秒，包含启动和保存，因此不能将两者直接当作严格端到端加速比。235 项测试通过，包含并行预取张量逐元素一致和 CPU/CUDA bank 损失、梯度一致。
 
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python

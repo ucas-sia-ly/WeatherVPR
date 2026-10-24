@@ -9,6 +9,10 @@ if [[ "${BF16:-1}" == 1 ]]; then EXTRA_ARGS+=(--bf16); fi
 if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
 if [[ "${GRADIENT_CHECKPOINTING:-1}" == 1 ]]; then EXTRA_ARGS+=(--gradient-checkpointing); fi
 if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT_ADAPTER_DIR"); fi
+if [[ -n "${REAL_PAIRS_ROOT:-}" ]]; then EXTRA_ARGS+=(--real-pairs-root "$REAL_PAIRS_ROOT"); fi
+if [[ -n "${REAL_PAIRS_REVIEW:-}" ]]; then EXTRA_ARGS+=(--real-pairs-review "$REAL_PAIRS_REVIEW"); fi
+if [[ -n "${AUXILIARY_DAY_CACHE:-}" ]]; then EXTRA_ARGS+=(--auxiliary-day-cache "$AUXILIARY_DAY_CACHE"); fi
+if [[ "${COMPACT_BATCHES:-0}" == 1 ]]; then EXTRA_ARGS+=(--compact-batches); fi
 "${PYTHON:-python}" scripts/train.py \
   --checkpoint "${CKPT:-weights/dino_salad.ckpt}" \
   --backbone-repo "${DINO_DIR:-third_party/dinov2}" \
@@ -17,6 +21,7 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --weather night --adapter-type full "${EXTRA_ARGS[@]}" \
   --full-train-scope "${FULL_TRAIN_SCOPE:-late}" --full-train-blocks "${FULL_TRAIN_BLOCKS:-4}" \
   --fixed-day-bank "${DAY_BANK:-runs/cache/qwen_training_day.safetensors}" \
+  --day-bank-device "${DAY_BANK_DEVICE:-cpu}" \
   --night-augmentation "${NIGHT_AUGMENTATION:-camera}" \
   --augmentation-config "${AUGMENTATION_CONFIG:-configs/night_camera.json}" \
   --augmentation-strength "${AUGMENTATION_STRENGTH:-1}" \
@@ -32,6 +37,12 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --source-night-weight "${SOURCE_NIGHT_WEIGHT:-0.5}" \
   --source-night-samples "${SOURCE_NIGHT_SAMPLES:-2}" \
   --source-night-config "${SOURCE_NIGHT_CONFIG:-configs/source_night.json}" \
+  --auxiliary-mode "${AUXILIARY_MODE:-none}" \
+  --auxiliary-weight "${AUXILIARY_WEIGHT:-0.1}" \
+  --auxiliary-samples "${AUXILIARY_SAMPLES:-2}" \
+  --auxiliary-gradient-every "${AUXILIARY_GRADIENT_EVERY:-0}" \
+  --auxiliary-cache-batch-size "${AUXILIARY_CACHE_BATCH_SIZE:-0}" \
+  --auxiliary-cache-workers "${AUXILIARY_CACHE_WORKERS:-0}" \
   --pair-calibration "${CALIBRATION:-configs/dino_salad_stage2b_calibration.json}" \
   --patch-weight "${PATCH_WEIGHT:-0}" --keep-weight "${KEEP_WEIGHT:-0}" \
   --ot-weight "${OT_WEIGHT:-0}" --magnitude-weight "${MAGNITUDE_WEIGHT:-0}" \
@@ -47,4 +58,5 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --max-steps "${MAX_STEPS:-0}" --seed "${SEED:-42}" \
   --save-every-steps "${SAVE_EVERY_STEPS:-0}" \
   --num-workers "${NUM_WORKERS:-0}" --device "${DEVICE:-cuda}" \
+  --prefetch-factor "${PREFETCH_FACTOR:-2}" \
   --output-dir "${OUTPUT:-runs/night_late4_02}"

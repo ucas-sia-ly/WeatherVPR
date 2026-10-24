@@ -15,6 +15,18 @@ from weather_vpr.data.student_augmentation import (
 if TYPE_CHECKING:
     from weather_vpr.data.source_night import SourceNightConfig
 
+
+def compact_training_batch(samples):
+    """Avoid sending full-resolution PIL images through worker IPC.
+
+    Global-only training uses tensors and IDs; local correspondence keeps the
+    historical complete samples. Input tensors and their random seeds do not
+    change when this collator is enabled.
+    """
+    unused = {'day_image', 'weather_image', 'row'}
+    return [{key: value for key, value in sample.items() if key not in unused}
+            for sample in samples]
+
 def sha256(path: Path):
     digest = hashlib.sha256()
     with path.open('rb') as f:

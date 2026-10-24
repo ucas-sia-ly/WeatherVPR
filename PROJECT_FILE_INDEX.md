@@ -4,6 +4,7 @@
 - `scripts/setup_sources.sh`：将 SALAD 后端与 DINOv2 源码安装在独立项目 `third_party/` 内。
 - `scripts/check_setup.py`：检查独立工程源码和完整权重。
 - `scripts/build_night_manifest.py`：从 Qwen 元数据和已搬入图像建立核验过的精确配对。
+- `scripts/prepare_darkdriving.py`：核对原审计后成对隔离坏图与完整重复图组，生成可搬移清单，并全量严格解码校验。
 - `scripts/prepare_calibration.py`：核验并打包与当前 checkpoint 匹配的 Stage2B 校准。
 - `scripts/make_night_split.py`：按地点建立 night 训练/合成验证清单，排除校准保留地点。
 - `scripts/train.py`：天气 Adapter 训练 CLI。
@@ -25,6 +26,7 @@
 - `src/weather_vpr/losses/distillation.py`：SGPD、Keep、Global、InfoNCE。
 - `src/weather_vpr/losses/attention.py`：Stage 2B A 类可信支持集上的 Teacher → Student 注意力 KL。
 - `src/weather_vpr/data/paired_dataset.py`：manifest 精确配对与哈希可选校验。
+- `src/weather_vpr/data/darkdriving.py`：清理后真实 DarkDriving 日夜图组的独立 PyTorch 批量加载器。
 - `src/weather_vpr/data/patch_visibility.py`：根据实际退化输入的黑场/全通道裁剪比例计算无梯度 patch 可靠性。
 - `src/weather_vpr/data/correspondence.py`：复用项目内部 Stage2B 匹配校准。
 - `src/weather_vpr/data/evaluation_dataset.py`：CSV 显式地点标注。
@@ -41,6 +43,8 @@
 - `data/train/`：已配对的 7,719 组 night/day 图像。
 - `data/splits/`：已隔离地点的训练/合成验证清单。
 - `data/svox/`：真实 SVOX test gallery 和 night queries。
+- `data/DarkDriving_Base/`：清理后的 9,520 对真实日夜图像及相对路径清单。
+- `docs/DARKDRIVING.md`：DarkDriving 清理记录、加载示例、完整性复查与备份位置。
 - `weights/`：唯一完整白天 SALAD checkpoint。
 - `runs/`：每个天气的独立 Adapter 训练与评估结果。
 - `docs/DOWNLOADS.md`：现有资源状态与迁移后的下载来源。
@@ -49,3 +53,9 @@
 - `docs/NIGHT_FAILURE_ANALYSIS.md`：失败与成功图片对照、检索贡献、遮挡干预、条件注意力损失限制与复现记录。
 - `docs/EXTERNAL_NIGHT_RESULTS.md`：其他夜间数据集协议、Recall 对照与缺失真值说明。
 - `tests/`：单元测试。
+- `configs/night_real_stage1.sh`：真实配对阶段一 A/B/C/D 入口，保留主 GSV 训练及原始 Day 初始化。
+- `configs/night_real_stage1_fast.sh`：48 GiB GPU 吞吐入口，CUDA bank、关闭重计算、紧凑 Tensor 预取和独立缓存提取批量。
+- `src/weather_vpr/data/real_pairs.py`：审核准入、场景/内容跨集合隔离及原始 SALAD 预处理。
+- `scripts/prepare_real_pair_review.py`：生成来源绑定的未审核真实配对模板，不自动接受图对。
+- `src/weather_vpr/training/auxiliary.py`：独立均衡采样、无地点标签目标缓存、RNG 隔离和分支梯度诊断。
+- `docs/NIGHT_REAL_PAIRS.md`：阶段一数据格式、运行命令、参考 VPR 实现及解释边界。

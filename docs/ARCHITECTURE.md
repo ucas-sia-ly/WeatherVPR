@@ -10,7 +10,7 @@
 
 ## 默认与历史分阶段训练
 
-当前入口 `configs/night_specialist.sh` 默认后四层微调，Qwen 主分支使用 Global / Contrast / Relation，另可使用训练 Day 原图生成的强制低照度 Source Night 视图。固定 Day bank 的同一 `(city, place_id)` 条目均视为正样本，避免伪负例。真实夜图仅用于只读评估，具体损失见 [Night 专用模型](NIGHT_SPECIALIST.md)。
+当前入口 `configs/night_specialist.sh` 默认后四层微调，Qwen 主分支使用 Global / Contrast / Relation，另可使用训练 Day 原图生成的强制低照度 Source Night 视图。固定 Day bank 的同一 `(city, place_id)` 条目均视为正样本，避免伪负例。默认真实夜图仅用于只读评估，具体损失见 [Night 专用模型](NIGHT_SPECIALIST.md)。可选 [真实配对阶段一](NIGHT_REAL_PAIRS.md) 在原分支后追加审核配对全局蒸馏，不改变 Day bank 或 Gallery。
 
 以下两个 full 脚本显式保留历史**全部参数微调**消融，不随默认范围调整而改变：
 

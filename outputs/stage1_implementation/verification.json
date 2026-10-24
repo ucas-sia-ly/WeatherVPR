@@ -1,0 +1,104 @@
+{
+  "kind": "technical smoke only; no Recall measured",
+  "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+  "arms": {
+    "A": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/stage1_implementation_checks/A_final",
+      "changed_tensors": 56,
+      "unchanged_tensors": 119,
+      "changed_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "frozen_parameters_equal_original": true,
+      "updates": 2,
+      "student_views": {
+        "qwen": 6,
+        "source_night": 3,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "main_stream_sha256": "cc9300b12e77739b21f15ca54b55685a405e318696d5d30eba2412b9236cebf9",
+      "peak_ram_gib": 2.6723365783691406,
+      "elapsed_seconds": 6.504641373001505,
+      "auxiliary_initial_loss": 0.0,
+      "auxiliary_initial_gradient": null,
+      "plan_train_code_sha256": "fbc4a98f00b6d18423815bc03392c317e4481f61a56ad5ec29eba6d63894a673"
+    },
+    "B": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/stage1_implementation_checks/B",
+      "changed_tensors": 56,
+      "unchanged_tensors": 119,
+      "changed_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "frozen_parameters_equal_original": true,
+      "updates": 2,
+      "student_views": {
+        "qwen": 6,
+        "source_night": 3,
+        "real_auxiliary": 6,
+        "synthetic_auxiliary": 0
+      },
+      "main_stream_sha256": "cc9300b12e77739b21f15ca54b55685a405e318696d5d30eba2412b9236cebf9",
+      "peak_ram_gib": 3.3516845703125,
+      "elapsed_seconds": 8.505791725008748,
+      "auxiliary_initial_loss": 0.38415202498435974,
+      "auxiliary_initial_gradient": {
+        "main_norm": 3.2155235757224006,
+        "auxiliary_norm": 0.5073621992830288,
+        "norm_ratio": 0.15778525249003802,
+        "cosine": 0.0036492880794207687,
+        "scope": "first microbatch of selected update; unclipped weighted increments; K rescaled"
+      },
+      "plan_train_code_sha256": "fbc4a98f00b6d18423815bc03392c317e4481f61a56ad5ec29eba6d63894a673"
+    },
+    "C": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/stage1_implementation_checks/C",
+      "changed_tensors": 56,
+      "unchanged_tensors": 119,
+      "changed_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "frozen_parameters_equal_original": true,
+      "updates": 2,
+      "student_views": {
+        "qwen": 6,
+        "source_night": 3,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 6
+      },
+      "main_stream_sha256": "cc9300b12e77739b21f15ca54b55685a405e318696d5d30eba2412b9236cebf9",
+      "peak_ram_gib": 2.8984298706054688,
+      "elapsed_seconds": 7.505173015000764,
+      "auxiliary_initial_loss": 0.43935850262641907,
+      "auxiliary_initial_gradient": {
+        "main_norm": 3.2155225380512875,
+        "auxiliary_norm": 0.7189141704805017,
+        "norm_ratio": 0.2235761565882811,
+        "cosine": -0.020907125821747526,
+        "scope": "first microbatch of selected update; unclipped weighted increments; K rescaled"
+      },
+      "plan_train_code_sha256": "fbc4a98f00b6d18423815bc03392c317e4481f61a56ad5ec29eba6d63894a673"
+    }
+  },
+  "shared_main_stream_and_initial_losses": true,
+  "inference": {
+    "shape": [
+      1,
+      8448
+    ],
+    "dtype": "float32",
+    "l2_norm": 1.0,
+    "finite": true,
+    "loaded_existing_inference_entrypoint": true
+  }
+}

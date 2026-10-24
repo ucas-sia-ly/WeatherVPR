@@ -1,0 +1,7 @@
+3000/19076 CRC checks; errors=0
+6000/19076 CRC checks; errors=0
+9000/19076 CRC checks; errors=0
+12000/19076 CRC checks; errors=0
+15000/19076 CRC checks; errors=0
+18000/19076 CRC checks; errors=0
+{"checked_files": 19076, "mismatches": [], "seconds": 18.979482833005022}

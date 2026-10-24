@@ -1,0 +1,53 @@
+Preflight SHA-256: 3000/19076
+Preflight SHA-256: 6000/19076
+Preflight SHA-256: 9000/19076
+Preflight SHA-256: 12000/19076
+Preflight SHA-256: 15000/19076
+Preflight SHA-256: 18000/19076
+Preflight SHA-256: 19076/19076
+{
+  "schema_version": 1,
+  "dataset": "DarkDriving_Base",
+  "prepared_at": "2026-10-24T23:07:42.280577+08:00",
+  "original_pairs": 9538,
+  "pairs": 9520,
+  "removed_pairs": {
+    "duplicate_complete_pair": 10,
+    "corrupt_pair": 8
+  },
+  "backup_directory": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024",
+  "source_audit_sha256": "a7ab3454027fe4daa01d0b59fb67077a3cf1588d6cd212ae3d8c7b7ade64d588",
+  "manifest_sha256": "b02e4d06cc24e489a44b18252eb4509ca29dc535823a2ce656adb8a0786b3761",
+  "ground_truth": "Same-basename Day/Night pairs from the local source archive; no independently verified geographic or pixel-level labels",
+  "content_group": "Connected component of exact image reuse on either side; not a place ID and not protection against nearby video frames",
+  "split": "Unsplit; real Night images do not enter the existing Qwen training manifests"
+}
+Strict full decode + SHA-256: 1000/19040
+Strict full decode + SHA-256: 2000/19040
+Strict full decode + SHA-256: 3000/19040
+Strict full decode + SHA-256: 4000/19040
+Strict full decode + SHA-256: 5000/19040
+Strict full decode + SHA-256: 6000/19040
+Strict full decode + SHA-256: 7000/19040
+Strict full decode + SHA-256: 8000/19040
+Strict full decode + SHA-256: 9000/19040
+Strict full decode + SHA-256: 10000/19040
+Strict full decode + SHA-256: 11000/19040
+Strict full decode + SHA-256: 12000/19040
+Strict full decode + SHA-256: 13000/19040
+Strict full decode + SHA-256: 14000/19040
+Strict full decode + SHA-256: 15000/19040
+Strict full decode + SHA-256: 16000/19040
+Strict full decode + SHA-256: 17000/19040
+Strict full decode + SHA-256: 18000/19040
+Strict full decode + SHA-256: 19000/19040
+Strict full decode + SHA-256: 19040/19040
+{
+  "checked_at": "2026-10-24T23:11:13.126606+08:00",
+  "pairs": 9520,
+  "images": 19040,
+  "errors": 0,
+  "strict_full_resolution_decode": true,
+  "file_and_pixel_sha256": true,
+  "manifest_sha256": "b02e4d06cc24e489a44b18252eb4509ca29dc535823a2ce656adb8a0786b3761"
+}

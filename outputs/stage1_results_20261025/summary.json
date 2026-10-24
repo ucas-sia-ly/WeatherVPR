@@ -1,0 +1,453 @@
+{
+  "run_root": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42",
+  "seed": 42,
+  "training": {
+    "A": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A",
+      "weights_sha256": "b51fa6f27c769c7252dbad1bf78d731ae78f9c3c970b2eec3c416269de49edf0",
+      "epochs_completed": 1,
+      "optimizer_steps": 908,
+      "steps": 1816,
+      "elapsed_seconds": 408.2755351829983,
+      "precision": "bf16",
+      "peak_cuda_allocated_bytes": 1883951616,
+      "gradient_checkpointing": true,
+      "views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "peak_cgroup_bytes_sampled": 4013580288
+    },
+    "B": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast",
+      "weights_sha256": "048a2b6fa821a49d7feab8eee1777483adfb83905db3493305f61ab2be3a6a88",
+      "epochs_completed": 1,
+      "optimizer_steps": 908,
+      "steps": 1816,
+      "elapsed_seconds": 249.29598891700152,
+      "precision": "bf16",
+      "peak_cuda_allocated_bytes": 2661381632,
+      "gradient_checkpointing": false,
+      "views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "peak_cgroup_bytes_sampled": 5627027456
+    },
+    "C": {
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast",
+      "weights_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+      "epochs_completed": 1,
+      "optimizer_steps": 908,
+      "steps": 1816,
+      "elapsed_seconds": 104.091320705018,
+      "precision": "bf16",
+      "peak_cuda_allocated_bytes": 1651915776,
+      "gradient_checkpointing": false,
+      "views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 1816
+      },
+      "peak_cgroup_bytes_sampled": 5199085568
+    }
+  },
+  "benchmarks": {
+    "SVOX dev": {
+      "models": {
+        "Day": {
+          "queries": 702,
+          "recall": {
+            "R@1": 0.8846153846153846,
+            "R@5": 0.9515669515669516,
+            "R@10": 0.9601139601139601
+          },
+          "hits": {
+            "R@1": 621,
+            "R@5": 668,
+            "R@10": 674
+          }
+        },
+        "A": {
+          "queries": 702,
+          "recall": {
+            "R@1": 0.8789173789173789,
+            "R@5": 0.9515669515669516,
+            "R@10": 0.9629629629629629
+          },
+          "hits": {
+            "R@1": 617,
+            "R@5": 668,
+            "R@10": 676
+          }
+        },
+        "B": {
+          "queries": 702,
+          "recall": {
+            "R@1": 0.886039886039886,
+            "R@5": 0.9501424501424501,
+            "R@10": 0.9615384615384616
+          },
+          "hits": {
+            "R@1": 622,
+            "R@5": 667,
+            "R@10": 675
+          }
+        },
+        "C": {
+          "queries": 702,
+          "recall": {
+            "R@1": 0.8774928774928775,
+            "R@5": 0.9515669515669516,
+            "R@10": 0.9615384615384616
+          },
+          "hits": {
+            "R@1": 616,
+            "R@5": 668,
+            "R@10": 675
+          }
+        }
+      },
+      "artifacts": {
+        "A": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A/svox_train.json",
+        "B": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast/svox_train.json",
+        "C": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/svox_train.json"
+      },
+      "paired_top1": {
+        "B-A": {
+          "fixed": 7,
+          "regressed": 2,
+          "net_hits": 5
+        },
+        "B-C": {
+          "fixed": 7,
+          "regressed": 1,
+          "net_hits": 6
+        },
+        "B-Day": {
+          "fixed": 13,
+          "regressed": 12,
+          "net_hits": 1
+        }
+      }
+    },
+    "SVOX test": {
+      "models": {
+        "Day": {
+          "queries": 823,
+          "recall": {
+            "R@1": 0.9270959902794653,
+            "R@5": 0.9842041312272175,
+            "R@10": 0.991494532199271
+          },
+          "hits": {
+            "R@1": 763,
+            "R@5": 810,
+            "R@10": 816
+          }
+        },
+        "A": {
+          "queries": 823,
+          "recall": {
+            "R@1": 0.9234507897934386,
+            "R@5": 0.9878493317132442,
+            "R@10": 0.991494532199271
+          },
+          "hits": {
+            "R@1": 760,
+            "R@5": 813,
+            "R@10": 816
+          }
+        },
+        "B": {
+          "queries": 823,
+          "recall": {
+            "R@1": 0.928311057108141,
+            "R@5": 0.9878493317132442,
+            "R@10": 0.991494532199271
+          },
+          "hits": {
+            "R@1": 764,
+            "R@5": 813,
+            "R@10": 816
+          }
+        },
+        "C": {
+          "queries": 823,
+          "recall": {
+            "R@1": 0.9258809234507898,
+            "R@5": 0.9866342648845686,
+            "R@10": 0.991494532199271
+          },
+          "hits": {
+            "R@1": 762,
+            "R@5": 812,
+            "R@10": 816
+          }
+        }
+      },
+      "artifacts": {
+        "A": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A/svox_test.json",
+        "B": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast/svox_test.json",
+        "C": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/svox_test.json"
+      },
+      "paired_top1": {
+        "B-A": {
+          "fixed": 6,
+          "regressed": 2,
+          "net_hits": 4
+        },
+        "B-C": {
+          "fixed": 5,
+          "regressed": 3,
+          "net_hits": 2
+        },
+        "B-Day": {
+          "fixed": 7,
+          "regressed": 6,
+          "net_hits": 1
+        }
+      }
+    },
+    "Tokyo247 Night": {
+      "models": {
+        "Day": {
+          "queries": 105,
+          "recall": {
+            "R@1": 0.8666666666666667,
+            "R@5": 0.9047619047619048,
+            "R@10": 0.9333333333333333
+          },
+          "hits": {
+            "R@1": 91,
+            "R@5": 95,
+            "R@10": 98
+          }
+        },
+        "A": {
+          "queries": 105,
+          "recall": {
+            "R@1": 0.8380952380952381,
+            "R@5": 0.9142857142857143,
+            "R@10": 0.9523809523809523
+          },
+          "hits": {
+            "R@1": 88,
+            "R@5": 96,
+            "R@10": 100
+          }
+        },
+        "B": {
+          "queries": 105,
+          "recall": {
+            "R@1": 0.8476190476190476,
+            "R@5": 0.9142857142857143,
+            "R@10": 0.9333333333333333
+          },
+          "hits": {
+            "R@1": 89,
+            "R@5": 96,
+            "R@10": 98
+          }
+        },
+        "C": {
+          "queries": 105,
+          "recall": {
+            "R@1": 0.8380952380952381,
+            "R@5": 0.9142857142857143,
+            "R@10": 0.9333333333333333
+          },
+          "hits": {
+            "R@1": 88,
+            "R@5": 96,
+            "R@10": 98
+          }
+        }
+      },
+      "artifacts": {
+        "A": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A/tokyo247_night.json",
+        "B": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast/tokyo247_night.json",
+        "C": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/tokyo247_night.json"
+      },
+      "paired_top1": {
+        "B-A": {
+          "fixed": 1,
+          "regressed": 0,
+          "net_hits": 1
+        },
+        "B-C": {
+          "fixed": 1,
+          "regressed": 0,
+          "net_hits": 1
+        },
+        "B-Day": {
+          "fixed": 0,
+          "regressed": 2,
+          "net_hits": -2
+        }
+      }
+    },
+    "RobotCar public night": {
+      "models": {
+        "Day": {
+          "queries": 197,
+          "recall": {
+            "R@1": 0.9086294416243654,
+            "R@5": 0.949238578680203,
+            "R@10": 0.9644670050761421
+          },
+          "hits": {
+            "R@1": 179,
+            "R@5": 187,
+            "R@10": 190
+          }
+        },
+        "A": {
+          "queries": 197,
+          "recall": {
+            "R@1": 0.9086294416243654,
+            "R@5": 0.9543147208121827,
+            "R@10": 0.9644670050761421
+          },
+          "hits": {
+            "R@1": 179,
+            "R@5": 188,
+            "R@10": 190
+          }
+        },
+        "B": {
+          "queries": 197,
+          "recall": {
+            "R@1": 0.9086294416243654,
+            "R@5": 0.949238578680203,
+            "R@10": 0.9644670050761421
+          },
+          "hits": {
+            "R@1": 179,
+            "R@5": 187,
+            "R@10": 190
+          }
+        },
+        "C": {
+          "queries": 197,
+          "recall": {
+            "R@1": 0.9086294416243654,
+            "R@5": 0.9543147208121827,
+            "R@10": 0.9695431472081218
+          },
+          "hits": {
+            "R@1": 179,
+            "R@5": 188,
+            "R@10": 191
+          }
+        }
+      },
+      "artifacts": {
+        "A": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A/robotcar-public_night.json",
+        "B": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast/robotcar-public_night.json",
+        "C": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/robotcar-public_night.json"
+      },
+      "paired_top1": {
+        "B-A": {
+          "fixed": 0,
+          "regressed": 0,
+          "net_hits": 0
+        },
+        "B-C": {
+          "fixed": 0,
+          "regressed": 0,
+          "net_hits": 0
+        },
+        "B-Day": {
+          "fixed": 4,
+          "regressed": 4,
+          "net_hits": 0
+        }
+      }
+    },
+    "RobotCar public night-rain": {
+      "models": {
+        "Day": {
+          "queries": 224,
+          "recall": {
+            "R@1": 0.9553571428571429,
+            "R@5": 0.9642857142857143,
+            "R@10": 0.9732142857142857
+          },
+          "hits": {
+            "R@1": 214,
+            "R@5": 216,
+            "R@10": 218
+          }
+        },
+        "A": {
+          "queries": 224,
+          "recall": {
+            "R@1": 0.9508928571428571,
+            "R@5": 0.9642857142857143,
+            "R@10": 0.96875
+          },
+          "hits": {
+            "R@1": 213,
+            "R@5": 216,
+            "R@10": 217
+          }
+        },
+        "B": {
+          "queries": 224,
+          "recall": {
+            "R@1": 0.9508928571428571,
+            "R@5": 0.9598214285714286,
+            "R@10": 0.9732142857142857
+          },
+          "hits": {
+            "R@1": 213,
+            "R@5": 215,
+            "R@10": 218
+          }
+        },
+        "C": {
+          "queries": 224,
+          "recall": {
+            "R@1": 0.9508928571428571,
+            "R@5": 0.9598214285714286,
+            "R@10": 0.96875
+          },
+          "hits": {
+            "R@1": 213,
+            "R@5": 215,
+            "R@10": 217
+          }
+        }
+      },
+      "artifacts": {
+        "A": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/A/robotcar-public_night-rain.json",
+        "B": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/B_fast/robotcar-public_night-rain.json",
+        "C": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/robotcar-public_night-rain.json"
+      },
+      "paired_top1": {
+        "B-A": {
+          "fixed": 0,
+          "regressed": 0,
+          "net_hits": 0
+        },
+        "B-C": {
+          "fixed": 0,
+          "regressed": 0,
+          "net_hits": 0
+        },
+        "B-Day": {
+          "fixed": 1,
+          "regressed": 2,
+          "net_hits": -1
+        }
+      }
+    }
+  },
+  "input_streams_match": true
+}

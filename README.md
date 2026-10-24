@@ -14,7 +14,7 @@ Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述
 
 - 默认 `--adapter-type full --full-train-scope late --full-train-blocks 4`，更新 **28,357,632** 个参数。Patch Embedding、位置/CLS Token、前八层和最终 Norm 冻结；最终 Norm 与 SALAD 允许梯度传回可训练层。
 - `full` 表示保存独立完整 Night 主干，约 346 MB；是否更新全部参数由 `full-train-scope` 决定。显式 `--full-train-scope all` 可训练全部 86,580,480 个参数。
-- `configs/night_specialist.sh` 使用 Qwen Night 主分支，以及由训练 Day 原图产生的强制低照度辅助视图。干净 Day 只供冻结 Teacher 和 Day bank 使用。真实 Night 图像仅用于评估。
+- `configs/night_specialist.sh` 使用 Qwen Night 主分支，以及由训练 Day 原图产生的强制低照度辅助视图。干净 Day 只供冻结 Teacher 和 Day bank 使用，默认真实 Night 仅用于评估。新增可选 [真实配对阶段一](docs/NIGHT_REAL_PAIRS.md)：`night_real_stage1.sh` 保留原主分支，加入审核过的 DarkDriving 全局蒸馏，并提供 A/B/C/D 对照。
 - 默认 Global / Contrast / Relation 权重为 `0.1 / 0.1 / 0.1`，Source Night 权重 `0.5`；SGPD / Keep / OT / Magnitude 分别独立控制，默认关闭。推理默认只用 Night Query 描述符；融合保留为可选诊断。
 - 默认 AdamW、LR `1e-6`、`LAYER_DECAY=1`、BF16、activation checkpoint、batch 8、1 epoch、`NUM_WORKERS=0`。SALAD 原始训练设置与当前设置的区别见 [SALAD 训练设置](docs/SALAD_TRAINING.md)。
 
@@ -48,11 +48,14 @@ Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述
 - `data/train/manifest.jsonl` 有 7,719 对经 SHA-256 核验的 Day/Qwen Night 图；地点隔离训练集为 7,263 对，合成验证集 385 对，另排除历史保留地点 71 对。
 - Stage 2B 校准绑定当前 checkpoint 与 224×224 预处理；SGPD 仅使用 A 类可信对应。Qwen 编辑不能保证逐 Patch 同坐标匹配。
 - SVOX test：17,166 张 Day Gallery、823 张 Night Query；独立开发划分：22,232 张 Day Gallery、702 张 Night Query。检索采用 25 m UTM 正样本协议。
+- DarkDriving_Base 已清理为 9,520 对真实日夜图像，提供相对路径清单、独立加载器及全量校验命令，见 [使用说明](docs/DARKDRIVING.md)。
 - 已保留完整的全部参数、相机增强、LoRA、Output 基线；无效分支及其重复训练输出已清理。数据、基础权重和可复用 Gallery/训练 bank 缓存保留。
 
 当前运行所需资源已具备，**无需新增下载**。其它机器上的来源见 [下载与来源](docs/DOWNLOADS.md)。
 
 ## 32 GB 主机运行
+
+本机为 4090 48 GiB 显存；优先吞吐时使用 [阶段一加速入口](configs/night_real_stage1_fast.sh)，白天库驻显存、关闭重计算并启用 4 个数据 worker。当前后台任务使用 7 GiB RAM 上限和 2 GiB 系统余量；具体选项与实测见 [吞吐配置](docs/SALAD_TRAINING.md)。以下为原保守默认运行方式。
 
 训练、测试、评估**逐项串行执行**。`scripts/run_bounded.py` 设置 8 GiB cgroup RAM 硬上限、6 GiB 回收阈值和禁用任务 swap；启动要求系统可用内存至少 12 GiB，运行中低于 4 GiB 会结束当前任务。它还使用进程锁防止并行实验。完整约束见 [SALAD 训练与内存设置](docs/SALAD_TRAINING.md)。
 
@@ -81,7 +84,7 @@ export OUTPUT=runs/night_late4_02
   --output "$OUTPUT/svox_test.json"
 ```
 
-原始 Day Gallery 缓存校验 checkpoint、预处理、有序 ID 和图像字节，不因更换 Night 权重而失效。真实图像不进入优化器或训练 bank。test 的历史结果已被查看，后续实验属于探索性比较，不应据 test 反复选配置。
+原始 Day Gallery 缓存校验 checkpoint、预处理、有序 ID 和图像字节，不因更换 Night 权重而失效。默认训练不使用真实夜图；显式阶段一仅将审核训练图对用于额外全局蒸馏，不加入 GSV 负样本 bank。test 的历史结果已被查看，后续实验属于探索性比较，不应据 test 反复选配置。
 
 ## 损失与消融
 

@@ -261,7 +261,8 @@ def load_or_build_day_bank(net, dataset, checkpoint_hash, preprocessing, cache_p
             warnings.warn(f"Rebuilding Day bank {path}: {reason}", RuntimeWarning, stacklevel=2)
     loader = DataLoader(_DayImages(sources, size), batch_size=batch_size, shuffle=False,
                         num_workers=num_workers, drop_last=False,
-                        pin_memory=torch.device(device).type == "cuda")
+                        pin_memory=torch.device(device).type == "cuda",
+                        generator=torch.Generator().manual_seed(0))
     chunks = []
     with torch.no_grad():
         for images in loader:

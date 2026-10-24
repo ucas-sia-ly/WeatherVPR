@@ -1,0 +1,362 @@
+[
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_1_1730538799246118144.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_1_1730538799246118144.jpg",
+    "sha256": "ef4383df0074555595c0ff2ad52086181a9001484a0afd3c3de379c1a8523435",
+    "bytes": 1153218,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_1_1730538799246118144.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_1_1730538799246118144.jpg",
+    "sha256": "aff6ad55267598bfee38e65341d13fc457e29fd838d4c99ff8c0b8279a41bde2",
+    "bytes": 1079205,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_1_1730538799546051072.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_1_1730538799546051072.jpg",
+    "sha256": "ef4383df0074555595c0ff2ad52086181a9001484a0afd3c3de379c1a8523435",
+    "bytes": 1153218,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_1_1730538799546051072.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_1_1730538799546051072.jpg",
+    "sha256": "aff6ad55267598bfee38e65341d13fc457e29fd838d4c99ff8c0b8279a41bde2",
+    "bytes": 1079205,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_1_1730538800145335808.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_1_1730538800145335808.jpg",
+    "sha256": "ef4383df0074555595c0ff2ad52086181a9001484a0afd3c3de379c1a8523435",
+    "bytes": 1153218,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_1_1730538800145335808.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_1_1730538800145335808.jpg",
+    "sha256": "7240887f4b0e9f52879caafc4031016794561a92dc5374979e31d625d8aadfd8",
+    "bytes": 1090898,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_1_1730538800445310976.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_1_1730538800445310976.jpg",
+    "sha256": "ef4383df0074555595c0ff2ad52086181a9001484a0afd3c3de379c1a8523435",
+    "bytes": 1153218,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_1_1730538800445310976.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_1_1730538800445310976.jpg",
+    "sha256": "7240887f4b0e9f52879caafc4031016794561a92dc5374979e31d625d8aadfd8",
+    "bytes": 1090898,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_1_1730538801045895936.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_1_1730538801045895936.jpg",
+    "sha256": "ef4383df0074555595c0ff2ad52086181a9001484a0afd3c3de379c1a8523435",
+    "bytes": 1153218,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_1_1730538801045895936.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_1_1730538801045895936.jpg",
+    "sha256": "7240887f4b0e9f52879caafc4031016794561a92dc5374979e31d625d8aadfd8",
+    "bytes": 1090898,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_1_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_2_1730538799246118144.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_2_1730538799246118144.jpg",
+    "sha256": "652ca41f46df890dac770550f1bcd94b31635bc321f08cbb09d4a49867469255",
+    "bytes": 1153881,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_2_1730538799246118144.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_2_1730538799246118144.jpg",
+    "sha256": "86d498d1d936bbb9a4cbdb81d6f4e7bcc7a3fccdcb9b09c1f6c2af29a04a3f53",
+    "bytes": 1085652,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538798945671936.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_2_1730538800145335808.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_2_1730538800145335808.jpg",
+    "sha256": "652ca41f46df890dac770550f1bcd94b31635bc321f08cbb09d4a49867469255",
+    "bytes": 1153881,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_2_1730538800145335808.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_2_1730538800145335808.jpg",
+    "sha256": "63902e0778a7ff6c71ee15f0473e5e40485ca7ea6d51985483b4c39b67888a02",
+    "bytes": 1092326,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_2_1730538800445310976.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_2_1730538800445310976.jpg",
+    "sha256": "652ca41f46df890dac770550f1bcd94b31635bc321f08cbb09d4a49867469255",
+    "bytes": 1153881,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_2_1730538800445310976.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_2_1730538800445310976.jpg",
+    "sha256": "63902e0778a7ff6c71ee15f0473e5e40485ca7ea6d51985483b4c39b67888a02",
+    "bytes": 1092326,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_2_1730538800745577984.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_2_1730538800745577984.jpg",
+    "sha256": "652ca41f46df890dac770550f1bcd94b31635bc321f08cbb09d4a49867469255",
+    "bytes": 1153881,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_2_1730538800745577984.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_2_1730538800745577984.jpg",
+    "sha256": "63902e0778a7ff6c71ee15f0473e5e40485ca7ea6d51985483b4c39b67888a02",
+    "bytes": 1092326,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/3_2_1730538801045895936.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/3_2_1730538801045895936.jpg",
+    "sha256": "652ca41f46df890dac770550f1bcd94b31635bc321f08cbb09d4a49867469255",
+    "bytes": 1153881,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/3_2_1730538801045895936.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/3_2_1730538801045895936.jpg",
+    "sha256": "63902e0778a7ff6c71ee15f0473e5e40485ca7ea6d51985483b4c39b67888a02",
+    "bytes": 1092326,
+    "reason": "duplicate_complete_pair",
+    "kept_sample": "3_2_1730538799846209024.jpg",
+    "day_error": "",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_1_1728606258599845888.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_1_1728606258599845888.jpg",
+    "sha256": "c9c869962225e2956024b9a13fd645db5aac14467accf199ec38ba20f5fcc287",
+    "bytes": 1011415,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_1_1728606258599845888.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_1_1728606258599845888.jpg",
+    "sha256": "fbda438887340ed226c19137983f69cbdb42a6ba2ff502b314f92eabb41f1441",
+    "bytes": 1078264,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_1_1728606259499429888.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_1_1728606259499429888.jpg",
+    "sha256": "6cc9d711bb7b4952d0172e188516a89f1a24d33b59ba747f6b0a084f611bf1a8",
+    "bytes": 992043,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_1_1728606259499429888.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_1_1728606259499429888.jpg",
+    "sha256": "cbca3e0822ece0854578ff7c3d3cfd3d108de2da6fb8b7490ff479b5e5405033",
+    "bytes": 1072489,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_1_1728606329132532736.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_1_1728606329132532736.jpg",
+    "sha256": "97add505b51496ce6a4983675923f2946c773d31c4daa426877d6ec5717d0a93",
+    "bytes": 1034723,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "OSError: broken data stream when reading image file",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_1_1728606329132532736.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_1_1728606329132532736.jpg",
+    "sha256": "7aa3976024ab352c726e95fbd4c5b2dbb424810c9c298890dac728823cfcf935",
+    "bytes": 1026503,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "OSError: broken data stream when reading image file",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_1_1728606707996788992.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_1_1728606707996788992.jpg",
+    "sha256": "c50f452c060468abc05634cb6e79222441cfbc5b1f28a900c5ac24f9c634c006",
+    "bytes": 1125308,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_1_1728606707996788992.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_1_1728606707996788992.jpg",
+    "sha256": "4d4a0e69b5d2b12e6ecc2144abf2963f53d4af9498f2f8d81417d329230d9231",
+    "bytes": 1066403,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_2_1728607961134389760.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_2_1728607961134389760.jpg",
+    "sha256": "b483c94d513f2dbfdce48f22c65d31775b31bf9fcee920ffe967c94772fd96fd",
+    "bytes": 1006334,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_2_1728607961134389760.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_2_1728607961134389760.jpg",
+    "sha256": "e652f03cc8cfd9e0ef9d7208aae19d8b2b075df6bb22d362946dd74d070ed0df",
+    "bytes": 1078204,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_4_1728610004382670848.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_4_1728610004382670848.jpg",
+    "sha256": "30ec557f4e05a228bcb2fdcbd8c0d5a33af0dadc19ba982f0c2516e87e92bdc9",
+    "bytes": 1049919,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_4_1728610004382670848.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_4_1728610004382670848.jpg",
+    "sha256": "f4803870fe844a105f1e02f31a6dc25e61d51642a21d131c827928e99914fa7b",
+    "bytes": 1065805,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_4_1728610182769377024.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_4_1728610182769377024.jpg",
+    "sha256": "463823829396e3bbf93aee7b58b25897bb887f6216aef1ffd63168027764b4ef",
+    "bytes": 978290,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_4_1728610182769377024.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_4_1728610182769377024.jpg",
+    "sha256": "84b58ece7c8b8911f890c43de9aa7604f078afe801b1187647c0db16ee88969d",
+    "bytes": 1081343,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "",
+    "night_error": "OSError: broken data stream when reading image file"
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Day/in_4_1728610437458285824.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Day/in_4_1728610437458285824.jpg",
+    "sha256": "fb6edd62e5fb2d2413ff8ad94149c4c4f3545466aa56234df9f4b1cb12fd7e4f",
+    "bytes": 1069845,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "OSError: broken data stream when reading image file",
+    "night_error": ""
+  },
+  {
+    "original_path": "/home/admin123/github/WeatherVPR/data/DarkDriving_Base/Night/in_4_1728610437458285824.jpg",
+    "backup_path": "/home/admin123/github/WeatherVPR/outputs/darkdriving_base_cleanup/20261024/quarantine/Night/in_4_1728610437458285824.jpg",
+    "sha256": "edf7df5eb7093dc1ecd9f57932f015aa57c4dc074e8d9cae3e51b97d377b9b43",
+    "bytes": 1054052,
+    "reason": "corrupt_pair",
+    "kept_sample": "",
+    "day_error": "OSError: broken data stream when reading image file",
+    "night_error": ""
+  }
+]

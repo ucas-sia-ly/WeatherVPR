@@ -1,0 +1,19 @@
+filename,reason,kept_sample,day_error,night_error
+3_1_1730538799246118144.jpg,duplicate_complete_pair,3_1_1730538798945671936.jpg,,
+3_1_1730538799546051072.jpg,duplicate_complete_pair,3_1_1730538798945671936.jpg,,
+3_1_1730538800145335808.jpg,duplicate_complete_pair,3_1_1730538799846209024.jpg,,
+3_1_1730538800445310976.jpg,duplicate_complete_pair,3_1_1730538799846209024.jpg,,
+3_1_1730538801045895936.jpg,duplicate_complete_pair,3_1_1730538799846209024.jpg,,
+3_2_1730538799246118144.jpg,duplicate_complete_pair,3_2_1730538798945671936.jpg,,
+3_2_1730538800145335808.jpg,duplicate_complete_pair,3_2_1730538799846209024.jpg,,
+3_2_1730538800445310976.jpg,duplicate_complete_pair,3_2_1730538799846209024.jpg,,
+3_2_1730538800745577984.jpg,duplicate_complete_pair,3_2_1730538799846209024.jpg,,
+3_2_1730538801045895936.jpg,duplicate_complete_pair,3_2_1730538799846209024.jpg,,
+in_1_1728606258599845888.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_1_1728606259499429888.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_1_1728606329132532736.jpg,corrupt_pair,,OSError: broken data stream when reading image file,
+in_1_1728606707996788992.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_2_1728607961134389760.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_4_1728610004382670848.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_4_1728610182769377024.jpg,corrupt_pair,,,OSError: broken data stream when reading image file
+in_4_1728610437458285824.jpg,corrupt_pair,,OSError: broken data stream when reading image file,
