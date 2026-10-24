@@ -20,7 +20,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from safetensors import SafetensorError
-from safetensors.torch import load, save_file
+from safetensors.torch import load_file, save_file
 
 from weather_vpr.data.place_sampler import normalize_place
 from weather_vpr.utils.backend import enable_backend_imports
@@ -39,6 +39,33 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _load_verified_tensors(path: Path, expected_sha256: str) -> dict[str, torch.Tensor]:
+    """Hash and map a stable cache file without keeping all its bytes in RAM.
+
+    Cache writers publish with atomic replacement. On Linux, the open-file
+    path pins the same inode for hashing and mapping even during replacement.
+    Other platforms reject a replacement observed while loading instead.
+    """
+    with path.open("rb") as stream:
+        original = os.fstat(stream.fileno())
+        digest = hashlib.sha256()
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+        if digest.hexdigest() != expected_sha256:
+            raise ValueError("cache tensor SHA-256 mismatch")
+        stable_path = Path("/proc/self/fd") / str(stream.fileno())
+        pinned = stable_path.is_file()
+        tensors = load_file(str(stable_path if pinned else path), device="cpu")
+        current = os.fstat(stream.fileno()) if pinned else path.stat()
+        # Unlinking the old inode during atomic publication changes ctime,
+        # while its pinned bytes and mtime remain unchanged.
+        identity = lambda stat: (stat.st_dev, stat.st_ino, stat.st_size,
+                                 stat.st_mtime_ns, None if pinned else stat.st_ctime_ns)
+        if identity(current) != identity(original):
+            raise ValueError("cache tensor changed while loading")
+        return tensors
 
 
 def _signature(identity: dict) -> str:
@@ -104,11 +131,13 @@ def _validate_descriptors(descriptors: torch.Tensor, rows: int,
         raise ValueError("Day bank tensor shape differs from cache metadata")
     if expected_dim is not None and descriptors.shape[1] != expected_dim:
         raise ValueError("Day bank descriptor dimension differs from frozen SALAD")
-    if not torch.isfinite(descriptors).all():
-        raise ValueError("Day bank contains nonfinite descriptors")
-    norms = torch.linalg.vector_norm(descriptors, dim=1)
-    if not torch.allclose(norms, torch.ones_like(norms), rtol=1e-4, atol=1e-5):
-        raise ValueError("Day bank descriptors are not L2 normalized")
+    for start in range(0, len(descriptors), 1024):
+        part = descriptors[start:start + 1024]
+        if not torch.isfinite(part).all():
+            raise ValueError("Day bank contains nonfinite descriptors")
+        norms = torch.linalg.vector_norm(part, dim=1)
+        if not torch.allclose(norms, torch.ones_like(norms), rtol=1e-4, atol=1e-5):
+            raise ValueError("Day bank descriptors are not L2 normalized")
 
 
 def _descriptor_dim(net) -> int | None:
@@ -136,12 +165,7 @@ def _load_cache(path: Path, expected: dict, expected_dim: int | None):
         if (saved.get("cache_signature") != _signature(expected)
                 or _signature(saved_identity) != _signature(expected)):
             raise ValueError("cache signature mismatch")
-        # Verify the same bytes that are decoded, even if another process
-        # atomically replaces the cache while this reader is running.
-        tensor_bytes = path.read_bytes()
-        if saved.get("tensor_sha256") != hashlib.sha256(tensor_bytes).hexdigest():
-            raise ValueError("cache tensor SHA-256 mismatch")
-        tensors = load(tensor_bytes)
+        tensors = _load_verified_tensors(path, saved.get("tensor_sha256"))
         if set(tensors) != {"descriptors"}:
             raise ValueError("cache must contain only descriptors")
         descriptors = tensors["descriptors"]

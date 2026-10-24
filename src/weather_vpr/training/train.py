@@ -55,6 +55,10 @@ def parse_args(argv=None):
     p.add_argument('--save-every-steps', type=int, default=200,
                    help='Checkpoint after this many batches; 0 saves only at epoch/end')
     p.add_argument('--adapter-type', choices=('full','output','lora'), default='full')
+    p.add_argument('--full-train-scope', choices=('all', 'early', 'late'), default='all',
+                   help='Full Night weights to optimize: all parameters, first N blocks, or last N blocks')
+    p.add_argument('--full-train-blocks', type=int, default=6,
+                   help='Number of trainable blocks for early/late full-weight scope; embeddings/norm frozen')
     p.add_argument('--hidden', type=int, default=64)
     p.add_argument('--lora-rank', type=int, default=8)
     p.add_argument('--lora-alpha', type=float, default=16)
@@ -87,6 +91,9 @@ def parse_args(argv=None):
                    help='Historical Day Student preservation/restoration auxiliary; not required for Night-to-Day retrieval')
     p.add_argument('--day-preservation-samples', type=int, default=1,
                    help='Day samples per microbatch; sequential backward bounds activation memory')
+    p.add_argument('--day-preservation-schedule', choices=('constant', 'linear'), default='constant')
+    p.add_argument('--day-preservation-final-ratio', type=float, default=0.0,
+                   help='Final/initial Day regularizer weight for linear update-based decay')
     p.add_argument('--day-view-augmentation', choices=('off', 'camera'), default='off',
                    help='Optional camera-degraded training Day Student views; clean Day Teacher targets')
     p.add_argument('--source-night-weight', type=float, default=0.0,
@@ -96,7 +103,7 @@ def parse_args(argv=None):
     p.add_argument('--source-night-config', type=Path,
                    help='JSON configuration for mandatory darkening and optional camera corruption')
     p.add_argument('--layer-decay', type=float, default=1.0,
-                   help='Full-backbone layer-wise learning rate decay; all parameters remain trainable')
+                   help='Layer-wise LR decay over selected full-backbone parameters')
     p.add_argument('--lr-schedule', choices=('constant', 'cosine'), default='constant')
     p.add_argument('--warmup-steps', type=int, default=0, help='Optimizer updates, not microbatches')
     p.add_argument('--min-lr-ratio', type=float, default=0.1)
@@ -138,10 +145,17 @@ def _validate(args):
         raise ValueError('layer-decay must be finite in (0,1]')
     if args.adapter_type != 'full' and (args.layer_decay != 1 or args.gradient_checkpointing):
         raise ValueError('Layer decay and gradient checkpointing require adapter-type full')
+    if args.full_train_blocks < 1:
+        raise ValueError('full-train-blocks must be positive')
+    if args.adapter_type != 'full' and args.full_train_scope != 'all':
+        raise ValueError('Block training scope requires adapter-type full')
     if not math.isfinite(args.min_lr_ratio) or not 0 <= args.min_lr_ratio <= 1:
         raise ValueError('min-lr-ratio must be finite in [0,1]')
     if args.day_preservation_samples < 1:
         raise ValueError('day-preservation-samples must be positive')
+    if (not math.isfinite(args.day_preservation_final_ratio)
+            or not 0 <= args.day_preservation_final_ratio <= 1):
+        raise ValueError('day-preservation-final-ratio must be finite in [0,1]')
     if args.source_night_samples < 1:
         raise ValueError('source-night-samples must be positive')
     if args.lr_schedule == 'constant' and args.warmup_steps:
@@ -286,16 +300,22 @@ def main(argv=None):
     teacher_hash = sha256(args.checkpoint)
     preprocessing = input_preprocessing(model_size)
     _load_initial_adapter(net, args, teacher_hash, base, preprocessing)
-    params = tuple(net.adapter_parameters(args.weather))
-    if not params or any(not param.requires_grad for param in params):
-        raise RuntimeError('Selected weather adapter has no trainable parameters')
     from weather_vpr.training.optimization import (
-        full_backbone_parameter_groups, warmup_cosine_multiplier,
+        configure_full_backbone_scope, full_backbone_parameter_groups, warmup_cosine_multiplier,
     )
+    from weather_vpr.training.loss_schedule import auxiliary_weight_multiplier
+    scope_info = (configure_full_backbone_scope(
+        net.adapters[args.weather], args.full_train_scope, args.full_train_blocks)
+        if args.adapter_type == 'full' else None)
+    params = tuple(param for param in net.adapter_parameters(args.weather) if param.requires_grad)
+    if not params:
+        raise RuntimeError('Selected weather adapter has no trainable parameters')
+    if scope_info is not None:
+        print(f'Night full-weight training scope: {scope_info}', flush=True)
     groups = (full_backbone_parameter_groups(
         net.adapters[args.weather], learning_rate=args.learning_rate,
         weight_decay=args.weight_decay, layer_decay=args.layer_decay)
-        if args.adapter_type == 'full' and args.layer_decay < 1 else params)
+        if args.adapter_type == 'full' else params)
     optimizer = torch.optim.AdamW(groups, lr=args.learning_rate,
                                   weight_decay=args.weight_decay)
     initial_lrs = [group['lr'] for group in optimizer.param_groups]
@@ -330,6 +350,7 @@ def main(argv=None):
     resolved_config = training_configuration(args, augmentation_info)
     resolved_config['effective_day_view_augmentation'] = day_augmentation_info
     resolved_config['effective_source_night'] = source_night_info
+    resolved_config['effective_full_train_scope'] = scope_info
     (out / 'training_config.json').write_text(
         json.dumps(resolved_config, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
@@ -384,6 +405,7 @@ def main(argv=None):
             save_every_steps=args.save_every_steps,
             learning_rate=args.learning_rate, weight_decay=args.weight_decay,
             layer_decay=args.layer_decay, lr_schedule=args.lr_schedule,
+            full_train_scope=scope_info,
             warmup_steps=args.warmup_steps, min_lr_ratio=args.min_lr_ratio,
             gradient_checkpointing=args.gradient_checkpointing,
             precision='bf16' if args.bf16 else 'fp32',
@@ -409,6 +431,8 @@ def main(argv=None):
             relation_teacher_temperature=args.relation_teacher_temperature,
             relation_hard_negatives=args.relation_hard_negatives,
             day_preservation_samples=args.day_preservation_samples,
+            day_preservation_schedule=args.day_preservation_schedule,
+            day_preservation_final_ratio=args.day_preservation_final_ratio,
             day_view_augmentation=day_augmentation_info,
             sampled_day_augmentation_counts=day_augmentation_counts,
             source_night=source_night_info,
@@ -418,7 +442,7 @@ def main(argv=None):
             importance_mode=args.importance_mode,
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_full_night_specialist_v4' if args.adapter_type == 'full'
+            code_version=('weather_vpr_full_night_regularization_v5' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
@@ -523,8 +547,11 @@ def main(argv=None):
             # A second, short Day forward is backpropagated only after the Night
             # graph is freed. The frozen original Day target never changes.
             preservation_value = 0.0
+            day_weight = args.day_preservation_weight * auxiliary_weight_multiplier(
+                args.day_preservation_schedule, optimizer_steps, planned_updates,
+                args.day_preservation_final_ratio)
             day_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
-            if args.day_preservation_weight > 0:
+            if day_weight > 0:
                 count = min(len(batch), args.day_preservation_samples)
                 day_student = torch.stack([item['day_student_tensor'] for item in batch[:count]]).to(args.device)
                 day_sampled_counts = sampled_augmentation_counts(
@@ -536,7 +563,7 @@ def main(argv=None):
                 preservation = descriptor_alignment(preservation_desc, day_desc[:count])
                 if not torch.isfinite(preservation):
                     raise FloatingPointError('Non-finite Day preservation loss')
-                (args.day_preservation_weight * preservation /
+                (day_weight * preservation /
                  args.gradient_accumulation_steps).backward()
                 preservation_value = float(preservation.detach())
                 del preservation_desc, preservation, day_student
@@ -588,7 +615,7 @@ def main(argv=None):
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            augmentation=sampled_counts,
-                           loss=(float(total.detach()) + args.day_preservation_weight * preservation_value +
+                           loss=(float(total.detach()) + day_weight * preservation_value +
                                  args.source_night_weight * source_value),
                            global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
@@ -601,6 +628,7 @@ def main(argv=None):
                            relation_teacher_entropy=float(relation['teacher_entropy']),
                            synthetic_guidance_loss=float(s_loss.detach()),
                            day_preservation_loss=preservation_value,
+                           day_preservation_effective_weight=day_weight,
                            day_augmentation=day_sampled_counts,
                            source_night_loss=source_value,
                            source_night_global_loss=source_global_value,

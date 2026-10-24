@@ -65,6 +65,26 @@ class SVOXNightTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_night_dataset(root, split='val')
 
+    def test_retrieval_finite_validation_is_bounded_and_checks_late_chunks(self):
+        from weather_vpr.utils.backend import enable_backend_imports
+        enable_backend_imports()
+        from workflow.evaluation import exact_retrieval
+
+        references = torch.arange(17, dtype=torch.float32)[:, None]
+        queries = torch.tensor([[0.0], [10.0], [16.0]])
+        finite = torch.isfinite
+        with patch("torch.isfinite", wraps=finite) as checks:
+            result = exact_retrieval(references, queries, [[0], [10], [16]],
+                                     query_chunk_size=2, reference_chunk_size=4)
+        self.assertEqual([row["rank"] for row in result], [1, 1, 1])
+        self.assertTrue(all(call.args[0].shape[0] <= 4 for call in checks.call_args_list))
+        for invalid_group in ("references", "queries"):
+            bad_references, bad_queries = references.clone(), queries.clone()
+            (bad_references if invalid_group == "references" else bad_queries)[-1, 0] = float("nan")
+            with self.subTest(invalid_group=invalid_group), self.assertRaisesRegex(ValueError, "finite"):
+                exact_retrieval(bad_references, bad_queries, [[0], [10], [16]],
+                                query_chunk_size=2, reference_chunk_size=4)
+
     def test_cache_invalidated_by_images_weights_and_preprocessing(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

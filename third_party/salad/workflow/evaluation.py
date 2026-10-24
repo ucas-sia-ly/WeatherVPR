@@ -269,8 +269,8 @@ def load_evaluation_set(
     elif key in {"robotcar", "robotcar-seasons"}:
         raise ValueError(
             "RobotCar-Seasons requires --eval-manifest with explicit reference/query positives. "
-            "Its test image list has no ground-truth poses; per-segment COLMAP models cannot be "
-            "combined into a global retrieval protocol. No positives will be guessed."
+            "Its official test image list does not publish ground-truth query poses. "
+            "Aligned reference COLMAP models alone do not provide test positives. No positives will be guessed."
         )
     else:
         bundled = metadata_root or Path(__file__).resolve().parents[1] / "datasets"
@@ -356,8 +356,13 @@ def exact_retrieval(
         raise ValueError("Reference and query descriptors must have matching dimensions.")
     if len(references) == 0 or len(queries) != len(positives):
         raise ValueError("Invalid reference count or query ground-truth count.")
-    if not torch.isfinite(references).all() or not torch.isfinite(queries).all():
-        raise ValueError("Descriptors must be finite.")
+    # A full-gallery isfinite check can allocate a large temporary on a
+    # 75k x 8448 gallery. Validate in the same bounded chunks as retrieval.
+    for descriptors, chunk_size in ((references, min(reference_chunk_size, 1024)),
+                                    (queries, min(query_chunk_size, 1024))):
+        for start in range(0, len(descriptors), chunk_size):
+            if not torch.isfinite(descriptors[start:start + chunk_size]).all():
+                raise ValueError("Descriptors must be finite.")
     for indices in positives:
         if any(index < 0 or index >= len(references) for index in indices):
             raise ValueError("Positive reference index out of range.")

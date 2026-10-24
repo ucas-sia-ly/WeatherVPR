@@ -20,6 +20,16 @@ Student 的职责是夜间 Query→原始 Day Gallery 检索。新增 `configs/n
 
 [目标与损失说明](docs/NIGHT_SPECIALIST.md) · [完整实验与复现](docs/NIGHT_SPECIALIST_RESULTS.md)
 
+### 弱正则、层范围和 Query 融合：已完成
+
+按相同数据、seed 和 908 次更新，完成全量对照、衰减 Day anchor、仅前六层、仅后六层四组训练。四个新候选的 SVOX 开发 R@1 都未超过既有 `source_night`，因此保留原方案。按预先规则选出的 `α=0.25` Query 融合在 SVOX test 的 R@1 为 **92.47%（761/823）**，低于纯 Night 的 **93.07%（766/823）**；Tokyo 也有退化，RobotCar Night 有小幅收益，整体没有一致突破，**不将融合或弱 Day 正则改为默认方案**。
+
+全部串行重跑、开发选择和四项评估已结束；实验任务实测最高内存 **5.43 GiB**，最低系统可用内存 **13.33 GiB**，受 8 GiB cgroup 硬限制保护。158 项测试、训练范围及冻结参数检查通过。完整三项 Recall、逐 Query 变化、亮度分桶及资源记录见 [本轮结果](docs/NIGHT_REGULARIZATION_RESULTS.md)，方法与复现见 [实验设计](docs/NIGHT_REGULARIZATION.md)。
+
+### 其他真实夜间数据集
+
+新增 `scripts/evaluate_night_benchmarks.py`，对比原始 Day 与现有 Night 权重，共用原始 Day Gallery。支持完整图库的 Tokyo247 官方查询夜间子集，以及带公开位姿的 RobotCar v2 Night/Night-rain **只读诊断子集**。后者来自官方 `train` 划分，仅作评估，不是官方 withheld test，也没有用于微调。Aachen 夜图齐全，但缺可计算 Recall 的查询真值。数据协议、实测结果及复现命令见 [其他夜间评估](docs/EXTERNAL_NIGHT_RESULTS.md)。
+
 ### 相机增强配对训练（2026-10-23）
 
 | 配置 | 原图合成验证 R@1 | 平均配对描述符余弦 |
@@ -58,6 +68,16 @@ OUTPUT=runs/night_guided_retrieval_01 bash configs/night_guided_retrieval.sh
 ```
 
 新 Python 环境先安装与本机驱动兼容的 PyTorch，再执行 `pip install -r requirements-extra.txt`。无需安装 DINOv2 仓库中针对旧 CUDA 版本固定的整套依赖。
+
+### 32 GB 主机内存
+
+训练和评估应串行执行。新增 `scripts/run_bounded.py` 使用本机 systemd/cgroup v2，将实验及子进程限制为 **8 GiB RAM、6 GiB 回收阈值、禁用任务 swap**，系统可用内存低于 4 GiB 时结束当前任务，并保存内存日志。Night 专用训练默认 `NUM_WORKERS=0`；前后层训练、弱 Day 正则和 Query 融合的受控方案及命令见 [正则与层范围实验](docs/NIGHT_REGULARIZATION.md)。
+
+```bash
+NUM_WORKERS=0 OUTPUT=runs/night_specialist_safe_02 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_specialist_safe_02.memory.jsonl \
+  -- bash configs/night_specialist.sh
+```
 
 ## 运行
 
@@ -152,7 +172,7 @@ data/svox/                真实天气测试图
 src/weather_vpr/models/  Day Teacher、完整 Night DINOv2、LoRA / Output 消融
 src/weather_vpr/losses/  SGPD、可选 Keep/OT/Magnitude、全局和 queue InfoNCE
 src/weather_vpr/data/    精确配对、地点分散采样和可信 Patch 对应
-src/weather_vpr/inference/ SVOX 检索与描述符导出
+src/weather_vpr/inference/ SVOX、Tokyo247、RobotCar 检索与描述符导出
 scripts/                  数据准备、训练、评估入口
 third_party/              项目内部的 SALAD/DINOv2 源码
 weights/                  原始完整 checkpoint

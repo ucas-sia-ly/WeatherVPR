@@ -59,3 +59,13 @@ python scripts/evaluate_svox.py --adapter-dir runs/night_full_sgpd_lr1e6_01 \
 阶段 2 同时增加了 SGPD 和训练步数，现有阶段 1/2 对比不能单独归因于 SGPD。若继续研究局部损失，应从同一阶段 1 权重出发，以相同步数另训 `PATCH_WEIGHT=0` 的对照实验，并在独立真实夜景验证划分上选择配置。
 
 仓库还保留了 `scripts/evaluate.py`，用于用户自行提供 `path,place_id` 的普通 CSV 数据集。它的同 ID 判正协议**不适用于** SVOX 地理半径真值；SVOX 应使用专门入口。
+
+## 其他夜间数据集
+
+`scripts/evaluate_night_benchmarks.py --dataset tokyo247` 使用随项目提供、带 SHA-256 来源记录的 NetVLAD MAT，完整 75,984 张 Gallery 和官方查询中 CSV 第 6 列标为 `N` 的 105 张夜图。正样本使用 MAT 的 UTM 坐标与 25 m 半径；本地 1,125 张扩展版查询不会全部混入标准子集。本地 v3 图像与原 v2 发布图像尚未逐字节核验，结果保留这一限制。
+
+`--dataset robotcar-public --condition night|night-rain` 使用官方 **v2 public train** 中的 197/224 张 rear 夜图，仅作检索评估，不训练。全部 49 个 aligned COLMAP 模型共享世界坐标，构成 20,862 张跨相机白天 Gallery；Query 用公开 camera-to-world 中心，Gallery 用 COLMAP 的 `-Rᵀt` 中心，以三维距离 ≤25 m 定义正样本，不过滤方向。这是明确的自定义位置检索诊断，不能作为 RobotCar 官方 test 或 6DoF 定位成功率。
+
+两数据集入口均支持 `--check-data`；正式评估固定原始 224×224 单尺度，不做 TTA，Day/Night 共用一次提取的原始 Gallery，记录图像、checkpoint、Night 权重及真值来源哈希。结果包含逐 Query 精确排名与 Top-1 修复/退化计数。
+
+RobotCar 官方 test 和 Aachen 夜间 Query 的参考位姿不公开，本地也没有可信 Query→Gallery positives，因此不能计算可靠的 test Recall。补齐外部验证过的 positives 后，可用 `--dataset manifest --root <image_root> --manifest <evaluation_manifest.json>` 评估；manifest 格式沿用 `workflow.evaluation.load_manifest` 的 references/queries/positives 定义。完整数字、来源和复现命令见 [其他夜间评估](EXTERNAL_NIGHT_RESULTS.md)。

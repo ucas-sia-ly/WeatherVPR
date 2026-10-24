@@ -6,12 +6,13 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from PIL import Image
 import torch
 from safetensors.torch import load_file, save_file
 
-from weather_vpr.training.day_bank import load_or_build_day_bank
+from weather_vpr.training.day_bank import _validate_descriptors, load_or_build_day_bank
 
 
 class _DayOnlyTrainingSet:
@@ -108,6 +109,34 @@ class DayBankTests(unittest.TestCase):
         self.assertEqual(cached_metadata["cache_status"], "hit")
         self.assertIsNone(cached_metadata["rebuild_reason"])
         self.assertEqual(metadata["cache_signature"], cached_metadata["cache_signature"])
+
+    def test_cache_hit_does_not_read_the_whole_tensor_into_python_bytes(self):
+        original, _, _ = self.build()
+        with patch.object(Path, "read_bytes", side_effect=AssertionError("whole-file read")):
+            cached, _, metadata = self.build()
+        torch.testing.assert_close(original, cached, rtol=0, atol=0)
+        self.assertEqual(metadata["cache_status"], "hit")
+
+    @unittest.skipUnless(Path("/proc/self/fd").is_dir(), "Linux stable file handles")
+    def test_atomic_tensor_replacement_does_not_change_the_hashed_snapshot(self):
+        original, _, _ = self.build()
+        replacement = self.root / "replacement.safetensors"
+        save_file({"descriptors": -original}, str(replacement))
+
+        def replace_then_load(filename, **kwargs):
+            replacement.replace(self.path)
+            return load_file(filename, **kwargs)
+
+        with patch("weather_vpr.training.day_bank.load_file", side_effect=replace_then_load):
+            cached, _, metadata = self.build()
+        torch.testing.assert_close(original, cached, rtol=0, atol=0)
+        self.assertEqual(metadata["cache_status"], "hit")
+
+    def test_descriptor_validation_checks_late_chunks(self):
+        descriptors = torch.nn.functional.normalize(torch.ones(1025, 4), dim=1)
+        descriptors[-1, -1] = float("nan")
+        with self.assertRaisesRegex(ValueError, "nonfinite"):
+            _validate_descriptors(descriptors, len(descriptors))
 
     def test_actual_source_byte_change_invalidates_cache(self):
         original, _, metadata = self.build()

@@ -10,7 +10,12 @@
 - `scripts/describe.py`：单图描述符导出 CLI。
 - `scripts/evaluate.py`：白天图库 × 天气查询 Recall@1/5/10。
 - `scripts/evaluate_svox.py`：原始白天 Gallery × 真实 SVOX night Query，25 m UTM Recall@1/5/10。
+- `scripts/evaluate_night_benchmarks.py`：Tokyo247 Night、RobotCar 公开位姿诊断及可信显式 manifest 的 Day/Night 共享 Gallery 对照。
 - `scripts/evaluate_pairs.py`：地点隔离的 Qwen night 合成验证 Recall 与精确配对余弦。
+- `scripts/sweep_query_fusion.py`：仅在 SVOX train 诊断集上复用已导出的 Query 描述符，比较固定融合权重。
+- `scripts/run_bounded.py`：串行锁、cgroup RAM 硬限制、系统可用内存监控与任务内存日志。
+- `scripts/audit_night_experiment.py`：核验 Night 受控实验的配置、训练步数、冻结参数、权重变化及内存完成日志。
+- `scripts/analyze_night_brightness.py`：仅用 SVOX 开发集确定亮度分桶阈值，诊断各夜间评估结果的分桶 Recall。
 - `scripts/remap_manifest.py`：将搬运前绝对路径按**明确前缀**批量改写成新绝对路径。
 - `src/weather_vpr/models/adapter.py`：共享冻结 DINOv2/SALAD 与天气 Adapter。
 - `src/weather_vpr/losses/distillation.py`：SGPD、Keep、Global、InfoNCE。
@@ -18,6 +23,8 @@
 - `src/weather_vpr/data/correspondence.py`：复用项目内部 Stage2B 匹配校准。
 - `src/weather_vpr/data/evaluation_dataset.py`：CSV 显式地点标注。
 - `src/weather_vpr/inference/evaluate.py`：描述符抽取及 Recall 计算。
+- `src/weather_vpr/inference/tokyo.py`：官方 MAT 查询子集、CSV 夜间标签及完整图库 25 m 真值。
+- `src/weather_vpr/inference/robotcar.py`：公开 train 位姿与 49 个对齐 COLMAP 模型的 25 m 只读检索诊断。
 - `src/weather_vpr/utils/backend.py`：仅加载本项目 `third_party/salad/` 后端。
 - `configs/*_global.sh`：各天气两步 Global smoke。
 - `configs/*_sgpd.sh`：各天气 SGPD 实验。
@@ -27,4 +34,5 @@
 - `weights/`：唯一完整白天 SALAD checkpoint。
 - `runs/`：每个天气的独立 Adapter 训练与评估结果。
 - `docs/DOWNLOADS.md`：现有资源状态与迁移后的下载来源。
+- `docs/EXTERNAL_NIGHT_RESULTS.md`：其他夜间数据集协议、Recall 对照与缺失真值说明。
 - `tests/`：单元测试。

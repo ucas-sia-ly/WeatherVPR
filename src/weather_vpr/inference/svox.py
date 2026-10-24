@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
+from numbers import Real
 from pathlib import Path
 import tempfile
 
@@ -123,7 +125,8 @@ def _load_gallery_cache(cache_path: Path, expected: dict, descriptor_dim: int):
         vectors = tensors["descriptors"]
         if (vectors.dtype != torch.float32
                 or tuple(vectors.shape) != (len(expected["image_ids"]), descriptor_dim)
-                or not torch.isfinite(vectors).all()):
+                or any(not torch.isfinite(vectors[start:start + 1024]).all()
+                       for start in range(0, len(vectors), 1024))):
             return None
         return vectors
     except (OSError, ValueError, KeyError, RuntimeError):
@@ -212,6 +215,114 @@ def _unit_query_vectors(vectors, count: int, descriptor_dim: int):
     return vectors / norms
 
 
+def _validate_query_fusion_alpha(alpha: float | None) -> float | None:
+    if alpha is None:
+        return None
+    if isinstance(alpha, bool) or not isinstance(alpha, Real) or not math.isfinite(alpha) or not 0 <= alpha <= 1:
+        raise ValueError('query-fusion-alpha must be a finite student weight between 0 and 1')
+    return float(alpha)
+
+
+def fused_query_descriptors(student_vectors: torch.Tensor, teacher_vectors: torch.Tensor,
+                            alpha: float) -> torch.Tensor:
+    """Fuse detached, unit FP32 query descriptors; alpha is the Student weight.
+
+    Each model's descriptor is normalized before interpolation, preventing its
+    original magnitude from changing the requested weights. Opposite vectors
+    that exactly cancel cannot define a retrieval direction and are rejected.
+    The returned descriptors are on CPU, like the extraction outputs.
+    """
+    alpha = _validate_query_fusion_alpha(alpha)
+    if alpha is None:
+        raise ValueError('A fusion student weight is required')
+    if (not isinstance(student_vectors, torch.Tensor)
+            or not isinstance(teacher_vectors, torch.Tensor)
+            or student_vectors.ndim != 2 or teacher_vectors.ndim != 2
+            or student_vectors.shape != teacher_vectors.shape
+            or min(student_vectors.shape) < 1):
+        raise ValueError('Student and Teacher queries must share nonempty [query_count, descriptor_dim] shape')
+    count, descriptor_dim = student_vectors.shape
+    student = _unit_query_vectors(student_vectors, count, descriptor_dim)
+    teacher = _unit_query_vectors(teacher_vectors, count, descriptor_dim)
+    return _unit_query_vectors(alpha * student + (1 - alpha) * teacher, count, descriptor_dim)
+
+
+def _query_fusion_metadata(alpha: float, query_preprocessing: dict) -> dict:
+    return {
+        'alpha': alpha,
+        'alpha_definition': 'Student weight; Teacher weight = 1 - alpha',
+        'aggregation': 'FP32 L2 per model -> weighted sum -> L2',
+        'teacher_query_forward_required': alpha < 1,
+        'student_query_forward_required': alpha > 0,
+        'teacher_queries_reused_from_baseline': True,
+        'additional_teacher_query_forwards_after_baseline': 0,
+        'student_query_extractions': 1,
+        'cost_note': ('Mixed fusion (0 < alpha < 1) uses both query encoders at deployment; '
+                      'an endpoint selects one model. This paired evaluation extracts each model once; '
+                      'Gallery is unchanged'),
+        'query_preprocessing': query_preprocessing,
+        'multiscale_policy': 'Apply the same query preprocessing to each model before model fusion',
+    }
+
+
+def _save_query_descriptors(path: Path, *, teacher_vectors: torch.Tensor,
+                             student_vectors: torch.Tensor, images,
+                             checkpoint_hash: str, adapter_dir: Path,
+                             preprocessing: dict, query_preprocessing: dict) -> dict:
+    """Export this evaluation's fresh queries for a later fusion-only sweep.
+
+    This is an explicit output artifact, never an implicit query cache. Image
+    order/content, both model weights, and resizing policy accompany the tensors.
+    """
+    if (not isinstance(teacher_vectors, torch.Tensor) or teacher_vectors.ndim != 2
+            or not isinstance(student_vectors, torch.Tensor)
+            or teacher_vectors.shape != student_vectors.shape
+            or teacher_vectors.shape[0] != len(images) or min(teacher_vectors.shape) < 1):
+        raise ValueError('Exported Teacher and Student queries must match the ordered image list')
+    for vectors in (teacher_vectors, student_vectors):
+        _unit_query_vectors(vectors, len(images), teacher_vectors.shape[1])
+    tensors = {'teacher': teacher_vectors.detach().float().cpu().contiguous(),
+               'student': student_vectors.detach().float().cpu().contiguous()}
+    path = Path(path).expanduser().resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    metadata = {
+        'format_version': 1,
+        'purpose': 'Fresh query extraction for offline Teacher/Student fusion sweeps',
+        'query_ids': [image.id for image in images],
+        'query_sha256': gallery_fingerprint(images),
+        'checkpoint_sha256': checkpoint_hash,
+        'night_weights_sha256': sha256(adapter_dir / 'adapter.safetensors'),
+        'night_metadata_sha256': sha256(adapter_dir / 'adapter.json'),
+        'adapter_directory': str(adapter_dir),
+        'preprocessing': preprocessing,
+        'query_preprocessing': query_preprocessing,
+        'tensor_values': 'Fresh FP32 extraction outputs; normalize per model before fusion',
+        'descriptor_shape': list(teacher_vectors.shape),
+    }
+    temporary_tensor = temporary_metadata = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.query_descriptors_',
+                                         suffix='.safetensors', delete=False) as stream:
+            temporary_tensor = Path(stream.name)
+        save_file(tensors, str(temporary_tensor))
+        metadata['tensor_sha256'] = sha256(temporary_tensor)
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.query_descriptors_',
+                                         suffix='.json', mode='w', encoding='utf-8',
+                                         delete=False) as stream:
+            temporary_metadata = Path(stream.name)
+            json.dump(metadata, stream, indent=2, ensure_ascii=False)
+        os.replace(temporary_tensor, path)
+        temporary_tensor = None
+        os.replace(temporary_metadata, _metadata_path(path))
+        temporary_metadata = None
+    finally:
+        for temporary in (temporary_tensor, temporary_metadata):
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+    return {'path': str(path), 'metadata_path': str(_metadata_path(path)),
+            'tensor_sha256': metadata['tensor_sha256']}
+
+
 def _extract_multiscale_queries(model, images, scales, device: str, batch_size: int,
                                 num_workers: int, descriptor_dim: int):
     """Resize each original image independently; average unit FP32 descriptors."""
@@ -247,11 +358,18 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
                         reference_chunk_size: int, reference_cache_mib: int,
                         save_hard_cases: bool = False, split: str = "test",
                         adapter_scale: float = 1.0,
-                        query_scales: tuple[int, ...] | None = None) -> dict:
+                        query_scales: tuple[int, ...] | None = None,
+                        query_fusion_alpha: float | None = None,
+                        query_descriptor_path: Path | None = None) -> dict:
     """Write baseline and optional adapter R@1/5/10 against one unchanged gallery."""
     if batch_size < 1 or num_workers < 0 or query_chunk_size < 1 or reference_chunk_size < 1 or reference_cache_mib < 0:
         raise ValueError("Batch/chunk sizes must be positive; workers and cache MiB nonnegative")
     query_scales = _validate_query_scales(query_scales)
+    query_fusion_alpha = _validate_query_fusion_alpha(query_fusion_alpha)
+    if query_fusion_alpha is not None and adapter_dir is None:
+        raise ValueError('query-fusion-alpha requires a Night adapter')
+    if query_descriptor_path is not None and adapter_dir is None:
+        raise ValueError('Saving Teacher/Student query descriptors requires a Night adapter')
     if adapter_dir is not None:
         adapter_dir = _require_night_adapter_dir(adapter_dir)
     device = _validate_device(device)
@@ -337,9 +455,9 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
                                query_chunk_size=query_chunk_size,
                                reference_chunk_size=reference_chunk_size,
                                reference_cache_bytes=reference_cache_mib * 1024 * 1024)
-        return build_results(dataset, rows, save_hard_cases=save_hard_cases)
+        return build_results(dataset, rows, save_hard_cases=save_hard_cases), rows
 
-    baseline = score(baseline_vectors, "baseline")
+    baseline, baseline_rows = score(baseline_vectors, "baseline")
     result = {"dataset": "SVOX", "split": split, "query_group": "queries_night",
               "checkpoint": str(checkpoint), "checkpoint_sha256": checkpoint_hash,
               "image_size": list(base.image_size), "preprocessing": preprocessing,
@@ -356,12 +474,32 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
         else:
             adapted_vectors = _extract_multiscale_queries(
                 student, dataset.queries, query_scales, device, batch_size, num_workers, descriptor_dim)
-        adapted = score(adapted_vectors, "adapter")
+        adapted, adapted_rows = score(adapted_vectors, "adapter")
         result["adapter"] = {"directory": str(adapter_dir),
                              "metadata": metadata, "scale": adapter_scale,
                              "evaluation": adapted}
         result["delta_recall"] = {key: adapted["recall"][key] - baseline["recall"][key]
                                   for key in ("R@1", "R@5", "R@10")}
+        if query_descriptor_path is not None:
+            result['query_descriptors'] = _save_query_descriptors(
+                query_descriptor_path, teacher_vectors=baseline_vectors,
+                student_vectors=adapted_vectors, images=dataset.queries,
+                checkpoint_hash=checkpoint_hash, adapter_dir=adapter_dir,
+                preprocessing=preprocessing, query_preprocessing=query_preprocessing)
+        if query_fusion_alpha is not None:
+            fused_vectors = fused_query_descriptors(adapted_vectors, baseline_vectors,
+                                                     query_fusion_alpha)
+            fused, fused_rows = score(fused_vectors, "Teacher/Student fusion")
+            result['fusion'] = {
+                **_query_fusion_metadata(query_fusion_alpha, query_preprocessing),
+                'evaluation': fused,
+                'delta_recall': {key: fused['recall'][key] - baseline['recall'][key]
+                                 for key in ('R@1', 'R@5', 'R@10')},
+            }
+            result['per_query'] = [
+                {'query_id': image.id, 'baseline': day, 'night': night, 'fusion': fusion}
+                for image, day, night, fusion in zip(dataset.queries, baseline_rows,
+                                                    adapted_rows, fused_rows)]
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -370,6 +508,8 @@ def evaluate_svox_night(*, svox_root: Path, checkpoint: Path, backbone_repo: Pat
     if result["adapter"] is not None:
         print("Night model:", result["adapter"]["evaluation"]["recall"], flush=True)
         print("Delta:", result["delta_recall"], flush=True)
+    if 'fusion' in result:
+        print("Query fusion:", result['fusion']['evaluation']['recall'], flush=True)
     return result
 
 
@@ -399,6 +539,10 @@ def parse_args(argv=None):
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument('--query-scales', type=_parse_query_scales,
                         help='Optional query-only square sizes, e.g. 224,336; same policy for baseline and Night')
+    parser.add_argument('--query-fusion-alpha', type=float,
+                        help='Optional Student weight in normalized Teacher/Student query fusion [0,1]; requires --adapter-dir')
+    parser.add_argument('--save-query-descriptors', type=Path,
+                        help='Export freshly extracted Teacher/Student queries as safetensors plus provenance JSON; requires --adapter-dir')
     parser.add_argument("--num-workers", type=int, default=2)
     parser.add_argument("--query-chunk-size", type=int, default=32)
     parser.add_argument("--reference-chunk-size", type=int, default=4096)
@@ -408,7 +552,16 @@ def parse_args(argv=None):
                         help="Include every Recall@1 error and its exact positive rank in the JSON")
     parser.add_argument("--check-data", action="store_true",
                         help="Validate image paths and 25 m positives without loading the model")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    try:
+        _validate_query_fusion_alpha(args.query_fusion_alpha)
+        if args.query_fusion_alpha is not None and args.adapter_dir is None:
+            parser.error('--query-fusion-alpha requires --adapter-dir')
+        if args.save_query_descriptors is not None and args.adapter_dir is None:
+            parser.error('--save-query-descriptors requires --adapter-dir')
+    except ValueError as exc:
+        parser.error(str(exc))
+    return args
 
 
 def main(argv=None):
@@ -436,6 +589,8 @@ def main(argv=None):
         save_hard_cases=args.save_hard_cases, split=args.split,
         adapter_scale=args.adapter_scale,
         query_scales=args.query_scales,
+        query_fusion_alpha=args.query_fusion_alpha,
+        query_descriptor_path=args.save_query_descriptors,
     )
 
 

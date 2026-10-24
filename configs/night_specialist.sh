@@ -15,6 +15,7 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --manifest "${MANIFEST:-data/splits/night_train.jsonl}" \
   --exclude-places "${EXCLUDE_PLACES:-data/splits/heldout_places.json}" \
   --weather night --adapter-type full "${EXTRA_ARGS[@]}" \
+  --full-train-scope "${FULL_TRAIN_SCOPE:-all}" --full-train-blocks "${FULL_TRAIN_BLOCKS:-6}" \
   --fixed-day-bank "${DAY_BANK:-runs/cache/qwen_training_day.safetensors}" \
   --night-augmentation "${NIGHT_AUGMENTATION:-camera}" \
   --augmentation-config "${AUGMENTATION_CONFIG:-configs/night_camera.json}" \
@@ -29,6 +30,9 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --relation-hard-negatives "${RELATION_HARD_NEGATIVES:-64}" \
   --synthetic-guidance-weight "${SYNTHETIC_GUIDANCE_WEIGHT:-0}" \
   --day-preservation-weight "${DAY_PRESERVATION_WEIGHT:-0}" \
+  --day-preservation-samples "${DAY_PRESERVATION_SAMPLES:-1}" \
+  --day-preservation-schedule "${DAY_PRESERVATION_SCHEDULE:-constant}" \
+  --day-preservation-final-ratio "${DAY_PRESERVATION_FINAL_RATIO:-0}" \
   --day-view-augmentation off \
   --source-night-weight "${SOURCE_NIGHT_WEIGHT:-0.5}" \
   --source-night-samples "${SOURCE_NIGHT_SAMPLES:-2}" \
@@ -46,5 +50,5 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --min-lr-ratio "${MIN_LR_RATIO:-0.1}" \
   --max-steps "${MAX_STEPS:-0}" --seed "${SEED:-42}" \
   --save-every-steps "${SAVE_EVERY_STEPS:-0}" \
-  --num-workers "${NUM_WORKERS:-4}" --device "${DEVICE:-cuda}" \
+  --num-workers "${NUM_WORKERS:-0}" --device "${DEVICE:-cuda}" \
   --output-dir "${OUTPUT:-runs/night_specialist_01}"
