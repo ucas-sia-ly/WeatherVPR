@@ -10,6 +10,7 @@ class AdapterIOTests(unittest.TestCase):
         args = parse_args(['--weather', 'night'])
         _validate(args)
         self.assertEqual(args.adapter_type, 'full')
+        self.assertEqual((args.full_train_scope, args.full_train_blocks), ('late', 4))
         self.assertEqual(args.learning_rate, 1e-6)
         self.assertEqual(args.gradient_accumulation_steps, 1)
         self.assertEqual((args.lora_rank, args.lora_alpha, args.lora_dropout,
@@ -34,14 +35,14 @@ class AdapterIOTests(unittest.TestCase):
 
     def test_retrieval_guidance_flags_are_independent_and_validate(self):
         args = parse_args(['--weather', 'night', '--fixed-day-bank', 'runs/cache/day.safetensors',
-                           '--relation-weight', '.1', '--day-preservation-weight', '.5',
+                           '--relation-weight', '.1',
                            '--synthetic-guidance-weight', '.1', '--contrast-hard-negatives', '64',
                            '--layer-decay', '.8', '--lr-schedule', 'cosine',
                            '--warmup-steps', '32', '--gradient-checkpointing'])
         _validate(args)
         for name, bad in (('relation_weight', -1), ('relation_temperature', 0),
                           ('layer_decay', 1.1), ('min_lr_ratio', float('nan')),
-                          ('contrast_hard_negatives', -1), ('day_preservation_samples', 0)):
+                          ('contrast_hard_negatives', -1), ('full_train_blocks', 0)):
             old = getattr(args, name)
             setattr(args, name, bad)
             with self.subTest(name=name), self.assertRaises(ValueError):
@@ -53,8 +54,7 @@ class AdapterIOTests(unittest.TestCase):
 
     def test_source_night_loss_has_only_night_retrieval_targets(self):
         args = parse_args(['--weather', 'night', '--source-night-weight', '.5',
-                           '--source-night-samples', '2', '--synthetic-guidance-weight', '0',
-                           '--day-preservation-weight', '0'])
+                           '--source-night-samples', '2', '--synthetic-guidance-weight', '0'])
         _validate(args)
         self.assertEqual(args.source_night_weight, .5)
         for name, bad in [('source_night_weight', -1), ('source_night_samples', 0),
@@ -67,6 +67,18 @@ class AdapterIOTests(unittest.TestCase):
         args.global_weight = args.contrast_weight = 0
         with self.assertRaisesRegex(ValueError, 'Source night retrieval'):
             _validate(args)
+
+    def test_output_and_lora_defaults_keep_valid_scope(self):
+        for adapter_type in ('output', 'lora'):
+            with self.subTest(adapter_type=adapter_type):
+                args = parse_args(['--weather', 'night', '--device', 'cpu',
+                                   '--adapter-type', adapter_type])
+                _validate(args)
+                self.assertEqual(args.full_train_scope, 'all')
+                for scope in ('early', 'late'):
+                    args.full_train_scope = scope
+                    with self.assertRaisesRegex(ValueError, 'scope requires adapter-type full'):
+                        _validate(args)
 
 
 if __name__ == '__main__':

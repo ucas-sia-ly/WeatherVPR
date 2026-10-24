@@ -1,0 +1,388 @@
+Running as unit: weathervpr-a57a2b6616.scope; invocation ID: 483ff5184a574e95a857de61bc13d724
+/home/admin123/github/WeatherVPR/third_party/dinov2/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn("xFormers is not available (SwiGLU)")
+/home/admin123/github/WeatherVPR/third_party/dinov2/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn("xFormers is not available (Attention)")
+/home/admin123/github/WeatherVPR/third_party/dinov2/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn("xFormers is not available (Block)")
+test_contrastive (test_adapter.Tests.test_contrastive) ... ok
+test_initial_identity_and_gradient (test_adapter.Tests.test_initial_identity_and_gradient) ... ok
+test_invalid_correspondence_rejected (test_adapter.Tests.test_invalid_correspondence_rejected) ... ok
+test_accumulation_and_epoch_only_checkpoint_validation (test_adapter_io.AdapterIOTests.test_accumulation_and_epoch_only_checkpoint_validation) ... ok
+test_cli_defaults_to_full_and_staged_losses (test_adapter_io.AdapterIOTests.test_cli_defaults_to_full_and_staged_losses) ... ok
+test_old_output_metadata_and_new_lora_config (test_adapter_io.AdapterIOTests.test_old_output_metadata_and_new_lora_config) ... ok
+test_output_and_lora_defaults_keep_valid_scope (test_adapter_io.AdapterIOTests.test_output_and_lora_defaults_keep_valid_scope) ... ok
+test_retrieval_guidance_flags_are_independent_and_validate (test_adapter_io.AdapterIOTests.test_retrieval_guidance_flags_are_independent_and_validate) ... ok
+test_source_night_loss_has_only_night_retrieval_targets (test_adapter_io.AdapterIOTests.test_source_night_loss_has_only_night_retrieval_targets) ... ok
+test_autocast_attention_stays_fp32_and_only_materializes_one_query_row (test_attention.CLSAttentionCaptureTests.test_autocast_attention_stays_fp32_and_only_materializes_one_query_row) ... ok
+test_frozen_parameters_do_not_block_input_gradients (test_attention.CLSAttentionCaptureTests.test_frozen_parameters_do_not_block_input_gradients) ... ok
+test_hooks_removed_on_failure_and_unexecuted_context_rejected (test_attention.CLSAttentionCaptureTests.test_hooks_removed_on_failure_and_unexecuted_context_rejected) ... ok
+test_matches_full_attention_for_standard_memory_efficient_and_register_tokens (test_attention.CLSAttentionCaptureTests.test_matches_full_attention_for_standard_memory_efficient_and_register_tokens) ... ok
+test_nonreentrant_checkpoint_backward_matches_without_checkpoint_after_hook_removal (test_attention.CLSAttentionCaptureTests.test_nonreentrant_checkpoint_backward_matches_without_checkpoint_after_hook_removal) ... ok
+test_read_inside_context_supported_but_multiple_forwards_and_context_reuse_rejected (test_attention.CLSAttentionCaptureTests.test_read_inside_context_supported_but_multiple_forwards_and_context_reuse_rejected) ... ok
+test_teacher_has_no_graph_student_has_gradients_only_in_last_four_blocks (test_attention.CLSAttentionCaptureTests.test_teacher_has_no_graph_student_has_gradients_only_in_last_four_blocks) ... ok
+test_unsupported_attention_bias_causal_dropout_and_stochastic_depth_fail_closed (test_attention.CLSAttentionCaptureTests.test_unsupported_attention_bias_causal_dropout_and_stochastic_depth_fail_closed) ... ok
+test_detached_teacher_weights_and_invalid_support (test_attention_alignment.TrustedAttentionTests.test_detached_teacher_weights_and_invalid_support) ... ok
+test_empty_singleton_and_zero_teacher_rows_are_safe (test_attention_alignment.TrustedAttentionTests.test_empty_singleton_and_zero_teacher_rows_are_safe) ... ok
+test_fp32_under_autocast_and_scale_invariant_normal_support (test_attention_alignment.TrustedAttentionTests.test_fp32_under_autocast_and_scale_invariant_normal_support) ... ok
+test_many_to_one_correspondence_keeps_repeated_teacher_mass (test_attention_alignment.TrustedAttentionTests.test_many_to_one_correspondence_keeps_repeated_teacher_mass) ... ok
+test_matches_reorder_teacher_and_kl_direction (test_attention_alignment.TrustedAttentionTests.test_matches_reorder_teacher_and_kl_direction) ... ok
+test_only_eligible_images_enter_batch_mean (test_attention_alignment.TrustedAttentionTests.test_only_eligible_images_enter_batch_mean) ... ok
+test_saliency_and_uniform_are_independent_modes (test_attention_alignment.TrustedAttentionTests.test_saliency_and_uniform_are_independent_modes) ... ok
+test_student_zero_mass_cannot_escape_loss (test_attention_alignment.TrustedAttentionTests.test_student_zero_mass_cannot_escape_loss) ... ok
+test_validation (test_attention_alignment.TrustedAttentionTests.test_validation) ... ok
+test_packaged_calibration_and_exclusions (test_calibration_setup.CalibrationSetupTests.test_packaged_calibration_and_exclusions) ... ok
+test_training_overlap_is_reported_by_place (test_calibration_setup.CalibrationSetupTests.test_training_overlap_is_reported_by_place) ... ok
+test_vendored_copy_prepares_without_historical_workspace (test_calibration_setup.CalibrationSetupTests.test_vendored_copy_prepares_without_historical_workspace)
+Neither old image paths nor the historical pair inventory are read. ... ok
+test_capacity_zero_matches_batch_only_infonce (test_contrast_queue.DayDescriptorQueueTests.test_capacity_zero_matches_batch_only_infonce) ... ok
+test_enqueue_detaches_and_evicts_oldest (test_contrast_queue.DayDescriptorQueueTests.test_enqueue_detaches_and_evicts_oldest) ... ok
+test_fixed_bank_does_not_duplicate_current_keys_and_keeps_other_view_positive (test_contrast_queue.DayDescriptorQueueTests.test_fixed_bank_does_not_duplicate_current_keys_and_keeps_other_view_positive) ... ok
+test_fp32_losses_under_autocast_and_argument_validation (test_contrast_queue.DayDescriptorQueueTests.test_fp32_losses_under_autocast_and_argument_validation) ... ok
+test_hard_negative_limit_above_candidate_count_preserves_old_loss (test_contrast_queue.DayDescriptorQueueTests.test_hard_negative_limit_above_candidate_count_preserves_old_loss) ... ok
+test_hard_negatives_keep_all_positives_and_select_student_similarity (test_contrast_queue.DayDescriptorQueueTests.test_hard_negatives_keep_all_positives_and_select_student_similarity) ... ok
+test_invalid_dimension_and_temperature (test_contrast_queue.DayDescriptorQueueTests.test_invalid_dimension_and_temperature) ... ok
+test_queued_same_place_is_positive_not_false_negative (test_contrast_queue.DayDescriptorQueueTests.test_queued_same_place_is_positive_not_false_negative) ... ok
+test_relation_excludes_invalid_queries_from_mean (test_contrast_queue.DayDescriptorQueueTests.test_relation_excludes_invalid_queries_from_mean) ... ok
+test_relation_identity_with_matching_temperatures_is_zero (test_contrast_queue.DayDescriptorQueueTests.test_relation_identity_with_matching_temperatures_is_zero) ... ok
+test_relation_requires_two_distinct_negative_places_and_two_support_keys (test_contrast_queue.DayDescriptorQueueTests.test_relation_requires_two_distinct_negative_places_and_two_support_keys) ... ok
+test_relation_uses_teacher_topk_and_masks_current_and_queued_same_place (test_contrast_queue.DayDescriptorQueueTests.test_relation_uses_teacher_topk_and_masks_current_and_queued_same_place) ... ok
+test_same_numeric_place_in_different_cities_is_negative (test_contrast_queue.DayDescriptorQueueTests.test_same_numeric_place_in_different_cities_is_negative) ... ok
+test_invalid_path_rejected (test_data_paths.DataPathTests.test_invalid_path_rejected) ... ok
+test_manifest_relative_path (test_data_paths.DataPathTests.test_manifest_relative_path) ... ok
+test_own_root (test_data_paths.DataPathTests.test_own_root) ... ok
+test_actual_source_byte_change_invalidates_cache (test_day_bank.DayBankTests.test_actual_source_byte_change_invalidates_cache) ... ok
+test_atomic_tensor_replacement_does_not_change_the_hashed_snapshot (test_day_bank.DayBankTests.test_atomic_tensor_replacement_does_not_change_the_hashed_snapshot) ... ok
+test_bad_metadata_rebuilds_and_missing_source_fails_clearly (test_day_bank.DayBankTests.test_bad_metadata_rebuilds_and_missing_source_fails_clearly) ... ok
+test_build_is_day_only_ordered_normalized_and_no_grad (test_day_bank.DayBankTests.test_build_is_day_only_ordered_normalized_and_no_grad) ... ok
+test_cache_hit_does_not_read_the_whole_tensor_into_python_bytes (test_day_bank.DayBankTests.test_cache_hit_does_not_read_the_whole_tensor_into_python_bytes) ... ok
+test_corrupt_tensor_or_nonunit_descriptors_are_rebuilt (test_day_bank.DayBankTests.test_corrupt_tensor_or_nonunit_descriptors_are_rebuilt) ... ok
+test_descriptor_validation_checks_late_chunks (test_day_bank.DayBankTests.test_descriptor_validation_checks_late_chunks) ... ok
+test_malformed_safetensors_with_matching_hash_is_rebuilt (test_day_bank.DayBankTests.test_malformed_safetensors_with_matching_hash_is_rebuilt) ... ok
+test_manifest_checkpoint_and_place_order_each_invalidate (test_day_bank.DayBankTests.test_manifest_checkpoint_and_place_order_each_invalidate) ... ok
+test_memory_bank_keeps_mode_and_never_publishes (test_day_bank.DayBankTests.test_memory_bank_keeps_mode_and_never_publishes) ... /home/admin123/miniconda3/envs/a2b-lightvpr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=2427145) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+ok
+test_refuses_incompatible_preprocessing_or_zero_teacher (test_day_bank.DayBankTests.test_refuses_incompatible_preprocessing_or_zero_teacher) ... ok
+test_unchanged_cache_reuses_vectors_without_teacher_forward (test_day_bank.DayBankTests.test_unchanged_cache_reuses_vectors_without_teacher_forward) ... ok
+test_checkpointing_preserves_full_backbone_outputs_and_gradients (test_full_backbone.FullBackboneTests.test_checkpointing_preserves_full_backbone_outputs_and_gradients) ... ok
+test_default_selects_full_and_rejects_non_dino (test_full_backbone.FullBackboneTests.test_default_selects_full_and_rejects_non_dino) ... ok
+test_night_copy_is_exact_and_all_dino_parameters_receive_gradients (test_full_backbone.FullBackboneTests.test_night_copy_is_exact_and_all_dino_parameters_receive_gradients) ... ok
+test_strict_night_only_state_and_metadata (test_full_backbone.FullBackboneTests.test_strict_night_only_state_and_metadata) ... ok
+test_full_backbone_artifact_is_strictly_loaded (test_inference_loading.InferenceLoadingTests.test_full_backbone_artifact_is_strictly_loaded) ... ok
+test_full_rejects_lora_scale_before_constructing_model (test_inference_loading.InferenceLoadingTests.test_full_rejects_lora_scale_before_constructing_model) ... ok
+test_missing_or_unexpected_backbone_keys_are_rejected (test_inference_loading.InferenceLoadingTests.test_missing_or_unexpected_backbone_keys_are_rejected) ... ok
+test_old_output_and_lora_still_route_correctly (test_inference_loading.InferenceLoadingTests.test_old_output_and_lora_still_route_correctly) ... ok
+test_hybrid_and_invalid_target (test_lora.LoRATests.test_hybrid_and_invalid_target) ... ok
+test_teacher_baseline_and_weather_gradients (test_lora.LoRATests.test_teacher_baseline_and_weather_gradients) ... ok
+test_weather_selection_is_context_local (test_lora.LoRATests.test_weather_selection_is_context_local) ... ok
+test_conditional_ot_agrees_with_salad_reference (test_loss_modes.LossModeTests.test_conditional_ot_agrees_with_salad_reference) ... ok
+test_conditional_ot_empty_support_and_wrapper_opt_in (test_loss_modes.LossModeTests.test_conditional_ot_empty_support_and_wrapper_opt_in) ... ok
+test_conditional_ot_fp32_masks_low_teacher_keep (test_loss_modes.LossModeTests.test_conditional_ot_fp32_masks_low_teacher_keep) ... ok
+test_global_alignment_and_discrimination_detach_day (test_loss_modes.LossModeTests.test_global_alignment_and_discrimination_detach_day) ... ok
+test_invalid_mode (test_loss_modes.LossModeTests.test_invalid_mode) ... ok
+test_keep_is_independent_and_zero_coverage_is_safe (test_loss_modes.LossModeTests.test_keep_is_independent_and_zero_coverage_is_safe) ... ok
+test_magnitude_smooth_l1_complements_cosine (test_loss_modes.LossModeTests.test_magnitude_smooth_l1_complements_cosine) ... ok
+test_patch_uses_only_trusted_matches_and_detaches_teacher (test_loss_modes.LossModeTests.test_patch_uses_only_trusted_matches_and_detaches_teacher) ... ok
+test_saliency_and_uniform_share_support_but_change_weights (test_loss_modes.LossModeTests.test_saliency_and_uniform_share_support_but_change_weights) ... ok
+test_all_operations_disabled_is_pixel_identity (test_night_augmentation.NightAugmentationTests.test_all_operations_disabled_is_pixel_identity) ... ok
+test_config_json_roundtrip_and_stable_epoch_seed (test_night_augmentation.NightAugmentationTests.test_config_json_roundtrip_and_stable_epoch_seed) ... ok
+test_disabled_paths_preserve_exact_pixels_and_input (test_night_augmentation.NightAugmentationTests.test_disabled_paths_preserve_exact_pixels_and_input) ... ok
+test_each_operation_can_be_isolated_without_geometry_change (test_night_augmentation.NightAugmentationTests.test_each_operation_can_be_isolated_without_geometry_change) ... ok
+test_noise_acts_on_dark_pixels_and_bloom_spreads_bright_sources (test_night_augmentation.NightAugmentationTests.test_noise_acts_on_dark_pixels_and_bloom_spreads_bright_sources) ... ok
+test_reproducible_local_rng_and_json_records (test_night_augmentation.NightAugmentationTests.test_reproducible_local_rng_and_json_records) ... ok
+test_tiny_strength_is_finite_identity_without_rng_side_effects (test_night_augmentation.NightAugmentationTests.test_tiny_strength_is_finite_identity_without_rng_side_effects) ... ok
+test_validation_and_extreme_valid_images (test_night_augmentation.NightAugmentationTests.test_validation_and_extreme_valid_images) ... ok
+test_cli_requires_explicit_ground_truth_for_other_datasets (test_night_benchmarks.NightBenchmarkTests.test_cli_requires_explicit_ground_truth_for_other_datasets) ... ok
+test_two_query_models_share_original_gallery_and_report_paired_errors (test_night_benchmarks.NightBenchmarkTests.test_two_query_models_share_original_gallery_and_report_paired_errors) ... night_fixture: 2 Gallery, 3 Queries, 1 without positives; protocol=verified_fixture, split=None
+Loading original Day DINOv2-SALAD: /tmp/tmp0f2dkfju/day.ckpt
+Hashing ordered Gallery and Query image bytes...
+Extracting original Day Gallery...
+Saved Gallery cache: /tmp/tmp0f2dkfju/gallery.safetensors
+Extracting Day baseline Night Queries...
+Exact retrieval: Day baseline Night Queries
+Extracting Night specialist Queries...
+Exact retrieval: Night specialist Queries
+Saved /tmp/tmp0f2dkfju/results.json
+Baseline: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0}
+Night: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0}
+night_fixture: 2 Gallery, 3 Queries, 1 without positives; protocol=verified_fixture, split=None
+Loading original Day DINOv2-SALAD: /tmp/tmp0f2dkfju/day.ckpt
+Hashing ordered Gallery and Query image bytes...
+Loaded original Day Gallery cache: /tmp/tmp0f2dkfju/gallery.safetensors
+Extracting Day baseline Night Queries...
+Exact retrieval: Day baseline Night Queries
+Extracting Night specialist Queries...
+Exact retrieval: Night specialist Queries
+Saved /tmp/tmp0f2dkfju/results.json
+Baseline: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0}
+Night: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0}
+ok
+test_all_weather_parameters_exactly_once_and_teacher_excluded (test_optimization.FullBackboneParameterGroupTests.test_all_weather_parameters_exactly_once_and_teacher_excluded) ... ok
+test_bias_vectors_tokens_and_positions_have_no_weight_decay (test_optimization.FullBackboneParameterGroupTests.test_bias_vectors_tokens_and_positions_have_no_weight_decay) ... ok
+test_decay_one_preserves_identical_learning_rates (test_optimization.FullBackboneParameterGroupTests.test_decay_one_preserves_identical_learning_rates) ... ok
+test_excludes_frozen_parameters_and_rejects_unknown_non_full_structures (test_optimization.FullBackboneParameterGroupTests.test_excludes_frozen_parameters_and_rejects_unknown_non_full_structures) ... ok
+test_layer_rates_embedding_smallest_and_last_block_norm_base (test_optimization.FullBackboneParameterGroupTests.test_layer_rates_embedding_smallest_and_last_block_norm_base) ... ok
+test_rejects_cross_layer_tied_parameters (test_optimization.FullBackboneParameterGroupTests.test_rejects_cross_layer_tied_parameters) ... ok
+test_rejects_invalid_group_hyperparameters (test_optimization.FullBackboneParameterGroupTests.test_rejects_invalid_group_hyperparameters) ... ok
+test_same_layer_alias_cannot_duplicate_a_parameter (test_optimization.FullBackboneParameterGroupTests.test_same_layer_alias_cannot_duplicate_a_parameter) ... ok
+test_all_restores_every_parameter_and_does_not_change_outputs (test_optimization.FullBackboneScopeTests.test_all_restores_every_parameter_and_does_not_change_outputs) ... ok
+test_early_and_late_gradients_survive_the_production_forward (test_optimization.FullBackboneScopeTests.test_early_and_late_gradients_survive_the_production_forward) ... ok
+test_last_four_of_twelve_freeze_norm_and_update_only_selected_blocks (test_optimization.FullBackboneScopeTests.test_last_four_of_twelve_freeze_norm_and_update_only_selected_blocks) ... ok
+test_late_scope_frozen_prefix_builds_no_graph (test_optimization.FullBackboneScopeTests.test_late_scope_frozen_prefix_builds_no_graph) ... ok
+test_reconfiguration_clears_stale_gradients_and_invalid_input_is_atomic (test_optimization.FullBackboneScopeTests.test_reconfiguration_clears_stale_gradients_and_invalid_input_is_atomic) ... ok
+test_invalid_schedule_boundaries_rejected (test_optimization.WarmupCosineTests.test_invalid_schedule_boundaries_rejected) ... ok
+test_no_warmup_has_exact_endpoints_and_monotonic_decay (test_optimization.WarmupCosineTests.test_no_warmup_has_exact_endpoints_and_monotonic_decay) ... ok
+test_single_update_and_single_decay_update_are_explicit (test_optimization.WarmupCosineTests.test_single_update_and_single_decay_update_are_explicit) ... ok
+test_warmup_is_update_based_then_cosine (test_optimization.WarmupCosineTests.test_warmup_is_update_based_then_cosine) ... ok
+test_camera_config_metadata_and_output_paths_are_separate (test_paired_validation.PairedValidationTests.test_camera_config_metadata_and_output_paths_are_separate) ... ok
+test_camera_views_are_seeded_by_sample_id_and_shared_between_models (test_paired_validation.PairedValidationTests.test_camera_views_are_seeded_by_sample_id_and_shared_between_models) ... ok
+test_changed_pair_fails_hash_validation (test_paired_validation.PairedValidationTests.test_changed_pair_fails_hash_validation) ... ok
+test_cross_view_exposes_failure_hidden_by_exact_pair_recall (test_paired_validation.PairedValidationTests.test_cross_view_exposes_failure_hidden_by_exact_pair_recall) ... ok
+test_cross_view_no_alternative_returns_no_recall (test_paired_validation.PairedValidationTests.test_cross_view_no_alternative_returns_no_recall) ... ok
+test_cross_view_removes_own_source_from_candidates_and_excludes_single_view (test_paired_validation.PairedValidationTests.test_cross_view_removes_own_source_from_candidates_and_excludes_single_view) ... ok
+test_cross_view_ties_keep_original_gallery_indices_across_chunks (test_paired_validation.PairedValidationTests.test_cross_view_ties_keep_original_gallery_indices_across_chunks) ... ok
+test_day_distractors_deduplicate_sources_without_reading_generated (test_paired_validation.PairedValidationTests.test_day_distractors_deduplicate_sources_without_reading_generated) ... ok
+test_distractor_source_hash_is_always_verified (test_paired_validation.PairedValidationTests.test_distractor_source_hash_is_always_verified) ... ok
+test_distractors_cannot_relabel_validation_source (test_paired_validation.PairedValidationTests.test_distractors_cannot_relabel_validation_source) ... ok
+test_distractors_reject_overlap_with_places_outside_limited_subset (test_paired_validation.PairedValidationTests.test_distractors_reject_overlap_with_places_outside_limited_subset) ... ok
+test_evaluation_gallery_stays_clean_with_camera_queries (test_paired_validation.PairedValidationTests.test_evaluation_gallery_stays_clean_with_camera_queries) ... Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Extracting original day gallery descriptors...
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmpktwnfb1f/camera.json
+Baseline: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Adapter: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+ok
+test_exact_source_and_same_place_recall_positives (test_paired_validation.PairedValidationTests.test_exact_source_and_same_place_recall_positives) ... ok
+test_gallery_cache_rejects_nonunit_descriptors (test_paired_validation.PairedValidationTests.test_gallery_cache_rejects_nonunit_descriptors) ... Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Extracting original day gallery descriptors...
+Saved frozen Day gallery descriptors: /tmp/tmpg0slc7_9/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmpg0slc7_9/camera.json
+Baseline: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Adapter: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+ok
+test_gallery_cache_reused_and_invalidated_without_caching_night_queries (test_paired_validation.PairedValidationTests.test_gallery_cache_reused_and_invalidated_without_caching_night_queries) ... Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Extracting original day gallery descriptors...
+Saved frozen Day gallery descriptors: /tmp/tmp_td3m0y1/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmp_td3m0y1/camera.json
+Baseline: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Adapter: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Loaded frozen Day gallery descriptors: /tmp/tmp_td3m0y1/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmp_td3m0y1/camera.json
+Baseline: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Adapter: {'R@1': 0.25, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.7986388802528381
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Extracting original day gallery descriptors...
+Saved frozen Day gallery descriptors: /tmp/tmp_td3m0y1/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmp_td3m0y1/camera.json
+Baseline: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8015111684799194
+Adapter: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8015111684799194
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0}
+Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Extracting original day gallery descriptors...
+Saved frozen Day gallery descriptors: /tmp/tmp_td3m0y1/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmp_td3m0y1/camera.json
+Baseline: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8684247136116028
+Adapter: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8684247136116028
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0}
+Synthetic night validation: 4 pairs, 3 unique day images, 2 places
+Hashing ordered Day gallery image bytes for cache validation...
+Extracting original day gallery descriptors...
+Saved frozen Day gallery descriptors: /tmp/tmp_td3m0y1/gallery.safetensors
+Extracting baseline and Night descriptors from identical fixed camera queries...
+Saved /tmp/tmp_td3m0y1/camera.json
+Baseline: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8684247136116028
+Adapter: {'R@1': 0.5, 'R@5': 1.0, 'R@10': 1.0} pair cosine: 0.8684247136116028
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0} pair cosine: 0.0
+Auxiliary cross-view subset: 3 queries; baseline: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0} Night: {'R@1': 0.3333333333333333, 'R@5': 1.0, 'R@10': 1.0}
+ok
+test_missing_adapter_fails_before_model_or_data (test_paired_validation.PairedValidationTests.test_missing_adapter_fails_before_model_or_data) ... ok
+test_paired_cosine_uses_exact_source (test_paired_validation.PairedValidationTests.test_paired_cosine_uses_exact_source) ... ok
+test_black_white_and_partial_pixels (test_patch_visibility.PatchVisibilityTests.test_black_white_and_partial_pixels) ... ok
+test_fp32_and_no_autocast_gradient (test_patch_visibility.PatchVisibilityTests.test_fp32_and_no_autocast_gradient) ... ok
+test_metadata_is_an_independent_json_compatible_copy (test_patch_visibility.PatchVisibilityTests.test_metadata_is_an_independent_json_compatible_copy) ... ok
+test_one_clipped_channel_does_not_mean_all_information_lost (test_patch_visibility.PatchVisibilityTests.test_one_clipped_channel_does_not_mean_all_information_lost) ... ok
+test_pixels_below_conservative_dark_threshold_are_downweighted (test_patch_visibility.PatchVisibilityTests.test_pixels_below_conservative_dark_threshold_are_downweighted) ... ok
+test_validation (test_patch_visibility.PatchVisibilityTests.test_validation) ... ok
+test_visible_low_light_remains_reliable (test_patch_visibility.PatchVisibilityTests.test_visible_low_light_remains_reliable) ... ok
+test_epoch_order_reproducible_and_drop_last (test_place_sampler.DistinctPlaceBatchSamplerTests.test_epoch_order_reproducible_and_drop_last) ... ok
+test_invalid_inputs (test_place_sampler.DistinctPlaceBatchSamplerTests.test_invalid_inputs) ... ok
+test_repeats_place_only_when_distinct_places_exhausted (test_place_sampler.DistinctPlaceBatchSamplerTests.test_repeats_place_only_when_distinct_places_exhausted) ... ok
+test_uses_composite_city_and_place_key (test_place_sampler.DistinctPlaceBatchSamplerTests.test_uses_composite_city_and_place_key) ... ok
+test_cli_requires_adapter_and_checks_weight_range (test_query_fusion.QueryFusionTests.test_cli_requires_adapter_and_checks_weight_range) ... ok
+test_evaluators_reuse_extractions_preserve_gallery_and_export_ordered_queries (test_query_fusion.QueryFusionTests.test_evaluators_reuse_extractions_preserve_gallery_and_export_ordered_queries) ... SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpkgw_4bxx/day.ckpt
+Hashing ordered gallery image bytes for cache validation...
+Extracting original day SALAD gallery descriptors...
+Saved day gallery descriptors: /tmp/tmpkgw_4bxx/gallery.safetensors
+Extracting unadapted night query descriptors...
+Ranking baseline queries against the original day gallery...
+Extracting trained night query descriptors...
+Ranking adapter queries against the original day gallery...
+Saved /tmp/tmpkgw_4bxx/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night model: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': -1.0, 'R@5': 0.0, 'R@10': 0.0}
+SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpkgw_4bxx/day.ckpt
+Hashing ordered gallery image bytes for cache validation...
+Loaded day gallery descriptors: /tmp/tmpkgw_4bxx/gallery.safetensors
+Extracting unadapted night query descriptors...
+Ranking baseline queries against the original day gallery...
+Extracting trained night query descriptors...
+Ranking adapter queries against the original day gallery...
+Ranking Teacher/Student fusion queries against the original day gallery...
+Saved /tmp/tmpkgw_4bxx/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night model: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': -1.0, 'R@5': 0.0, 'R@10': 0.0}
+Query fusion: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+fixture: 3 Gallery, 2 Queries, 1 without positives; protocol=None, split=fixture
+Loading original Day DINOv2-SALAD: /tmp/tmp8kb54p5y/day.ckpt
+Hashing ordered Gallery and Query image bytes...
+Extracting original Day Gallery...
+Saved Gallery cache: /tmp/tmp8kb54p5y/gallery.safetensors
+Extracting Day baseline Night Queries...
+Exact retrieval: Day baseline Night Queries
+Extracting Night specialist Queries...
+Exact retrieval: Night specialist Queries
+Saved /tmp/tmp8kb54p5y/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': -1.0, 'R@5': 0.0, 'R@10': 0.0}
+fixture: 3 Gallery, 2 Queries, 1 without positives; protocol=None, split=fixture
+Loading original Day DINOv2-SALAD: /tmp/tmp8kb54p5y/day.ckpt
+Hashing ordered Gallery and Query image bytes...
+Loaded original Day Gallery cache: /tmp/tmp8kb54p5y/gallery.safetensors
+Extracting Day baseline Night Queries...
+Exact retrieval: Day baseline Night Queries
+Extracting Night specialist Queries...
+Exact retrieval: Night specialist Queries
+Exact retrieval: Teacher/Student fusion Queries
+Saved /tmp/tmp8kb54p5y/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': -1.0, 'R@5': 0.0, 'R@10': 0.0}
+Query fusion: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+ok
+test_failed_export_leaves_no_partial_query_artifact (test_query_fusion.QueryFusionTests.test_failed_export_leaves_no_partial_query_artifact) ... ok
+test_multiscale_aggregation_precedes_fusion_for_both_models (test_query_fusion.QueryFusionTests.test_multiscale_aggregation_precedes_fusion_for_both_models) ... SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpdevydrgv/day.ckpt
+Hashing ordered gallery image bytes for cache validation...
+Extracting original day SALAD gallery descriptors...
+Saved day gallery descriptors: /tmp/tmpdevydrgv/gallery.safetensors
+Extracting unadapted night query descriptors...
+Ranking baseline queries against the original day gallery...
+Extracting trained night query descriptors...
+Ranking adapter queries against the original day gallery...
+Ranking Teacher/Student fusion queries against the original day gallery...
+Saved /tmp/tmpdevydrgv/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night model: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': -1.0, 'R@5': 0.0, 'R@10': 0.0}
+Query fusion: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+ok
+test_normalizes_each_model_and_detaches_both_inputs (test_query_fusion.QueryFusionTests.test_normalizes_each_model_and_detaches_both_inputs) ... ok
+test_rejects_invalid_alpha_shape_values_and_cancellation (test_query_fusion.QueryFusionTests.test_rejects_invalid_alpha_shape_values_and_cancellation) ... ok
+test_top1 (test_recall.EvalTests.test_top1) ... ok
+test_unknown_label_rejected (test_recall.EvalTests.test_unknown_label_rejected) ... ok
+test_day_preservation_and_restoration_options_are_rejected (test_removed_training_options.RemovedTrainingOptionsTests.test_day_preservation_and_restoration_options_are_rejected) ... ok
+test_parsed_configuration_has_no_retired_day_options (test_removed_training_options.RemovedTrainingOptionsTests.test_parsed_configuration_has_no_retired_day_options) ... ok
+test_night_rain_is_a_separate_public_query_subset (test_robotcar.RobotCarPublicNightTests.test_night_rain_is_a_separate_public_query_subset) ... ok
+test_pose_directions_inclusive_boundary_and_cross_camera_gallery (test_robotcar.RobotCarPublicNightTests.test_pose_directions_inclusive_boundary_and_cross_camera_gallery) ... ok
+test_rejects_disagreeing_public_reference_pose (test_robotcar.RobotCarPublicNightTests.test_rejects_disagreeing_public_reference_pose) ... ok
+test_rejects_duplicate_and_unsafe_query_names (test_robotcar.RobotCarPublicNightTests.test_rejects_duplicate_and_unsafe_query_names) ... ok
+test_rejects_duplicate_gallery_name_and_bad_colmap_quaternion (test_robotcar.RobotCarPublicNightTests.test_rejects_duplicate_gallery_name_and_bad_colmap_quaternion) ... ok
+test_rejects_missing_model_or_gallery_and_queries_without_positives (test_robotcar.RobotCarPublicNightTests.test_rejects_missing_model_or_gallery_and_queries_without_positives) ... ok
+test_rejects_nonfinite_nonrigid_or_invalid_homogeneous_query_pose (test_robotcar.RobotCarPublicNightTests.test_rejects_nonfinite_nonrigid_or_invalid_homogeneous_query_pose) ... ok
+test_disabled_camera_profiles_and_strength_do_not_disable_darkening (test_source_night.SourceNightTests.test_disabled_camera_profiles_and_strength_do_not_disable_darkening) ... ok
+test_fixed_linear_gain_and_gamma_are_not_srgb_brightness (test_source_night.SourceNightTests.test_fixed_linear_gain_and_gamma_are_not_srgb_brightness) ... ok
+test_json_roundtrip_and_frozen_config (test_source_night.SourceNightTests.test_json_roundtrip_and_frozen_config) ... ok
+test_reproducible_local_rng_and_separated_operation_streams (test_source_night.SourceNightTests.test_reproducible_local_rng_and_separated_operation_streams) ... ok
+test_smooth_field_record_and_geometry_without_input_mutation (test_source_night.SourceNightTests.test_smooth_field_record_and_geometry_without_input_mutation) ... ok
+test_tiny_black_and_non_rgb_images_are_safe (test_source_night.SourceNightTests.test_tiny_black_and_non_rgb_images_are_safe) ... ok
+test_validation_rejects_brightening_nonfinite_and_exposure_reenable (test_source_night.SourceNightTests.test_validation_rejects_brightening_nonfinite_and_exposure_reenable) ... ok
+test_zero_camera_probability_still_applies_log_uniform_exposure (test_source_night.SourceNightTests.test_zero_camera_probability_still_applies_log_uniform_exposure) ... ok
+test_baseline_and_night_share_query_policy_without_changing_gallery_cache (test_svox.SVOXNightTests.test_baseline_and_night_share_query_policy_without_changing_gallery_cache) ... SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpa6tb8olc/day.ckpt
+Hashing ordered gallery image bytes for cache validation...
+Extracting original day SALAD gallery descriptors...
+Saved day gallery descriptors: /tmp/tmpa6tb8olc/gallery.safetensors
+Extracting unadapted night query descriptors...
+Ranking baseline queries against the original day gallery...
+Extracting trained night query descriptors...
+Ranking adapter queries against the original day gallery...
+Saved /tmp/tmpa6tb8olc/result.json
+Baseline: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Night model: {'R@1': 1.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0}
+SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpa6tb8olc/day.ckpt
+Hashing ordered gallery image bytes for cache validation...
+Loaded day gallery descriptors: /tmp/tmpa6tb8olc/gallery.safetensors
+Extracting unadapted night query descriptors...
+Ranking baseline queries against the original day gallery...
+Extracting trained night query descriptors...
+Ranking adapter queries against the original day gallery...
+Saved /tmp/tmpa6tb8olc/result.json
+Baseline: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Night model: {'R@1': 0.0, 'R@5': 1.0, 'R@10': 1.0}
+Delta: {'R@1': 0.0, 'R@5': 0.0, 'R@10': 0.0}
+ok
+test_cache_invalidated_by_images_weights_and_preprocessing (test_svox.SVOXNightTests.test_cache_invalidated_by_images_weights_and_preprocessing) ... ok
+test_manifest_override_is_rejected (test_svox.SVOXNightTests.test_manifest_override_is_rejected) ... ok
+test_missing_adapter_fails_before_svox_or_model (test_svox.SVOXNightTests.test_missing_adapter_fails_before_svox_or_model) ... ok
+test_multiscale_queries_independently_reopen_original_and_average_units (test_svox.SVOXNightTests.test_multiscale_queries_independently_reopen_original_and_average_units) ... ok
+test_multiscale_query_descriptor_validation (test_svox.SVOXNightTests.test_multiscale_query_descriptor_validation) ... ok
+test_native_utm_protocol_and_empty_positive_query (test_svox.SVOXNightTests.test_native_utm_protocol_and_empty_positive_query) ... ok
+test_query_scale_must_have_more_patches_than_clusters (test_svox.SVOXNightTests.test_query_scale_must_have_more_patches_than_clusters) ... SVOX test: 3 day gallery, 2 night queries; 1 queries without a 25 m positive
+Loading frozen DINOv2-SALAD: /tmp/tmpbralfuil/day.ckpt
+ok
+test_query_scales_cli_validation_and_separate_default_output (test_svox.SVOXNightTests.test_query_scales_cli_validation_and_separate_default_output) ... ok
+test_retrieval_finite_validation_is_bounded_and_checks_late_chunks (test_svox.SVOXNightTests.test_retrieval_finite_validation_is_bounded_and_checks_late_chunks) ... ok
+test_train_split_can_be_checked_without_touching_test_protocol (test_svox.SVOXNightTests.test_train_split_can_be_checked_without_touching_test_protocol) ... ok
+test_bad_mat_dimensions_ids_and_geometry_are_rejected (test_tokyo.TokyoNightTests.test_bad_mat_dimensions_ids_and_geometry_are_rejected) ... ok
+test_invalid_csv_label_or_identity_is_rejected (test_tokyo.TokyoNightTests.test_invalid_csv_label_or_identity_is_rejected) ... ok
+test_missing_images_or_csv_are_not_silently_skipped (test_tokyo.TokyoNightTests.test_missing_images_or_csv_are_not_silently_skipped) ... ok
+test_official_subset_time_label_and_complete_gallery_order (test_tokyo.TokyoNightTests.test_official_subset_time_label_and_complete_gallery_order) ... ok
+test_unverified_or_inconsistent_source_is_rejected (test_tokyo.TokyoNightTests.test_unverified_or_inconsistent_source_is_rejected) ... ok
+test_disabled_source_night_has_no_transform_or_random_stream (test_training_augmentation.TrainingAugmentationTests.test_disabled_source_night_has_no_transform_or_random_stream) ... ok
+test_epoch_seed_is_reproducible_across_worker_counts (test_training_augmentation.TrainingAugmentationTests.test_epoch_seed_is_reproducible_across_worker_counts) ... /home/admin123/miniconda3/envs/a2b-lightvpr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=2427145) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+ok
+test_off_profile_preserves_old_student_preprocessing (test_training_augmentation.TrainingAugmentationTests.test_off_profile_preserves_old_student_preprocessing) ... ok
+test_paired_cli_config_and_epoch_offset (test_training_augmentation.TrainingAugmentationTests.test_paired_cli_config_and_epoch_offset) ... ok
+test_paired_teacher_and_correspondence_views_remain_clean (test_training_augmentation.TrainingAugmentationTests.test_paired_teacher_and_correspondence_views_remain_clean) ... ok
+test_source_night_is_dark_without_camera_and_preserves_existing_views (test_training_augmentation.TrainingAugmentationTests.test_source_night_is_dark_without_camera_and_preserves_existing_views) ... ok
+test_weather_seed_history_and_domain_separation (test_training_augmentation.TrainingAugmentationTests.test_weather_seed_history_and_domain_separation) ... ok
+test_camera_options_forwarded_in_all_full_training_stages (test_training_configs.TrainingConfigTests.test_camera_options_forwarded_in_all_full_training_stages) ... ok
+test_specialist_uses_late_four_blocks_and_supports_explicit_all_ablation (test_training_configs.TrainingConfigTests.test_specialist_uses_late_four_blocks_and_supports_explicit_all_ablation) ... ok
+
+----------------------------------------------------------------------
+Ran 182 tests in 1.450s
+
+OK
+Memory guard: {"event": "finish", "returncode": 0, "termination_reason": null, "peak_cgroup_bytes_sampled": 421982208, "peak_cgroup_bytes_kernel": 464003072, "minimum_system_available_bytes": 11435024384, "memory_events": {"low": "0", "high": "0", "max": "0", "oom": "0", "oom_kill": "0", "oom_group_kill": "0"}, "elapsed_seconds": 3.002108843997121}

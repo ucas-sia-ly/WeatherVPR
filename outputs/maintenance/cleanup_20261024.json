@@ -1,0 +1,117 @@
+{
+  "created_utc": "2026-10-24T12:23:56.858546+00:00",
+  "reason": "User requested removal of Day Anchor, failed training experiments and redundant smoke outputs.",
+  "deleted_artifacts": [
+    {
+      "path": "runs/night_regularization_20261024",
+      "file_count": 117,
+      "bytes": 1730437903
+    },
+    {
+      "path": "runs/night_guided_20261023",
+      "file_count": 31,
+      "bytes": 721580805
+    },
+    {
+      "path": "runs/night_guided_smoke_20261023",
+      "file_count": 4,
+      "bytes": 346362999
+    },
+    {
+      "path": "runs/night_guided_restore_smoke_20261023",
+      "file_count": 4,
+      "bytes": 346366107
+    },
+    {
+      "path": "runs/night_full_smoke_01",
+      "file_count": 3,
+      "bytes": 346343576
+    },
+    {
+      "path": "runs/night_full_smoke_b8_01",
+      "file_count": 3,
+      "bytes": 346342372
+    },
+    {
+      "path": "runs/night_camera_20261023/smoke_global",
+      "file_count": 4,
+      "bytes": 346347929
+    },
+    {
+      "path": "runs/night_specialist_20261024/smoke",
+      "file_count": 4,
+      "bytes": 348665999
+    },
+    {
+      "path": "runs/night_global_smoke_20261021",
+      "file_count": 4,
+      "bytes": 832214
+    },
+    {
+      "path": "runs/night_lora_local_smoke_20261022",
+      "file_count": 3,
+      "bytes": 593970
+    },
+    {
+      "path": "runs/night_lora_smoke_20261022",
+      "file_count": 4,
+      "bytes": 599333
+    },
+    {
+      "path": "runs/night_sgpd_bf16_smoke_20261021",
+      "file_count": 4,
+      "bytes": 802941
+    },
+    {
+      "path": "runs/night_sgpd_cache_smoke_20261021",
+      "file_count": 3,
+      "bytes": 798949
+    },
+    {
+      "path": "runs/night_sgpd_smoke_20261021",
+      "file_count": 4,
+      "bytes": 802758
+    },
+    {
+      "path": "runs/night_guided_smoke_20261023.log",
+      "file_count": 1,
+      "bytes": 2005
+    },
+    {
+      "path": "runs/night_guided_restore_smoke_20261023.log",
+      "file_count": 1,
+      "bytes": 2152
+    },
+    {
+      "path": "runs/guided_smoke_manifest.jsonl",
+      "file_count": 1,
+      "bytes": 9833
+    },
+    {
+      "path": "runs/cache_smoke_manifest.jsonl",
+      "file_count": 1,
+      "bytes": 2470
+    }
+  ],
+  "deleted_file_bytes": 4536894315,
+  "protected_paths": [
+    "runs/night_late4_01",
+    "runs/night_specialist_20261024/source_night",
+    "runs/night_specialist_20261024/night_only",
+    "runs/night_external_20261024",
+    "runs/cache",
+    "weights",
+    "data"
+  ],
+  "retained_checkpoints": [
+    {
+      "path": "runs/night_late4_01/adapter.safetensors",
+      "sha256": "b6748afc4c026c46bb2d8057ee4636cf88a2bb882af51eeae17fbef29ad61190"
+    },
+    {
+      "path": "runs/night_specialist_20261024/source_night/adapter.safetensors",
+      "sha256": "1ee611a2c2aad86baa330e07751a0643c6c53599bb09cd1b1a355ce4b0ef0617"
+    }
+  ],
+  "status": "complete"
+}

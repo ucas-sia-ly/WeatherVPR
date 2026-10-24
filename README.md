@@ -1,182 +1,120 @@
 # WeatherVPR：Night 专属 DINOv2 + 冻结 SALAD
 
-本项目从白天训练好的 `dino_salad.ckpt` 初始化**独立的 Night DINOv2-B/14**，全参数微调 Night 主干；原始白天 DINOv2 作为冻结 Teacher，SALAD 聚合器仍由 Day/Night 共用且冻结。真实白天图与其 Qwen 生成夜图构成训练图对。SGPD 只在可信 Patch 对应上蒸馏局部特征，并用白天 SALAD 的 `assignment_keep` 加权。Night 描述符直接检索**原始白天 SALAD Gallery**，无需重建图库。
+本项目从白天训练好的 `dino_salad.ckpt` 初始化**独立的 Night DINOv2-B/14**，默认直接微调其最后 **4 个 Transformer Block** 的原始权重。原始 Day DINOv2 与共享 SALAD 保持冻结；Night 描述符检索**原始白天 SALAD Gallery**，无需重建图库。该方案使用独立 Night 主干，不使用 LoRA。
 
-参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现的 SGPD 和跨域 InfoNCE 是新的实验设计。先前的 LoRA 和输出端 Patch/CLS Adapter 均保留为消融基线；现在 `--adapter-type full` 是默认配置。Night DINOv2 有 86,580,480 个可训练参数，单独的权重文件约 346 MB；其它天气模型尚未训练。
+参考论文 [*Distillation Improves Visual Place Recognition for Low Quality Images*](https://openaccess.thecvf.com/content/ICCV2025W/WDFM-AD/html/Yang_Distillation_Improves_Visual_Place_Recognition_for_Low_Quality_Images_ICCVW_2025_paper.html) 的 Teacher–Student 思路；本实现增加可信 Patch 上的 SGPD 和跨域多正样本 InfoNCE。旧 LoRA、Output Adapter 和全部参数微调仍可作为独立消融。
 
-## 当前就绪状态
+## 当前方案
+
+```text
+Day Gallery ── 原始冻结 Day DINOv2 ── 冻结 SALAD ── 固定 Day 描述符
+Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述描述符
+                默认更新 blocks 8–11
+```
+
+- 默认 `--adapter-type full --full-train-scope late --full-train-blocks 4`，更新 **28,357,632** 个参数。Patch Embedding、位置/CLS Token、前八层和最终 Norm 冻结；最终 Norm 与 SALAD 允许梯度传回可训练层。
+- `full` 表示保存独立完整 Night 主干，约 346 MB；是否更新全部参数由 `full-train-scope` 决定。显式 `--full-train-scope all` 可训练全部 86,580,480 个参数。
+- `configs/night_specialist.sh` 使用 Qwen Night 主分支，以及由训练 Day 原图产生的强制低照度辅助视图。干净 Day 只供冻结 Teacher 和 Day bank 使用。真实 Night 图像仅用于评估。
+- 默认 Global / Contrast / Relation 权重为 `0.1 / 0.1 / 0.1`，Source Night 权重 `0.5`；SGPD / Keep / OT / Magnitude 分别独立控制，默认关闭。推理默认只用 Night Query 描述符；融合保留为可选诊断。
+- 默认 AdamW、LR `1e-6`、`LAYER_DECAY=1`、BF16、activation checkpoint、batch 8、1 epoch、`NUM_WORKERS=0`。SALAD 原始训练设置与当前设置的区别见 [SALAD 训练设置](docs/SALAD_TRAINING.md)。
+
+### 已有结果
+
+以下使用相同原始 Day Gallery 与 224×224 输入，单位为整数命中数；它们是保留的历史结果，未因默认值调整而重新训练。
+
+| 模型 | SVOX 开发 R@1 / R@5 / R@10（702 Query） | SVOX test R@1 / R@5 / R@10（823 Query） |
+| --- | --- | --- |
+| 原始 Day | 621 / 668 / 674 | 763 / 810 / 816 |
+| `source_night`，历史全部参数微调 | 620 / 668 / 677 | 766 / 812 / 815 |
+| 用户 `night_late4_01`，后四层微调 | 618 / 668 / 676 | 761 / 812 / 816 |
+
+`source_night` 的 test R@1 为 **93.07%**，原始 Day 为 **92.71%**；R@10 略降。用户后四层结果的 test R@1 为 **92.47%**。当前将后四层设为后续训练起点，不将这些数字解释为其已全面超过全部参数微调。保留用户权重及完整训练、开发、测试记录。Source Night 的实验与复现见 [实测结果](docs/NIGHT_SPECIALIST_RESULTS.md)。
+
+其他夜间评估支持 Tokyo247 官方 Night 查询子集和 RobotCar v2 公开位姿诊断集。历史 `source_night` 在 Tokyo247 上退化、RobotCar 上小幅改善，尚无一致跨数据集收益；协议与完整数字见 [其他夜间评估](docs/EXTERNAL_NIGHT_RESULTS.md)。
+
+### 可信 Patch 与 DINO 注意力实验
+
+新增 `configs/night_patch.sh`：每张训练 Qwen 图都经过相机退化，再在 Stage 2B A 类对应上监督 Student Patch。可见比例只对黑场和全通道过曝区域降权，不创建对应。独立的 `ATTENTION_WEIGHT` 对齐最后一个 DINOv2 Block 的 CLS→Patch 注意力分布，Teacher 目标与权重冻结，区别于 SALAD Keep。
+
+`PATCH_WEIGHT=0.1 ATTENTION_WEIGHT=0.05` 同时启用两项；各自设为 `0` 可关闭，`PATCH_VISIBILITY=off` 可关闭可靠性降权。本轮按相同后四层配置、数据和预算比较全局对照、SGPD、SGPD+Attention；方法、固定选择规则和受限内存命令见 [Patch 与注意力蒸馏](docs/NIGHT_PATCH_ATTENTION.md)。
+
+三组完整训练与评估已完成：SVOX test 的 R@1 都为 **759/823（92.22%）**，低于原始 Day 的 763/823；SGPD 的 R@10 相对同设置全局对照增加 1 张，注意力项没有增加 Top-1。**不将这组强制增强或局部项改为默认。** 183 项测试与冻结参数检查通过，实测任务内存峰值 5.00 GiB。完整三项 Recall、权重和注意力图见 [本轮实测结果](docs/NIGHT_PATCH_ATTENTION_RESULTS.md)。
+
+随后已复现六个模型的全部 **4,938 个测试排名**，对照分析 23 张图片并导出真实注意力、Keep、精确有符号检索贡献和固定遮挡结果。Attention 失败但旧方案成功的 17 张中，16 张在加入 Attention 前就失败；当前条件 KL 也不约束可信区域的总注意力质量。具体图片、量化证据及解释限制见 [失败原因诊断](docs/NIGHT_FAILURE_ANALYSIS.md)。此次未重新训练，190 项测试通过，诊断任务峰值 1.40 GiB。
+
+## 数据与独立工程
 
 - `weights/dino_salad.ckpt`、`third_party/salad/`、`third_party/dinov2/` 已在项目内；运行时不查找外部 WORKSPACE。
-- `data/train/manifest.jsonl` 是 7,719 对 SHA-256 核验过的 night/day 精确配对。`data/splits/night_train.jsonl` 有 7,263 对训练图，`night_val.jsonl` 有 385 对地点隔离的合成验证图；历史保留地点另排除 71 对。
-- `configs/dino_salad_stage2b_calibration.json` 与当前 checkpoint 和 224×224 预处理匹配。相应地点排除已纳入 split；SGPD 的 A 类可信 Patch 才参与局部损失。
-- SVOX 仅用于真实夜景检索评估：test 有 17,166 张白天 Gallery 和 823 张夜间 Query；`--split train` 可对独立的 22,232 张白天 Gallery、702 张夜间 Query 做只读诊断。评估采用 25 m UTM 正样本协议。
-- 已完成的 LoRA 对照保存在 `runs/night_lora_global_01` 和 `runs/night_lora_sgpd_01`；`runs/night_sgpd_01` 是旧 Output Adapter 的独立结果。全参数合成基线使用 `runs/night_full_global*` 与 `runs/night_full_sgpd*`；相机增强的三组配对训练保存在 `runs/night_camera_20261023/`。
+- `data/train/manifest.jsonl` 有 7,719 对经 SHA-256 核验的 Day/Qwen Night 图；地点隔离训练集为 7,263 对，合成验证集 385 对，另排除历史保留地点 71 对。
+- Stage 2B 校准绑定当前 checkpoint 与 224×224 预处理；SGPD 仅使用 A 类可信对应。Qwen 编辑不能保证逐 Patch 同坐标匹配。
+- SVOX test：17,166 张 Day Gallery、823 张 Night Query；独立开发划分：22,232 张 Day Gallery、702 张 Night Query。检索采用 25 m UTM 正样本协议。
+- 已保留完整的全部参数、相机增强、LoRA、Output 基线；无效分支及其重复训练输出已清理。数据、基础权重和可复用 Gallery/训练 bank 缓存保留。
 
-### Night 专用目标（2026-10-24）
+当前运行所需资源已具备，**无需新增下载**。其它机器上的来源见 [下载与来源](docs/DOWNLOADS.md)。
 
-Student 的职责是夜间 Query→原始 Day Gallery 检索。新增 `configs/night_specialist.sh` 默认关闭 Synthetic Guidance 和 Day Preservation；白天照片的辅助用途是产生强制低照度视图，再由 Night Student 检索干净 Day Teacher 特征库。Student 不必保持干净白天输入的表现。旧正则保留作独立消融，其价值以 Night Recall 判断。
+## 32 GB 主机运行
 
-两组同预算实验已完成。所选 `runs/night_specialist_20261024/source_night` 在 SVOX test 的 R@1/5/10 为 **93.07% / 98.66% / 99.03%**，原始 Day 为 92.71% / 98.42% / 99.15%。R@1 多命中 3 张、R@5 多 2 张、R@10 少 1 张，属于小幅且不一致的收益。训练仅使用 Day/Qwen，Gallery 模型和特征库不变。
+训练、测试、评估**逐项串行执行**。`scripts/run_bounded.py` 设置 8 GiB cgroup RAM 硬上限、6 GiB 回收阈值和禁用任务 swap；启动要求系统可用内存至少 12 GiB，运行中低于 4 GiB 会结束当前任务。它还使用进程锁防止并行实验。完整约束见 [SALAD 训练与内存设置](docs/SALAD_TRAINING.md)。
 
-[目标与损失说明](docs/NIGHT_SPECIALIST.md) · [完整实验与复现](docs/NIGHT_SPECIALIST_RESULTS.md)
-
-### 弱正则、层范围和 Query 融合：已完成
-
-按相同数据、seed 和 908 次更新，完成全量对照、衰减 Day anchor、仅前六层、仅后六层四组训练。四个新候选的 SVOX 开发 R@1 都未超过既有 `source_night`，因此保留原方案。按预先规则选出的 `α=0.25` Query 融合在 SVOX test 的 R@1 为 **92.47%（761/823）**，低于纯 Night 的 **93.07%（766/823）**；Tokyo 也有退化，RobotCar Night 有小幅收益，整体没有一致突破，**不将融合或弱 Day 正则改为默认方案**。
-
-全部串行重跑、开发选择和四项评估已结束；实验任务实测最高内存 **5.43 GiB**，最低系统可用内存 **13.33 GiB**，受 8 GiB cgroup 硬限制保护。158 项测试、训练范围及冻结参数检查通过。完整三项 Recall、逐 Query 变化、亮度分桶及资源记录见 [本轮结果](docs/NIGHT_REGULARIZATION_RESULTS.md)，方法与复现见 [实验设计](docs/NIGHT_REGULARIZATION.md)。
-
-### 其他真实夜间数据集
-
-新增 `scripts/evaluate_night_benchmarks.py`，对比原始 Day 与现有 Night 权重，共用原始 Day Gallery。支持完整图库的 Tokyo247 官方查询夜间子集，以及带公开位姿的 RobotCar v2 Night/Night-rain **只读诊断子集**。后者来自官方 `train` 划分，仅作评估，不是官方 withheld test，也没有用于微调。Aachen 夜图齐全，但缺可计算 Recall 的查询真值。数据协议、实测结果及复现命令见 [其他夜间评估](docs/EXTERNAL_NIGHT_RESULTS.md)。
-
-### 相机增强配对训练（2026-10-23）
-
-| 配置 | 原图合成验证 R@1 | 平均配对描述符余弦 |
-| --- | ---: | ---: |
-| 原始白天 SALAD | 384/385 | 0.6778 |
-| 增强 Global，`global_01` | 385/385 | 0.7295 |
-| 增强 Global→Global，`global_02` | 385/385 | 0.7358 |
-| 增强 Global→SGPD，`sgpd_02` | 385/385 | 0.7359 |
-
-新增曝光/Gamma、光晕过曝、运动模糊、泊松高斯噪声、JPEG、降饱和、暗角和随机光度策略，只增强训练 Student；Teacher、可信对应、验证/test 与原白天 Gallery 使用原图。每项概率和范围可以独立消融，见 [增强策略](docs/NIGHT_CAMERA_AUGMENTATION.md) 和 [预览](runs/night_camera_20261023/augmentation_preview.jpg)。
-
-Global 接续和 SGPD 接续从相同权重出发，训练预算与增强采样一致。合成验证已接近饱和，配对余弦的差异不能证明真实夜景检索收益。原始 Day SALAD 在 SVOX test 的 R@1/5/10 为 **92.71% / 98.42% / 99.15%**；当前不宣称相机增强或 SGPD 已带来稳定的真实域收益。完整数字见 [相机增强实验记录](docs/NIGHT_CAMERA_RESULTS.md)、[全参数合成基线](docs/NIGHT_FULL_RESULTS.md) 和 [评估协议](docs/DATA_AND_EVALUATION.md)。
-
-当前目录所需的模型、源码和图像均已具备，**无需再下载文件**。另一台机器上的资源来源见 [下载与来源](docs/DOWNLOADS.md)。
-
-### 面向 Recall 的新增实验
-
-新增 [检索指导方案](docs/GUIDED_RETRIEVAL.md)：用 7,263 个训练白天描述符（6,441 个地点）组成固定库，提供多正样本难负 InfoNCE 和排除同地点的 Teacher 检索关系 KL；增加干净 Qwen 的冻结指导与训练 Day 知识保留。训练仅使用 Qwen 图对与训练白天图，Night 主干全参数更新，原 Day Teacher、SALAD 和 Gallery 保持冻结。
-
-该方案参考本地 GCISG 与低质 VPR 蒸馏论文，并根据原 Day Gallery 约束改造；原论文方法、当前实现及差异见上述说明。采用小 batch 梯度累积、activation checkpoint、逐层学习率衰减与 cosine warmup；各损失独立开关。固定相机退化与训练 Day distractors 的精确配对验证仍接近饱和，因此增加排除精确源图的跨视角检查。
-
-另有 `configs/night_guided_restore.sh` 候选，强化干净 Qwen 的冻结指导，并训练 Night 主干从训练白天原片的相机退化视图恢复干净 Day 描述符。`DAY_VIEW_AUGMENTATION` 独立控制该视图；Teacher 和可信匹配始终干净。辅助验证可缓存冻结 Day Gallery，并自动报告排除精确源图的跨视角子集（当前 90 Query / 45 地点），帮助识别精确配对验证饱和。方法、限制及命令见 [检索指导方案](docs/GUIDED_RETRIEVAL.md)。
-
-两组完整实验已完成，开发集选择 `runs/night_guided_20261023/restore_01`。以下均为原始 224 输入及同一 Day Gallery，无多尺度增强：
-
-| 模型 | SVOX 开发 R@1 | test R@1 / R@5 / R@10 |
-| --- | ---: | --- |
-| 原始 Day | 88.46% | 92.71% / 98.42% / 99.15% |
-| 新 `restore_01` | 89.17% | 92.71% / 98.54% / 99.27% |
-
-**test R@1 尚未突破**；R@5、R@10 各增加 1 张命中，不能称为稳定提升。两组配置、跨视角验证、错误变化与权重路径见 [实测记录](docs/GUIDED_RETRIEVAL_RESULTS.md)。
-
-```bash
-PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
-OUTPUT=runs/night_guided_retrieval_01 bash configs/night_guided_retrieval.sh
-```
-
-新 Python 环境先安装与本机驱动兼容的 PyTorch，再执行 `pip install -r requirements-extra.txt`。无需安装 DINOv2 仓库中针对旧 CUDA 版本固定的整套依赖。
-
-### 32 GB 主机内存
-
-训练和评估应串行执行。新增 `scripts/run_bounded.py` 使用本机 systemd/cgroup v2，将实验及子进程限制为 **8 GiB RAM、6 GiB 回收阈值、禁用任务 swap**，系统可用内存低于 4 GiB 时结束当前任务，并保存内存日志。Night 专用训练默认 `NUM_WORKERS=0`；前后层训练、弱 Day 正则和 Query 融合的受控方案及命令见 [正则与层范围实验](docs/NIGHT_REGULARIZATION.md)。
-
-```bash
-NUM_WORKERS=0 OUTPUT=runs/night_specialist_safe_02 \
-  "$PYTHON" scripts/run_bounded.py --log runs/night_specialist_safe_02.memory.jsonl \
-  -- bash configs/night_specialist.sh
-```
-
-## 运行
-
-以下命令从项目根目录执行。本机 `base` 环境的 PyTorch CUDA 构建与驱动不兼容；下列 `PYTHON` 指向已验证可用的 `a2b-lightvpr` 环境。每次训练必须使用新的 `OUTPUT` 目录。
-
-相机增强配对训练重跑（三组训练及原图合成验证）：
-
-```bash
-PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python \
-EXPERIMENT=night_camera_replay_02 bash configs/night_camera_replay.sh
-```
-
-以下是无增强基线和独立阶段命令。给训练命令添加 `NIGHT_AUGMENTATION=camera AUGMENTATION_CONFIG=configs/night_camera.json` 可启用相机增强；原有入口默认 `off`，方便复现对照。
+从项目根目录执行，每次训练使用新的 `OUTPUT`。本机使用以下已验证的环境；新环境先安装驱动兼容的 PyTorch，再安装 `requirements-extra.txt`。
 
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
-"$PYTHON" scripts/check_setup.py --with-train-data
-PYTHONPATH=src "$PYTHON" -m unittest discover -s tests -v
+export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+export OUTPUT=runs/night_late4_02
 
-# 这些文件当前已生成；复制项目或重新整理数据时可重跑
-"$PYTHON" scripts/prepare_calibration.py
-"$PYTHON" scripts/make_night_split.py
+"$PYTHON" scripts/run_bounded.py --log "$OUTPUT.memory.jsonl" \
+  -- bash configs/night_specialist.sh
 
-# 生成未使用过的实验目录；以下命令在同一个 shell 执行
-EXPERIMENT="night_full_$(date +%Y%m%d_%H%M%S)"
+# 训练完成且已保存 adapter.safetensors / adapter.json 后再执行
+"$PYTHON" scripts/run_bounded.py --log "$OUTPUT.svox_train.memory.jsonl" \
+  -- "$PYTHON" scripts/evaluate_svox.py --split train \
+  --adapter-dir "$OUTPUT" --device cuda --batch-size 16 --num-workers 0 \
+  --gallery-cache runs/cache/svox_train_eval_day.safetensors \
+  --output "$OUTPUT/svox_train.json"
 
-# 可选：先运行 4 个 batch，得到一个实际更新后的全参数 Night 权重
-OUTPUT="runs/${EXPERIMENT}_smoke" MAX_STEPS=4 bash configs/night_full_global.sh
-
-# 阶段 1：Global Alignment + 跨 batch day-descriptor queue 的地点 InfoNCE
-OUTPUT="runs/${EXPERIMENT}_global" bash configs/night_full_global.sh
-
-# 阶段 2：从阶段 1 的 Night DINOv2 初始化，继续训练 SGPD + 全局损失
-OUTPUT="runs/${EXPERIMENT}_sgpd" \
-  INIT_ADAPTER_DIR="runs/${EXPERIMENT}_global" bash configs/night_full_sgpd.sh
-
-# 训练命令结束并出现 adapter.safetensors 与 adapter.json 后再评估
-
-# 合成夜图的地点隔离验证；用于开发阶段比较消融
-"$PYTHON" scripts/evaluate_pairs.py --adapter-dir "runs/${EXPERIMENT}_sgpd" \
-  --device cuda --output "runs/${EXPERIMENT}_sgpd/synthetic_val.json"
-
-# 真实夜景检索评估：与未适配 SALAD baseline 共用原始白天 Gallery
-"$PYTHON" scripts/evaluate_svox.py --adapter-dir "runs/${EXPERIMENT}_sgpd" \
-  --device cuda --batch-size 16 --num-workers 2 \
-  --output "runs/${EXPERIMENT}_sgpd/svox_test.json"
+# 固定开发阶段选择的配置后，再评估 test
+"$PYTHON" scripts/run_bounded.py --log "$OUTPUT.svox_test.memory.jsonl" \
+  -- "$PYTHON" scripts/evaluate_svox.py --adapter-dir "$OUTPUT" \
+  --device cuda --batch-size 16 --num-workers 0 \
+  --gallery-cache runs/cache/svox_test_gallery.safetensors \
+  --output "$OUTPUT/svox_test.json"
 ```
 
-两个合成阶段脚本默认使用 batch 8、BF16、AdamW、学习率 1e-6，各训练 1 epoch，优化 Night DINOv2 的所有参数（含 Patch Embedding、位置/CLS Token、全部 Block 与 Norm）。白天 DINOv2 和 SALAD 始终冻结。地点分散 batch 与容量 256 的 detached 白天描述符队列提供跨域多正样本 InfoNCE；同一 `(city, place_id)` 的多个白天描述符不会变成伪负例。训练日志记录有效负样本数。`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT` 默认均为 0；SGPD 脚本的 `PATCH_WEIGHT` 默认为 0.1。`INIT_ADAPTER_DIR` 只接受天气、checkpoint、预处理及模型类型一致的已有结果。
+原始 Day Gallery 缓存校验 checkpoint、预处理、有序 ID 和图像字节，不因更换 Night 权重而失效。真实图像不进入优化器或训练 bank。test 的历史结果已被查看，后续实验属于探索性比较，不应据 test 反复选配置。
 
-`evaluate_svox.py` 默认在 `runs/cache/` 保存经过 checkpoint、预处理和图库图像字节校验的**原始白天**描述符缓存。全参数 Night、LoRA 和 Output 消融都可复用它。只检查测试集协议可运行 `"$PYTHON" scripts/evaluate_svox.py --check-data`。
+## 损失与消融
 
-可传 `--split train` 使用 SVOX 的独立 train/day Gallery 与 train/night Query 诊断真实夜景；该 split 有独立的 Gallery 缓存，默认 test 结果不会被覆盖。`--adapter-scale` 只适用于旧 LoRA 实验，不适用于全参数 Night 主干。
-
-`evaluate_pairs.py` 使用 385 对未参与训练的 Qwen 合成夜图与其精确白天源图，报告同地点 Recall@1/5/10 和平均配对描述符余弦相似度。它与真实 SVOX 测试分开。`--limit-pairs 8` 可做短流程检查，输出明确标记为子集。
-
-## 独立消融
-
-`configs/night_full_sgpd.sh` 接受环境变量覆盖各损失和训练预算；每次设置新的 `OUTPUT`。比较损失时请使用相同 split、seed、epoch、起始 Night 权重与 Gallery 缓存。旧 `configs/night_global.sh` 和 `configs/night_sgpd.sh` 仍支持 LoRA/Output 消融。
+`night_specialist.sh` 接受 `GLOBAL_WEIGHT`、`CONTRAST_WEIGHT`、`RELATION_WEIGHT`、`SOURCE_NIGHT_WEIGHT`、`PATCH_WEIGHT`、`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT`、`ATTENTION_WEIGHT` 等独立权重。SGPD 使用 Stage 2B 可信对应和 `positive_conf × teacher.assignment_keep`，支持 `IMPORTANCE_MODE=saliency|uniform`；未知、无效和不可靠 Patch 权重为零。
 
 ```bash
-# 阶段 1 的 Global + queue InfoNCE 本身是无 SGPD 对照
-"$PYTHON" scripts/evaluate_pairs.py --adapter-dir runs/night_full_global_01 \
-  --device cuda --output runs/night_full_global_01/synthetic_val.json
+# 与后四层默认方案比较全部参数微调
+OUTPUT=runs/night_all_02 FULL_TRAIN_SCOPE=all \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_all_02.memory.jsonl \
+  -- bash configs/night_specialist.sh
 
-# 同一可信对应，但 Patch 权重均匀
-OUTPUT=runs/night_full_uniform_01 INIT_ADAPTER_DIR=runs/night_full_global_01 \
-  IMPORTANCE_MODE=uniform bash configs/night_full_sgpd.sh
-
-# 额外开启 Keep Alignment；OT / Magnitude 也可分别设置非零权重
-OUTPUT=runs/night_full_keep_01 INIT_ADAPTER_DIR=runs/night_full_global_01 \
-  KEEP_WEIGHT=0.01 bash configs/night_full_sgpd.sh
-
-# 旧输出端 Adapter 的公平消融：两阶段都选 output，使用独立目录
-OUTPUT=runs/night_output_global_01 ADAPTER_TYPE=output bash configs/night_global.sh
-OUTPUT=runs/night_output_sgpd_01 ADAPTER_TYPE=output \
-  INIT_ADAPTER_DIR=runs/night_output_global_01 bash configs/night_sgpd.sh
-
-# 旧 LoRA 对照
-OUTPUT=runs/night_lora_new_01 ADAPTER_TYPE=lora bash configs/night_global.sh
+# 后四层方案中加入 SGPD，另存目录
+OUTPUT=runs/night_late4_sgpd_02 PATCH_WEIGHT=0.1 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_late4_sgpd_02.memory.jsonl \
+  -- bash configs/night_specialist.sh
 ```
 
-可用 `PATCH_WEIGHT`、`KEEP_WEIGHT`、`OT_WEIGHT`、`MAGNITUDE_WEIGHT`、`GLOBAL_WEIGHT`、`CONTRAST_WEIGHT`、`IMPORTANCE_MODE`、`BATCH_SAMPLING`、`CONTRAST_QUEUE_SIZE`、`BATCH_SIZE`、`GRADIENT_ACCUMULATION_STEPS`、`LEARNING_RATE`、`WEIGHT_DECAY`、`EPOCHS`、`MAX_STEPS`、`SEED`、`BF16`、`DEVICE`、`PYTHON` 等变量调整。训练日志、Night DINOv2 权重和配置保存在各自 `runs/` 目录；白天完整 checkpoint 保持一份。
+比较时固定数据、初始化、seed、训练预算与增强。`configs/night_full_global.sh` / `night_full_sgpd.sh` 显式保留**全部参数微调**的历史两阶段消融；其 Global / Contrast 默认各 1，SGPD 阶段 Patch 默认 0.1，Keep / OT / Magnitude 默认 0。旧 `night_global.sh` / `night_sgpd.sh` 支持 LoRA 和 Output 消融。详见 [配置说明](configs/README.md)。
+
+相机增强包含曝光/Gamma、光晕过曝、运动模糊、泊松高斯噪声、JPEG、降饱和、暗角和随机光度操作；只作用于 Student。Teacher、可信匹配输入、评估及原始 Day Gallery 均保持干净。参数与历史对照见 [增强策略](docs/NIGHT_CAMERA_AUGMENTATION.md)、[相机增强结果](docs/NIGHT_CAMERA_RESULTS.md)、[全部参数基线](docs/NIGHT_FULL_RESULTS.md)。合成验证接近饱和，不能以配对余弦提高代替真实 Night Recall。
 
 ## 目录
 
 ```text
-configs/                  night 命令、校准及排除地点
-data/train/               已核验的原图、生成图和配对清单
-data/splits/              地点隔离的训练/合成验证清单
-data/svox/                真实天气测试图
-src/weather_vpr/models/  Day Teacher、完整 Night DINOv2、LoRA / Output 消融
-src/weather_vpr/losses/  SGPD、可选 Keep/OT/Magnitude、全局和 queue InfoNCE
-src/weather_vpr/data/    精确配对、地点分散采样和可信 Patch 对应
+configs/                   训练入口、增强、校准及排除地点
+src/weather_vpr/models/    独立 Night 主干、Day Teacher、LoRA / Output 消融
+src/weather_vpr/losses/    SGPD、Keep/OT/Magnitude、全局和多正样本 InfoNCE
+src/weather_vpr/data/      精确配对、地点分散采样和可信对应
 src/weather_vpr/inference/ SVOX、Tokyo247、RobotCar 检索与描述符导出
-scripts/                  数据准备、训练、评估入口
-third_party/              项目内部的 SALAD/DINOv2 源码
-weights/                  原始完整 checkpoint
-runs/                     实验输出和 Gallery 缓存
+scripts/                   数据准备、受限内存运行、训练和评估
+third_party/               项目内部 SALAD / DINOv2 源码
+weights/                   原始白天完整 checkpoint
+runs/                      独立 Night 权重、有效实验和缓存
 ```
 
-方法边界与评估协议见 [设计说明](docs/ARCHITECTURE.md)、[数据和评估](docs/DATA_AND_EVALUATION.md)。`assignment_keep` 表示 Sinkhorn 有效簇分配质量，不等同于建筑语义标签；完整训练和真实夜景 Recall 才能验证实际收益。
+方法与协议见 [架构](docs/ARCHITECTURE.md)、[数据与评估](docs/DATA_AND_EVALUATION.md)。`assignment_keep` 表示分配到 SALAD 有效簇的质量，不等同于建筑物语义标签。

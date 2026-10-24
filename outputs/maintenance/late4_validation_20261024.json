@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "optimizer_updates": 2,
+  "training_scope": {
+    "scope": "late",
+    "block_indices": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "block_count": 4,
+    "total_blocks": 12,
+    "trainable_parameters": 28357632,
+    "total_parameters": 86580480
+  },
+  "changed_selected_tensors": 56,
+  "frozen_tensors_bitwise_equal": 119,
+  "source_night_negative_pairs": [
+    128,
+    128
+  ],
+  "retired_day_options_absent": true,
+  "temporary_checkpoint_deleted": true
+}

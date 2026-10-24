@@ -15,6 +15,7 @@ if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
   --exclude-places "${EXCLUDE_PLACES:-data/splits/heldout_places.json}" \
   --weather night "${EXTRA_ARGS[@]}" \
   --adapter-type full \
+  --full-train-scope "${FULL_TRAIN_SCOPE:-all}" --full-train-blocks "${FULL_TRAIN_BLOCKS:-4}" \
   --night-augmentation "${NIGHT_AUGMENTATION:-off}" \
   --augmentation-strength "${AUGMENTATION_STRENGTH:-1}" \
   --augmentation-probability "${AUGMENTATION_PROBABILITY:-0.8}" \
@@ -34,6 +35,6 @@ if [[ "${VERIFY_HASHES:-1}" == 1 ]]; then EXTRA_ARGS+=(--verify-hashes); fi
   --weight-decay "${WEIGHT_DECAY:-0.01}" \
   --max-steps "${MAX_STEPS:-0}" --seed "${SEED:-42}" \
   --save-every-steps "${SAVE_EVERY_STEPS:-0}" \
-  --num-workers "${NUM_WORKERS:-4}" \
+  --num-workers "${NUM_WORKERS:-0}" \
   --device "${DEVICE:-cuda}" \
   --output-dir "${OUTPUT:-runs/night_full_sgpd_01}"

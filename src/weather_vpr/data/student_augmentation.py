@@ -19,12 +19,12 @@ SOURCE_NIGHT_SEED_POLICY = (
 
 def sample_augmentation_seed(training_seed: int, epoch: int, sample_index: int,
                              *, view: str = 'weather') -> int:
-    """Worker-independent seeds with separate weather, Day and source-night streams.
+    """Worker-independent seeds with separate weather and source-night streams.
 
     The default weather payload is unchanged, preserving historical runs.
     """
-    if view not in ('weather', 'day', 'source_night'):
-        raise ValueError("augmentation view must be 'weather', 'day' or 'source_night'")
+    if view not in ('weather', 'source_night'):
+        raise ValueError("augmentation view must be 'weather' or 'source_night'")
     payload = f'{int(training_seed)}:{int(epoch)}:{int(sample_index)}'
     if view != 'weather':
         payload += f':{view}'

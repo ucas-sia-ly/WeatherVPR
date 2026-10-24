@@ -55,10 +55,11 @@ def parse_args(argv=None):
     p.add_argument('--save-every-steps', type=int, default=200,
                    help='Checkpoint after this many batches; 0 saves only at epoch/end')
     p.add_argument('--adapter-type', choices=('full','output','lora'), default='full')
-    p.add_argument('--full-train-scope', choices=('all', 'early', 'late'), default='all',
-                   help='Full Night weights to optimize: all parameters, first N blocks, or last N blocks')
-    p.add_argument('--full-train-blocks', type=int, default=6,
-                   help='Number of trainable blocks for early/late full-weight scope; embeddings/norm frozen')
+    p.add_argument('--full-train-scope', choices=('all', 'early', 'late'), default=None,
+                   help='Independent Night backbone defaults to the last N blocks; all is an explicit ablation; '
+                        'LoRA/output use all unless a scope is explicitly supplied')
+    p.add_argument('--full-train-blocks', type=int, default=4,
+                   help='Trainable first/last blocks for partial full-weight training; embeddings/final norm frozen')
     p.add_argument('--hidden', type=int, default=64)
     p.add_argument('--lora-rank', type=int, default=8)
     p.add_argument('--lora-alpha', type=float, default=16)
@@ -72,6 +73,10 @@ def parse_args(argv=None):
     p.add_argument('--keep-weight', type=float, default=0.0)
     p.add_argument('--ot-weight', type=float, default=0.0)
     p.add_argument('--magnitude-weight', type=float, default=0.0)
+    p.add_argument('--attention-weight', type=float, default=0.0,
+                   help='Trusted-match KL of final DINOv2 CLS-to-patch attention; independent full Night only')
+    p.add_argument('--patch-visibility', choices=('off', 'photometric'), default='off',
+                   help='Optionally downweight clipped/near-black pixels in the augmented Student patch support')
     p.add_argument('--importance-mode', choices=['saliency', 'uniform'], default='saliency')
     p.add_argument('--min-teacher-keep', type=float, default=0.01)
     p.add_argument('--temperature', type=float, default=0.1)
@@ -87,15 +92,6 @@ def parse_args(argv=None):
     p.add_argument('--relation-hard-negatives', type=int, default=64)
     p.add_argument('--synthetic-guidance-weight', type=float, default=0.0,
                    help='Optional anchor to the base model response on clean Qwen Night; validate its utility using Night Recall')
-    p.add_argument('--day-preservation-weight', type=float, default=0.0,
-                   help='Historical Day Student preservation/restoration auxiliary; not required for Night-to-Day retrieval')
-    p.add_argument('--day-preservation-samples', type=int, default=1,
-                   help='Day samples per microbatch; sequential backward bounds activation memory')
-    p.add_argument('--day-preservation-schedule', choices=('constant', 'linear'), default='constant')
-    p.add_argument('--day-preservation-final-ratio', type=float, default=0.0,
-                   help='Final/initial Day regularizer weight for linear update-based decay')
-    p.add_argument('--day-view-augmentation', choices=('off', 'camera'), default='off',
-                   help='Optional camera-degraded training Day Student views; clean Day Teacher targets')
     p.add_argument('--source-night-weight', type=float, default=0.0,
                    help='Retrieval supervision on explicitly darkened training Day photos, targeting frozen clean Day keys')
     p.add_argument('--source-night-samples', type=int, default=2,
@@ -117,7 +113,10 @@ def parse_args(argv=None):
     p.add_argument('--seed', type=int, default=42)
     add_augmentation_arguments(p)
     p.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    if args.full_train_scope is None:
+        args.full_train_scope = 'late' if args.adapter_type == 'full' else 'all'
+    return args
 
 
 def _validate(args):
@@ -151,11 +150,6 @@ def _validate(args):
         raise ValueError('Block training scope requires adapter-type full')
     if not math.isfinite(args.min_lr_ratio) or not 0 <= args.min_lr_ratio <= 1:
         raise ValueError('min-lr-ratio must be finite in [0,1]')
-    if args.day_preservation_samples < 1:
-        raise ValueError('day-preservation-samples must be positive')
-    if (not math.isfinite(args.day_preservation_final_ratio)
-            or not 0 <= args.day_preservation_final_ratio <= 1):
-        raise ValueError('day-preservation-final-ratio must be finite in [0,1]')
     if args.source_night_samples < 1:
         raise ValueError('source-night-samples must be positive')
     if args.lr_schedule == 'constant' and args.warmup_steps:
@@ -165,8 +159,8 @@ def _validate(args):
     if not math.isfinite(args.weight_decay) or args.weight_decay < 0:
         raise ValueError('weight-decay must be finite and nonnegative')
     weights = ('global_weight','contrast_weight','patch_weight','keep_weight',
-               'ot_weight','magnitude_weight','relation_weight',
-               'synthetic_guidance_weight','day_preservation_weight','source_night_weight')
+               'ot_weight','magnitude_weight','attention_weight','relation_weight',
+               'synthetic_guidance_weight','source_night_weight')
     if any(not math.isfinite(getattr(args, name)) or getattr(args, name) < 0 for name in weights):
         raise ValueError('Loss weights must be finite and nonnegative')
     if not any(getattr(args, name) > 0 for name in weights):
@@ -175,12 +169,14 @@ def _validate(args):
         raise ValueError('Source night retrieval needs global-weight or contrast-weight > 0')
     if args.source_night_weight > 0 and args.weather != 'night':
         raise ValueError('Source night views are currently specified only for weather night')
+    if args.attention_weight > 0 and args.adapter_type != 'full':
+        raise ValueError('Attention distillation requires the independent full Night backbone')
     if (args.contrast_weight > 0 and args.batch_size < 2 and args.contrast_queue_size == 0
             and args.fixed_day_bank is None
             and not any(getattr(args, name) > 0 for name in weights if name != 'contrast_weight')):
         raise ValueError('Contrast-only training needs batch-size >= 2 or a queue')
     if any(getattr(args, name) > 0 for name in ('patch_weight','keep_weight','ot_weight',
-                                                'magnitude_weight')) and args.pair_calibration is None:
+                                                'magnitude_weight','attention_weight')) and args.pair_calibration is None:
         raise ValueError('Local losses require verified Stage2B calibration; identity patches are invalid')
     if args.bf16 and (torch.device(args.device).type != 'cuda'
                       or not torch.cuda.is_bf16_supported()):
@@ -241,16 +237,6 @@ def main(argv=None):
     augmentation_config = load_augmentation_config(args)
     augmentation_info = augmentation_metadata(augmentation_config, args.seed, model_size,
                                               args.augmentation_epoch_offset)
-    from weather_vpr.data.night_augmentation import NightAugmentationConfig
-    day_augmentation = (NightAugmentationConfig(
-        **{**augmentation_config.to_dict(), 'profile': args.day_view_augmentation})
-        if args.day_preservation_weight > 0 and args.day_view_augmentation != 'off' else None)
-    day_augmentation_info = (augmentation_metadata(
-        day_augmentation, args.seed, model_size, args.augmentation_epoch_offset)
-        if day_augmentation is not None else {'profile': 'off'})
-    day_augmentation_info.update(
-        scope='training Day Student view only; Day Teacher, Qwen matching and Gallery remain clean',
-        seed_policy='historical weather seed input plus :day domain suffix')
     source_night_config = None
     source_night_info = {'enabled': False}
     if args.source_night_weight > 0:
@@ -270,7 +256,6 @@ def main(argv=None):
     dataset = AcceptedWeatherPairs(args.manifest, args.weather, model_size,
                                   args.exclude_places, args.verify_hashes,
                                   night_augmentation=augmentation_config, seed=args.seed,
-                                  day_augmentation=day_augmentation,
                                   source_night_config=source_night_config)
     if args.batch_sampling == 'distinct':
         sampler = DistinctPlaceBatchSampler([row['place'] for row in dataset.rows],
@@ -303,7 +288,6 @@ def main(argv=None):
     from weather_vpr.training.optimization import (
         configure_full_backbone_scope, full_backbone_parameter_groups, warmup_cosine_multiplier,
     )
-    from weather_vpr.training.loss_schedule import auxiliary_weight_multiplier
     scope_info = (configure_full_backbone_scope(
         net.adapters[args.weather], args.full_train_scope, args.full_train_blocks)
         if args.adapter_type == 'full' else None)
@@ -343,14 +327,23 @@ def main(argv=None):
     else:
         queue = DayDescriptorQueue(args.contrast_queue_size, storage_device='cpu')
     need_local = any(getattr(args, name) > 0 for name in
-                     ('patch_weight','keep_weight','ot_weight','magnitude_weight'))
+                     ('patch_weight','keep_weight','ot_weight','magnitude_weight','attention_weight'))
+    need_attention = args.attention_weight > 0
+    if need_attention:
+        from weather_vpr.models.attention import capture_cls_attention
+        from weather_vpr.losses.attention import trusted_attention_alignment
+    if args.patch_visibility == 'photometric':
+        from weather_vpr.data.patch_visibility import patch_visibility_from_image_tensor, visibility_metadata
+        visibility_info = visibility_metadata()
+    else:
+        visibility_info = {'mode': 'off'}
     effective_calibration = args.pair_calibration if need_local else None
     cal = load_calibration(effective_calibration, args.checkpoint, model_size, args.calibration_index)
     out.mkdir(parents=True, exist_ok=True)
     resolved_config = training_configuration(args, augmentation_info)
-    resolved_config['effective_day_view_augmentation'] = day_augmentation_info
     resolved_config['effective_source_night'] = source_night_info
     resolved_config['effective_full_train_scope'] = scope_info
+    resolved_config['effective_patch_visibility'] = visibility_info
     (out / 'training_config.json').write_text(
         json.dumps(resolved_config, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
@@ -362,7 +355,6 @@ def main(argv=None):
     optimizer_steps = 0
     accumulation_count = 0
     augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
-    day_augmentation_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     source_night_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
     last_gradient_norm = 0.0
     optimizer.zero_grad(set_to_none=True)
@@ -413,9 +405,9 @@ def main(argv=None):
             loss_weights={'global': args.global_weight, 'contrast': args.contrast_weight,
                           'patch': args.patch_weight, 'keep': args.keep_weight,
                           'ot': args.ot_weight, 'magnitude': args.magnitude_weight,
+                          'attention': args.attention_weight,
                           'relation': args.relation_weight,
                           'synthetic_guidance': args.synthetic_guidance_weight,
-                          'day_preservation': args.day_preservation_weight,
                           'source_night': args.source_night_weight},
             positive_patches_seen=total_positive_patches,
             checkpoint_sha256=teacher_hash, model_config=base.config,
@@ -430,19 +422,19 @@ def main(argv=None):
             relation_temperature=args.relation_temperature,
             relation_teacher_temperature=args.relation_teacher_temperature,
             relation_hard_negatives=args.relation_hard_negatives,
-            day_preservation_samples=args.day_preservation_samples,
-            day_preservation_schedule=args.day_preservation_schedule,
-            day_preservation_final_ratio=args.day_preservation_final_ratio,
-            day_view_augmentation=day_augmentation_info,
-            sampled_day_augmentation_counts=day_augmentation_counts,
             source_night=source_night_info,
             source_night_samples=args.source_night_samples,
             sampled_source_night_counts=source_night_counts,
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
             importance_mode=args.importance_mode,
+            patch_visibility=visibility_info,
+            attention_distillation={'enabled': need_attention, 'block': 'last',
+                'map': 'head-mean CLS-to-patch self-attention',
+                'support': 'Stage2B A-only correspondences weighted by teacher keep and optional observed visibility',
+                'teacher': 'frozen clean Day; no identity-coordinate fallback'},
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_full_night_regularization_v5' if args.adapter_type == 'full'
+            code_version=('weather_vpr_full_night_patch_attention_v7' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
 
@@ -458,12 +450,18 @@ def main(argv=None):
             sampled_counts = sampled_augmentation_counts([v['augmentation_record'] for v in batch])
             merge_augmentation_counts(augmentation_counts, sampled_counts)
             places = [item['place'] for item in batch]
+            teacher_attention = None
             # Pass 1: the original frozen Day teacher.
             if bank_descriptors is not None and not need_local:
                 day_desc = bank_descriptors[[item['index'] for item in batch]].to(args.device)
                 day_aux = None
             else:
-                teacher_output = net.teacher(day, return_aux=need_local)
+                if need_attention:
+                    with capture_cls_attention(net.base.backbone) as capture:
+                        teacher_output = net.teacher(day, return_aux=need_local)
+                        teacher_attention = capture.attention.detach()
+                else:
+                    teacher_output = net.teacher(day, return_aux=need_local)
                 day_desc, day_aux = teacher_output if need_local else (teacher_output, None)
             generated_day_desc = None
             if need_local:
@@ -484,15 +482,34 @@ def main(argv=None):
                     match = torch.stack([match_cache[index][0] for index in indices])
                     q = torch.stack([match_cache[index][1] for index in indices])
                 match, q = match.to(args.device), q.to(args.device)
+                verified_count = int((q > 0).sum())
+                verified_mass = float(q.sum())
+                if args.patch_visibility == 'photometric':
+                    visibility = patch_visibility_from_image_tensor(student_weather).flatten(1)
+                    if visibility.shape != q.shape:
+                        raise ValueError('Augmented visibility and trusted match patch grids differ')
+                    q = (q.detach() * visibility).detach()
+                    mean_visibility = float(visibility.mean())
+                    del visibility
+                else:
+                    mean_visibility = 1.0
             else:
                 match = q = None
+                verified_count = 0
+                verified_mass = mean_visibility = 0.0
             if args.synthetic_guidance_weight > 0 and generated_day_desc is None:
                 generated_day_desc = net.teacher(weather, return_aux=False)
             # Pass 2: only the selected weather parameters receive gradients.
             ctx = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                    if args.bf16 else nullcontext())
+            student_attention = None
             with ctx:
-                student_output = net.student(student_weather, args.weather, return_aux=need_local)
+                if need_attention:
+                    with capture_cls_attention(net.adapters[args.weather]) as capture:
+                        student_output = net.student(student_weather, args.weather, return_aux=need_local)
+                        student_attention = capture.attention
+                else:
+                    student_output = net.student(student_weather, args.weather, return_aux=need_local)
             desc, aux = student_output if need_local else (student_output, None)
             zero = desc.float().sum() * 0.0
             g_loss = descriptor_alignment(desc, day_desc) if args.global_weight > 0 else zero
@@ -519,6 +536,16 @@ def main(argv=None):
                 r_loss = zero
             s_loss = (descriptor_alignment(desc, generated_day_desc)
                       if args.synthetic_guidance_weight > 0 else zero)
+            if need_attention:
+                attention = trusted_attention_alignment(
+                    student_attention, teacher_attention, day_aux['assignment_keep'].flatten(1),
+                    match, q, importance_mode=args.importance_mode)
+                a_loss = attention['loss']
+            else:
+                attention = {'attention_valid_queries': 0, 'attention_trusted_patches': 0,
+                             'attention_coverage': 0.0, 'attention_weight_mass': 0.0,
+                             'attention_teacher_mass': 0.0, 'attention_student_mass': 0.0}
+                a_loss = zero
             if match is not None:
                 local = weighted_patch_losses(
                     aux, day_aux, match, q, importance_mode=args.importance_mode,
@@ -540,33 +567,11 @@ def main(argv=None):
             total = (args.global_weight*g_loss + args.contrast_weight*c_loss +
                      args.patch_weight*p_loss + args.keep_weight*k_loss +
                      args.ot_weight*o_loss + args.magnitude_weight*m_loss +
-                     args.relation_weight*r_loss + args.synthetic_guidance_weight*s_loss)
+                     args.attention_weight*a_loss + args.relation_weight*r_loss +
+                     args.synthetic_guidance_weight*s_loss)
             if not torch.isfinite(total):
                 raise FloatingPointError('Non-finite training loss')
             (total / args.gradient_accumulation_steps).backward()
-            # A second, short Day forward is backpropagated only after the Night
-            # graph is freed. The frozen original Day target never changes.
-            preservation_value = 0.0
-            day_weight = args.day_preservation_weight * auxiliary_weight_multiplier(
-                args.day_preservation_schedule, optimizer_steps, planned_updates,
-                args.day_preservation_final_ratio)
-            day_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
-            if day_weight > 0:
-                count = min(len(batch), args.day_preservation_samples)
-                day_student = torch.stack([item['day_student_tensor'] for item in batch[:count]]).to(args.device)
-                day_sampled_counts = sampled_augmentation_counts(
-                    [item['day_augmentation_record'] for item in batch[:count]])
-                merge_augmentation_counts(day_augmentation_counts, day_sampled_counts)
-                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
-                      if args.bf16 else nullcontext()):
-                    preservation_desc = net.student(day_student, args.weather, return_aux=False)
-                preservation = descriptor_alignment(preservation_desc, day_desc[:count])
-                if not torch.isfinite(preservation):
-                    raise FloatingPointError('Non-finite Day preservation loss')
-                (day_weight * preservation /
-                 args.gradient_accumulation_steps).backward()
-                preservation_value = float(preservation.detach())
-                del preservation_desc, preservation, day_student
             source_value = source_global_value = source_contrast_value = 0.0
             source_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
             source_positive_pairs = source_negative_pairs = 0
@@ -615,21 +620,28 @@ def main(argv=None):
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            augmentation=sampled_counts,
-                           loss=(float(total.detach()) + day_weight * preservation_value +
+                           loss=(float(total.detach()) +
                                  args.source_night_weight * source_value),
                            global_loss=float(g_loss.detach()),
                            global_retrieval_loss=float(c_loss.detach()),
                            contrast=float(c_loss.detach()), patch=float(p_loss.detach()),
                            keep=float(k_loss.detach()), ot=float(o_loss.detach()),
                            magnitude=float(m_loss.detach()), positive_patches=coverage,
+                           attention_loss=float(a_loss.detach()),
+                           attention_valid_queries=int(attention['attention_valid_queries']),
+                           attention_trusted_patches=int(attention['attention_trusted_patches']),
+                           attention_coverage=float(attention['attention_coverage']),
+                           attention_weight_mass=float(attention['attention_weight_mass']),
+                           attention_teacher_mass=float(attention['attention_teacher_mass']),
+                           attention_student_mass=float(attention['attention_student_mass']),
+                           verified_positive_patches=verified_count,
+                           verified_positive_mass=verified_mass,
+                           patch_visibility_mean=mean_visibility,
                            relation_loss=float(r_loss.detach()),
                            relation_valid_queries=int(relation['valid_queries']),
                            relation_mean_support=float(relation['mean_support']),
                            relation_teacher_entropy=float(relation['teacher_entropy']),
                            synthetic_guidance_loss=float(s_loss.detach()),
-                           day_preservation_loss=preservation_value,
-                           day_preservation_effective_weight=day_weight,
-                           day_augmentation=day_sampled_counts,
                            source_night_loss=source_value,
                            source_night_global_loss=source_global_value,
                            source_night_contrast_loss=source_contrast_value,

@@ -2,16 +2,16 @@
 
 ## 本轮回答的问题
 
-Night Student 只负责夜间 Query→原始 Day Gallery 检索。Synthetic Guidance 和 Day Preservation 都是可选正则，不是跨模型检索的必要条件；即使某个正则有助于 Night，也应由 Night Recall 验证，而不以 Student 白天表现为目标。
+Night Student 只负责夜间 Query→原始 Day Gallery 检索。本页记录的是保留的历史**全部参数微调**实验，不能用当前后四层默认值解释这些结果。
 
-本轮两组都关闭旧 Synthetic Guidance、Day Preservation/Restoration。第二组只增加从训练 Day 照片产生的强制低照度辅助视图。Student 不直接接收干净 Day 输入，干净 Day 只供冻结 Teacher 和固定 Day 特征库使用。方法及损失定义见 [Night 专用模型说明](NIGHT_SPECIALIST.md)。
+两组 Student 都只接收 Qwen Night 和可选的强制低照度 Day 视图；第二组仅增加低照度辅助分支。干净 Day 只供冻结 Teacher 和固定 Day bank。方法及损失定义见 [Night 专用模型说明](NIGHT_SPECIALIST.md)。
 
 ## 实验控制
 
 - 独立从原始 Day checkpoint 初始化完整 Night DINOv2；Day Teacher 和共享 SALAD 冻结。
 - 同一 7,263 对 Day/Qwen 数据，1 epoch / 908 次更新，batch 8、BF16、AdamW、seed 42。
-- Global / Contrast / Relation 权重均为 0.1；旧 Guidance、Day Preservation 均为 0。
-- 固定 Day 库、64 个难负样本、逐层 LR 衰减和 warmup/cosine 日程相同。
+- Global / Contrast / Relation 权重均为 0.1，未使用额外的干净 Day Student 约束。
+- 固定 Day 库、64 个难负样本、layer decay `0.8` 和 warmup/cosine 日程相同。
 - 两组逐步 Night 相机增强采样完全一致。
 - `night_only`：辅助权重 0；`source_night`：辅助权重 0.5，每步最多 2 张低照度源图，共 1,816 张，全部执行强制曝光衰减。
 - SGPD / Keep / OT / 幅度本轮关闭，原有可信 Qwen Patch 蒸馏代码和独立开关保持可用。
@@ -29,7 +29,7 @@ SVOX train 为只读开发集：702 张 Night Query，22,232 张固定原始 Day
 | 仅 Night 主分支 | 618/702，88.03% | 668/702，95.16% | 678/702，96.58% |
 | 加入低照度源图辅助 | 620/702，88.32% | 668/702，95.16% | 677/702，96.44% |
 
-低照度辅助比同设置对照多命中 2 张 R@1，但仍比原始 Day 少 1 张。历史 `restore_01` 开发集 R@1 为 626/702，高于本轮两组；因此本轮不能证明默认关闭两项旧正则必然提高 Night Recall。历史模型与本轮同时存在多个配置差异，也不能由此独立判定哪项旧正则有效。
+低照度辅助比同设置对照多命中 2 张 R@1，但仍比原始 Day 少 1 张。该变化较小，不能单独证明其稳定性。
 
 固定相机退化、7,648 张 Day Gallery 的合成跨视角子集排除每条 Query 的精确白天源图，仅检查另一个同地点视角；共 90 张 Query / 45 个地点：
 
@@ -43,7 +43,7 @@ SVOX train 为只读开发集：702 张 Night Query，22,232 张固定原始 Day
 
 ## 所选新候选的最终 test
 
-按本轮两个新候选的开发集 R@1 选择 `source_night`，测试前写入权重哈希和输入策略。历史模型只作参考，本轮并未将它称为被新模型全面超过。以下均使用原始 224×224 预处理、同一冻结 Day Gallery，无多尺度、无测试时增强。
+按本轮两个新候选的开发集 R@1 选择 `source_night`，测试前写入权重哈希和输入策略。本轮只在这两个预定候选中选择，不能解释为已全面超过其它模型。以下均使用原始 224×224 预处理、同一冻结 Day Gallery，无多尺度、无测试时增强。
 
 | 模型 | R@1 | R@5 | R@10 |
 | --- | ---: | ---: | ---: |
@@ -66,18 +66,27 @@ R@1 修复 11 个原始错误，同时新增 8 个错误，净增加 3 张命中
 
 所选权重 SHA-256：`1ee611a2c2aad86baa330e07751a0643c6c53599bb09cd1b1a355ce4b0ef0617`。
 
+当前默认已改为后四层微调、layer decay 1；复现本页历史结果必须显式恢复全部参数与 layer decay 0.8。以下命令逐项串行运行，使用新的目录：
+
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 
-# 使用两个新的目录，均从原 Day 初始化
 OUTPUT=runs/night_specialist_control_02 SOURCE_NIGHT_WEIGHT=0 \
-  bash configs/night_specialist.sh
+  FULL_TRAIN_SCOPE=all LAYER_DECAY=0.8 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_specialist_control_02.memory.jsonl \
+  -- bash configs/night_specialist.sh
 OUTPUT=runs/night_specialist_source_02 SOURCE_NIGHT_WEIGHT=0.5 \
-  bash configs/night_specialist.sh
+  FULL_TRAIN_SCOPE=all LAYER_DECAY=0.8 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_specialist_source_02.memory.jsonl \
+  -- bash configs/night_specialist.sh
 
-"$PYTHON" scripts/evaluate_svox.py --split train \
+"$PYTHON" scripts/run_bounded.py --log runs/night_specialist_source_02.eval.memory.jsonl \
+  -- "$PYTHON" scripts/evaluate_svox.py --split train \
   --adapter-dir runs/night_specialist_source_02 --device cuda \
-  --batch-size 16 --num-workers 2 --reference-cache-mib 768 \
+  --batch-size 16 --num-workers 0 --reference-cache-mib 768 \
+  --gallery-cache runs/cache/svox_train_eval_day.safetensors \
   --output runs/night_specialist_source_02/svox_train.json
 ```
+
+32 GB 主机的限制与用户后四层结果见 [SALAD 训练设置](SALAD_TRAINING.md)。

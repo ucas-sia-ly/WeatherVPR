@@ -161,6 +161,31 @@ class FullBackboneParameterGroupTests(unittest.TestCase):
 
 
 class FullBackboneScopeTests(unittest.TestCase):
+    def test_last_four_of_twelve_freeze_norm_and_update_only_selected_blocks(self):
+        torch.manual_seed(67)
+        night = TinyFullBackbone()
+        night.model.blocks = nn.ModuleList([
+            nn.Sequential(nn.Linear(4, 4), nn.LayerNorm(4)) for _ in range(12)
+        ])
+        metadata = configure_full_backbone_scope(night, 'late', block_count=4)
+        self.assertEqual(metadata['block_indices'], [8, 9, 10, 11])
+        before = copy.deepcopy(night.state_dict())
+        patches, cls = night(torch.randn(2, 3, 28, 28))
+        loss = (patches * torch.randn_like(patches)).sum() + (cls * torch.randn_like(cls)).sum()
+        loss.backward()
+        optimizer = torch.optim.AdamW(full_backbone_parameter_groups(
+            night, learning_rate=1e-3, weight_decay=0.01))
+        optimizer.step()
+        for name, parameter in night.named_parameters():
+            selected = any(name.startswith(f'model.blocks.{index}.') for index in (8, 9, 10, 11))
+            self.assertEqual(parameter.requires_grad, selected, name)
+            if selected:
+                self.assertIsNotNone(parameter.grad, name)
+                self.assertFalse(torch.equal(parameter, before[name]), name)
+            else:
+                self.assertIsNone(parameter.grad, name)
+                torch.testing.assert_close(parameter, before[name], rtol=0, atol=0)
+
     def test_early_and_late_gradients_survive_the_production_forward(self):
         for scope, selected_indices in (("early", [0, 1]), ("late", [1, 2])):
             for checkpointing in (False, True):

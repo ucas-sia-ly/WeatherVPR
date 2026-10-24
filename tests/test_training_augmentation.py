@@ -77,7 +77,6 @@ class TrainingAugmentationTests(unittest.TestCase):
     def test_epoch_seed_is_reproducible_across_worker_counts(self):
         dataset = AcceptedWeatherPairs(self.manifest, 'night',
                                         night_augmentation=_camera_config(), seed=24,
-                                        day_augmentation=_camera_config(),
                                         source_night_config=_source_night_config())
         def read(workers):
             loader = DataLoader(dataset, batch_size=2, num_workers=workers,
@@ -89,11 +88,6 @@ class TrainingAugmentationTests(unittest.TestCase):
         for one, two in zip(serial, parallel):
             self.assertEqual(one['augmentation_record'], two['augmentation_record'])
             torch.testing.assert_close(one['student_tensor'], two['student_tensor'], rtol=0, atol=0)
-            self.assertEqual(one['day_augmentation_record'], two['day_augmentation_record'])
-            torch.testing.assert_close(one['day_student_tensor'], two['day_student_tensor'],
-                                       rtol=0, atol=0)
-            self.assertNotEqual(one['augmentation_record']['seed'],
-                                one['day_augmentation_record']['seed'])
             self.assertEqual(one['source_night_record'], two['source_night_record'])
             torch.testing.assert_close(one['source_night_tensor'], two['source_night_tensor'],
                                        rtol=0, atol=0)
@@ -101,13 +95,9 @@ class TrainingAugmentationTests(unittest.TestCase):
             self.assertEqual(one['source_night_record']['seed_policy'], SOURCE_NIGHT_SEED_POLICY)
             self.assertNotEqual(one['source_night_record']['seed'],
                                 one['augmentation_record']['seed'])
-            self.assertNotEqual(one['source_night_record']['seed'],
-                                one['day_augmentation_record']['seed'])
         dataset.set_epoch(4)
         next_epoch = read(2)
         self.assertTrue(all(one['augmentation_record']['seed'] != two['augmentation_record']['seed']
-                            for one, two in zip(serial, next_epoch)))
-        self.assertTrue(all(one['day_augmentation_record']['seed'] != two['day_augmentation_record']['seed']
                             for one, two in zip(serial, next_epoch)))
         self.assertTrue(all(one['source_night_record']['seed'] != two['source_night_record']['seed']
                             for one, two in zip(serial, next_epoch)))
@@ -118,9 +108,8 @@ class TrainingAugmentationTests(unittest.TestCase):
         sample = dataset[0]
         torch.testing.assert_close(sample['student_tensor'], sample['weather_tensor'], rtol=0, atol=0)
         self.assertFalse(sample['augmentation_record']['applied'])
-        self.assertIs(sample['day_student_tensor'], sample['day_tensor'])
-        self.assertEqual(sample['day_augmentation_record']['profile'], 'off')
-        self.assertFalse(sample['day_augmentation_record']['applied'])
+        self.assertNotIn('day_student_tensor', sample)
+        self.assertNotIn('day_augmentation_record', sample)
         self.assertIsNone(sample['source_night_tensor'])
         self.assertIsNone(sample['source_night_record'])
 
@@ -134,15 +123,14 @@ class TrainingAugmentationTests(unittest.TestCase):
                                             source_night_config=None)[0]
         transform.assert_not_called()
         self.assertEqual(tensor.call_count, 1)  # Historical Qwen Student view only.
-        self.assertEqual(seed.call_count, 2)  # Historical weather and Day seeds only.
+        self.assertEqual(seed.call_count, 1)  # Qwen Student weather view only.
         self.assertFalse(any(call.kwargs.get('view') == 'source_night'
                              for call in seed.call_args_list))
         self.assertIsNone(sample['source_night_tensor'])
         self.assertIsNone(sample['source_night_record'])
 
     def test_source_night_is_dark_without_camera_and_preserves_existing_views(self):
-        options = dict(night_augmentation=_camera_config(), seed=24,
-                       day_augmentation=_camera_config())
+        options = dict(night_augmentation=_camera_config(), seed=24)
         reference = AcceptedWeatherPairs(self.manifest, 'night', **options)[0]
         dataset = AcceptedWeatherPairs(self.manifest, 'night', **options,
                                         source_night_config=_source_night_config())
@@ -161,58 +149,25 @@ class TrainingAugmentationTests(unittest.TestCase):
                              for name in sample['source_night_record']['operations']))
         self.assertEqual(sample['source_night_record']['seed'],
                          sample_augmentation_seed(24, 0, 0, view='source_night'))
-        for key in ('day_tensor', 'weather_tensor', 'student_tensor', 'day_student_tensor'):
+        for key in ('day_tensor', 'weather_tensor', 'student_tensor'):
             torch.testing.assert_close(sample[key], reference[key], rtol=0, atol=0)
         for key in ('day_image', 'weather_image'):
             np.testing.assert_array_equal(np.asarray(sample[key]), np.asarray(reference[key]))
-        for key in ('augmentation_record', 'day_augmentation_record'):
-            self.assertEqual(sample[key], reference[key])
+        self.assertEqual(sample['augmentation_record'], reference['augmentation_record'])
         for key, path in (('day_image', self.day), ('weather_image', self.night)):
             with Image.open(path) as image:
                 np.testing.assert_array_equal(np.asarray(sample[key]), np.asarray(image))
 
-    def test_day_student_augmentation_leaves_all_clean_and_weather_views_unchanged(self):
-        reference = AcceptedWeatherPairs(self.manifest, 'night',
-                                         night_augmentation=_camera_config(), seed=24)[0]
-        augmented = AcceptedWeatherPairs(self.manifest, 'night',
-                                         night_augmentation=_camera_config(), seed=24,
-                                         day_augmentation=_camera_config())[0]
-        for key in ('day_tensor', 'weather_tensor', 'student_tensor'):
-            torch.testing.assert_close(augmented[key], reference[key], rtol=0, atol=0)
-        for key in ('day_image', 'weather_image'):
-            np.testing.assert_array_equal(np.asarray(augmented[key]), np.asarray(reference[key]))
-        self.assertEqual(augmented['augmentation_record'], reference['augmentation_record'])
-        self.assertEqual(augmented['day_student_tensor'].shape, augmented['day_tensor'].shape)
-        self.assertFalse(torch.equal(augmented['day_student_tensor'], augmented['day_tensor']))
-        self.assertTrue(augmented['day_augmentation_record']['applied'])
-        self.assertIsNot(augmented['day_image'], augmented['weather_image'])
-        with Image.open(self.day) as image:
-            np.testing.assert_array_equal(np.asarray(augmented['day_image']), np.asarray(image))
-            torch.testing.assert_close(augmented['day_tensor'],
-                                       preprocess_teacher_image(image, (224, 224)), rtol=0, atol=0)
-
-    def test_explicit_day_off_preserves_exact_clean_tensor(self):
-        sample = AcceptedWeatherPairs(self.manifest, 'night',
-                                       night_augmentation=_camera_config(),
-                                       day_augmentation=NightAugmentationConfig(profile='off'))[0]
-        self.assertIs(sample['day_student_tensor'], sample['day_tensor'])
-        self.assertEqual(sample['day_augmentation_record']['profile'], 'off')
-        self.assertEqual(sample['day_augmentation_record']['operations'], {})
-        self.assertFalse(sample['day_augmentation_record']['applied'])
-
     def test_weather_seed_history_and_domain_separation(self):
         expected_weather = int.from_bytes(hashlib.sha256(b'24:3:0').digest()[:8], 'big')
-        expected_day = int.from_bytes(hashlib.sha256(b'24:3:0:day').digest()[:8], 'big')
         expected_source_night = int.from_bytes(
             hashlib.sha256(b'24:3:0:source_night').digest()[:8], 'big')
         self.assertEqual(sample_augmentation_seed(24, 3, 0), expected_weather)
         self.assertEqual(sample_augmentation_seed(24, 3, 0, view='weather'), expected_weather)
-        self.assertEqual(sample_augmentation_seed(24, 3, 0, view='day'), expected_day)
-        self.assertNotEqual(expected_day, expected_weather)
         self.assertEqual(sample_augmentation_seed(24, 3, 0, view='source_night'),
                          expected_source_night)
-        self.assertEqual(len({expected_day, expected_weather, expected_source_night}), 3)
-        for view in ('night', '', None):
+        self.assertNotEqual(expected_weather, expected_source_night)
+        for view in ('day', 'night', '', None):
             with self.subTest(view=view), self.assertRaisesRegex(ValueError, 'view'):
                 sample_augmentation_seed(24, 3, 0, view=view)
 

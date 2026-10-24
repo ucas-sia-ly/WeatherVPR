@@ -1,6 +1,6 @@
 # Night 全参数配对训练记录（2026-10-22）
 
-这是无相机退化增强的 Qwen 配对训练基线。相机增强的同预算重跑见 [相机增强结果](NIGHT_CAMERA_RESULTS.md)。
+这是无相机退化增强的历史全部参数 Qwen 配对训练基线。当前训练默认已改为独立 Night 主干的后四层微调，见 [SALAD 训练设置](SALAD_TRAINING.md)；以下历史模型、数字及全部参数消融入口保留。相机增强的同预算重跑见 [相机增强结果](NIGHT_CAMERA_RESULTS.md)。
 
 ## 模型与训练
 
@@ -29,22 +29,31 @@ SGPD 使用 Patch 权重 0.1、saliency 模式、Stage2B A 类可信对应；Kee
 
 可用的配对训练结果保存在 `runs/night_full_global_01/`、`runs/night_full_global_lr1e6_01/` 和 `runs/night_full_sgpd_lr1e6_01/`。各目录的 `adapter.json`、`training_config.json` 与训练日志记录实际模型来源、精度及损失配置。
 
+两个历史 full 入口显式默认 `FULL_TRAIN_SCOPE=all`。32 GB 主机使用以下命令，逐项串行执行；每次使用新目录：
+
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
+export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 
-# 默认低学习率，各训练 1 epoch；使用未存在的输出目录
-OUTPUT=runs/night_full_global_reproduce_01 bash configs/night_full_global.sh
+OUTPUT=runs/night_full_global_reproduce_01 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_full_global_reproduce_01.memory.jsonl \
+  -- bash configs/night_full_global.sh
 OUTPUT=runs/night_full_sgpd_reproduce_01 \
-  INIT_ADAPTER_DIR=runs/night_full_global_reproduce_01 bash configs/night_full_sgpd.sh
+  INIT_ADAPTER_DIR=runs/night_full_global_reproduce_01 \
+  "$PYTHON" scripts/run_bounded.py --log runs/night_full_sgpd_reproduce_01.memory.jsonl \
+  -- bash configs/night_full_sgpd.sh
 
-"$PYTHON" scripts/evaluate_pairs.py \
-  --adapter-dir runs/night_full_sgpd_reproduce_01 --device cuda \
+"$PYTHON" scripts/run_bounded.py --log runs/night_full_sgpd_reproduce_01.pairs.memory.jsonl \
+  -- "$PYTHON" scripts/evaluate_pairs.py \
+  --adapter-dir runs/night_full_sgpd_reproduce_01 --device cuda --num-workers 0 \
   --output runs/night_full_sgpd_reproduce_01/synthetic_val.json
 
 # 仅评估真实夜景，不更新模型
-"$PYTHON" scripts/evaluate_svox.py --split train \
+"$PYTHON" scripts/run_bounded.py --log runs/night_full_sgpd_reproduce_01.svox.memory.jsonl \
+  -- "$PYTHON" scripts/evaluate_svox.py --split train \
   --adapter-dir runs/night_full_sgpd_reproduce_01 --device cuda \
-  --batch-size 8 --num-workers 4 --reference-cache-mib 768 \
+  --batch-size 8 --num-workers 0 --reference-cache-mib 768 \
+  --gallery-cache runs/cache/svox_train_eval_day.safetensors \
   --output runs/night_full_sgpd_reproduce_01/svox_train.json
 ```
 

@@ -4,7 +4,7 @@
 
 本轮评估已有 Night 专用全参数 DINOv2，没有训练、微调或根据新测试分数调整配置。
 
-本文保留 `source_night` 的历史评估结果。后续对 Day 正则、前后层微调及 Query 融合的受控实验见 [Night 正则与融合实验](NIGHT_REGULARIZATION.md)，其候选和开发集选择过程另行记录，不替换下表历史数值。
+本文保留历史全部参数微调模型 `source_night` 的评估结果。当前默认改为独立 Night 主干的后四层微调，详见 [SALAD 训练设置](SALAD_TRAINING.md)；此次默认值调整不改写下表历史数值。
 
 - Day：`weights/dino_salad.ckpt`，SHA-256 `6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada`。
 - Night：`runs/night_specialist_20261024/source_night/adapter.safetensors`，SHA-256 `1ee611a2c2aad86baa330e07751a0643c6c53599bb09cd1b1a355ce4b0ef0617`。
@@ -80,7 +80,7 @@ Tokyo 的三个新增错误为 `00018.jpg`、`00159.jpg`、`00693.jpg`，正样�
 
 从项目根目录执行；新环境先安装兼容的 PyTorch，再安装 `requirements-extra.txt`（新增 SciPy）。以下命令按 32 GB 主机配置，**逐条串行执行**，使用新的复现目录保留历史结果。训练或其它评估运行时不要同时启动这些命令。
 
-`run_bounded.py` 为每项任务设置 `8 GiB` cgroup RAM 硬上限、禁止 swap，并监控系统可用内存；不足时会拒绝启动或结束该任务。它需要 Linux cgroup v2 与 systemd user scope，不应绕过限制重试。该上限涵盖实验进程及其后代，不能控制浏览器等其它程序的内存；详细约束见 [32 GB 内存设置](NIGHT_REGULARIZATION.md#32-gb-主机内存约束)。
+`run_bounded.py` 为每项任务设置 `8 GiB` cgroup RAM 硬上限、禁止 swap，并监控系统可用内存；不足时会拒绝启动或结束该任务。它需要 Linux cgroup v2 与 systemd user scope，不应绕过限制重试。该上限涵盖实验进程及其后代，不能控制浏览器等其它程序的内存；详细约束见 [32 GB 内存设置](SALAD_TRAINING.md)。
 
 ```bash
 export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python

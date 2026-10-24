@@ -1,0 +1,9 @@
+{"event": "start", "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/weathervpr-978ad92d26.scope", "max_bytes": 8589934592, "high_bytes": 6442450944, "reserve_bytes": 4294967296, "command": ["/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python", "-m", "unittest", "discover", "-s", "tests", "-v"]}
+{"event": "sample", "elapsed_seconds": 0.0005868790030945092, "cgroup_bytes": 8126464, "system_available_bytes": 13993504768}
+{"event": "sample", "elapsed_seconds": 0.5008150490175467, "cgroup_bytes": 216702976, "system_available_bytes": 13973716992}
+{"event": "sample", "elapsed_seconds": 1.0011507559975144, "cgroup_bytes": 291250176, "system_available_bytes": 13841735680}
+{"event": "sample", "elapsed_seconds": 1.5013816680002492, "cgroup_bytes": 357933056, "system_available_bytes": 13913776128}
+{"event": "sample", "elapsed_seconds": 2.0016463590145577, "cgroup_bytes": 396046336, "system_available_bytes": 13731729408}
+{"event": "sample", "elapsed_seconds": 2.501919396017911, "cgroup_bytes": 300085248, "system_available_bytes": 13758451712}
+{"event": "sample", "elapsed_seconds": 3.0022963540104683, "cgroup_bytes": 82927616, "system_available_bytes": 13885075456}
+{"event": "finish", "returncode": 0, "termination_reason": null, "peak_cgroup_bytes_sampled": 396046336, "peak_cgroup_bytes_kernel": 458600448, "minimum_system_available_bytes": 13731729408, "memory_events": {"low": "0", "high": "0", "max": "0", "oom": "0", "oom_kill": "0", "oom_group_kill": "0"}, "elapsed_seconds": 3.0024163810012396}

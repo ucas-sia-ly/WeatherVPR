@@ -44,12 +44,10 @@ class AcceptedWeatherPairs(Dataset):
     def __init__(self, manifest: Path, weather: str, image_size=(224, 224),
                  exclude_places: Path | None = None, verify_hashes=False,
                  night_augmentation: NightAugmentationConfig | None = None, seed: int = 42,
-                 *, day_augmentation: NightAugmentationConfig | None = None,
-                 source_night_config: SourceNightConfig | None = None):
+                 *, source_night_config: SourceNightConfig | None = None):
         self.manifest = manifest.expanduser().resolve(strict=True)
         self.size = tuple(image_size)
         self.augmentation = NightCameraAugmentation(night_augmentation or NightAugmentationConfig())
-        self.day_augmentation = NightCameraAugmentation(day_augmentation or NightAugmentationConfig())
         self.source_night_augmentation = None
         if source_night_config is not None:
             from weather_vpr.data.source_night import SourceNightAugmentation
@@ -105,14 +103,6 @@ class AcceptedWeatherPairs(Dataset):
             weather, self.size, self.augmentation,
             seed=sample_augmentation_seed(self.seed, self.epoch, idx))
         day_tensor = preprocess_teacher_image(day, self.size)
-        day_seed = sample_augmentation_seed(self.seed, self.epoch, idx, view='day')
-        if self.day_augmentation.config.profile == 'off':
-            # Preserve the exact clean tensor for the default/disabled view.
-            _, day_augmentation_record = self.day_augmentation(day, seed=day_seed)
-            day_student_tensor = day_tensor
-        else:
-            day_student_tensor, day_augmentation_record = student_training_tensor(
-                day, self.size, self.day_augmentation, seed=day_seed)
         # This independent view is made only when requested. Clean Day targets,
         # Qwen correspondence inputs and the historical random streams stay intact.
         source_night_tensor = source_night_record = None
@@ -127,8 +117,6 @@ class AcceptedWeatherPairs(Dataset):
             }
         return dict(index=idx, row=row, day_image=day, weather_image=weather,
                     day_tensor=day_tensor,
-                    day_student_tensor=day_student_tensor,
-                    day_augmentation_record=day_augmentation_record,
                     source_night_tensor=source_night_tensor,
                     source_night_record=source_night_record,
                     weather_tensor=preprocess_teacher_image(weather, self.size),

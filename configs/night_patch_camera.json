@@ -1,0 +1,71 @@
+{
+  "profile": "camera",
+  "strength": 1.0,
+  "probability": 1.0,
+  "operation_probabilities": {
+    "exposure": 1.0,
+    "vignette": 0.4,
+    "motion_blur": 0.35,
+    "bloom": 0.4,
+    "noise": 0.8,
+    "desaturation": 0.45,
+    "photometric": 0.6,
+    "jpeg": 0.65
+  },
+  "gain_range": [
+    0.6,
+    2.0
+  ],
+  "exposure_target_range": [
+    0.06,
+    0.2
+  ],
+  "gamma_range": [
+    0.75,
+    1.3
+  ],
+  "bloom_threshold_range": [
+    0.5,
+    0.85
+  ],
+  "bloom_strength_range": [
+    0.15,
+    0.55
+  ],
+  "bloom_radius_fraction_range": [
+    0.004,
+    0.018
+  ],
+  "motion_length_range": [
+    3,
+    9
+  ],
+  "photon_count_range": [
+    500.0,
+    2400.0
+  ],
+  "read_noise_std_range": [
+    0.0005,
+    0.0035
+  ],
+  "jpeg_quality_range": [
+    40,
+    90
+  ],
+  "saturation_range": [
+    0.35,
+    0.85
+  ],
+  "vignette_strength_range": [
+    0.15,
+    0.55
+  ],
+  "brightness_range": [
+    0.8,
+    1.2
+  ],
+  "contrast_range": [
+    0.75,
+    1.25
+  ]
+}

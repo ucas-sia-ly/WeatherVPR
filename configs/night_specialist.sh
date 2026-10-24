@@ -15,7 +15,7 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --manifest "${MANIFEST:-data/splits/night_train.jsonl}" \
   --exclude-places "${EXCLUDE_PLACES:-data/splits/heldout_places.json}" \
   --weather night --adapter-type full "${EXTRA_ARGS[@]}" \
-  --full-train-scope "${FULL_TRAIN_SCOPE:-all}" --full-train-blocks "${FULL_TRAIN_BLOCKS:-6}" \
+  --full-train-scope "${FULL_TRAIN_SCOPE:-late}" --full-train-blocks "${FULL_TRAIN_BLOCKS:-4}" \
   --fixed-day-bank "${DAY_BANK:-runs/cache/qwen_training_day.safetensors}" \
   --night-augmentation "${NIGHT_AUGMENTATION:-camera}" \
   --augmentation-config "${AUGMENTATION_CONFIG:-configs/night_camera.json}" \
@@ -29,26 +29,22 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
   --relation-teacher-temperature "${RELATION_TEACHER_TEMPERATURE:-0.1}" \
   --relation-hard-negatives "${RELATION_HARD_NEGATIVES:-64}" \
   --synthetic-guidance-weight "${SYNTHETIC_GUIDANCE_WEIGHT:-0}" \
-  --day-preservation-weight "${DAY_PRESERVATION_WEIGHT:-0}" \
-  --day-preservation-samples "${DAY_PRESERVATION_SAMPLES:-1}" \
-  --day-preservation-schedule "${DAY_PRESERVATION_SCHEDULE:-constant}" \
-  --day-preservation-final-ratio "${DAY_PRESERVATION_FINAL_RATIO:-0}" \
-  --day-view-augmentation off \
   --source-night-weight "${SOURCE_NIGHT_WEIGHT:-0.5}" \
   --source-night-samples "${SOURCE_NIGHT_SAMPLES:-2}" \
   --source-night-config "${SOURCE_NIGHT_CONFIG:-configs/source_night.json}" \
   --pair-calibration "${CALIBRATION:-configs/dino_salad_stage2b_calibration.json}" \
   --patch-weight "${PATCH_WEIGHT:-0}" --keep-weight "${KEEP_WEIGHT:-0}" \
   --ot-weight "${OT_WEIGHT:-0}" --magnitude-weight "${MAGNITUDE_WEIGHT:-0}" \
+  --attention-weight "${ATTENTION_WEIGHT:-0}" --patch-visibility "${PATCH_VISIBILITY:-off}" \
   --importance-mode "${IMPORTANCE_MODE:-saliency}" \
   --min-teacher-keep "${MIN_TEACHER_KEEP:-0.01}" \
   --batch-sampling distinct --batch-size "${BATCH_SIZE:-8}" \
   --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS:-1}" \
   --epochs "${EPOCHS:-1}" --learning-rate "${LEARNING_RATE:-0.000001}" \
-  --layer-decay "${LAYER_DECAY:-0.8}" --weight-decay "${WEIGHT_DECAY:-0.01}" \
+  --layer-decay "${LAYER_DECAY:-1}" --weight-decay "${WEIGHT_DECAY:-0.01}" \
   --lr-schedule "${LR_SCHEDULE:-cosine}" --warmup-steps "${WARMUP_STEPS:-32}" \
   --min-lr-ratio "${MIN_LR_RATIO:-0.1}" \
   --max-steps "${MAX_STEPS:-0}" --seed "${SEED:-42}" \
   --save-every-steps "${SAVE_EVERY_STEPS:-0}" \
   --num-workers "${NUM_WORKERS:-0}" --device "${DEVICE:-cuda}" \
-  --output-dir "${OUTPUT:-runs/night_specialist_01}"
+  --output-dir "${OUTPUT:-runs/night_late4_02}"

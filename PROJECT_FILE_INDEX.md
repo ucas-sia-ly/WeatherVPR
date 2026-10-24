@@ -12,21 +12,31 @@
 - `scripts/evaluate_svox.py`：原始白天 Gallery × 真实 SVOX night Query，25 m UTM Recall@1/5/10。
 - `scripts/evaluate_night_benchmarks.py`：Tokyo247 Night、RobotCar 公开位姿诊断及可信显式 manifest 的 Day/Night 共享 Gallery 对照。
 - `scripts/evaluate_pairs.py`：地点隔离的 Qwen night 合成验证 Recall 与精确配对余弦。
-- `scripts/sweep_query_fusion.py`：仅在 SVOX train 诊断集上复用已导出的 Query 描述符，比较固定融合权重。
+- `scripts/sweep_query_fusion.py`：可选诊断；仅在 SVOX train 上比较固定融合权重，默认推理仍使用纯 Night 描述符。
 - `scripts/run_bounded.py`：串行锁、cgroup RAM 硬限制、系统可用内存监控与任务内存日志。
-- `scripts/audit_night_experiment.py`：核验 Night 受控实验的配置、训练步数、冻结参数、权重变化及内存完成日志。
 - `scripts/analyze_night_brightness.py`：仅用 SVOX 开发集确定亮度分桶阈值，诊断各夜间评估结果的分桶 Recall。
+- `scripts/visualize_patch_attention.py`：固定验证集前若干配对，导出 Day 与退化 Qwen 的 DINOv2 CLS 注意力对比和溯源信息。
+- `scripts/analyze_failure_cases.py`：复现六模型的全部 SVOX 原始排名，捕获失败对照特征，并执行固定像素/读出干预。
+- `scripts/analyze_attention_support.py`：验证可信支持覆盖、原始注意力总质量和条件 KL，区分加权质量与原始质量。
+- `scripts/render_failure_analysis.py`：从保存的逐图诊断渲染检索候选与统一色标热图，不加载模型。
 - `scripts/remap_manifest.py`：将搬运前绝对路径按**明确前缀**批量改写成新绝对路径。
-- `src/weather_vpr/models/adapter.py`：共享冻结 DINOv2/SALAD 与天气 Adapter。
+- `src/weather_vpr/models/adapter.py`：原始冻结 Day 主干、独立 Night 主干与共享冻结 SALAD；保留 LoRA / Output 消融。
+- `src/weather_vpr/models/attention.py`：在原前向中提取最后一层 DINOv2 CLS 到 patch 的 head 平均注意力，兼容 checkpoint。
 - `src/weather_vpr/losses/distillation.py`：SGPD、Keep、Global、InfoNCE。
+- `src/weather_vpr/losses/attention.py`：Stage 2B A 类可信支持集上的 Teacher → Student 注意力 KL。
 - `src/weather_vpr/data/paired_dataset.py`：manifest 精确配对与哈希可选校验。
+- `src/weather_vpr/data/patch_visibility.py`：根据实际退化输入的黑场/全通道裁剪比例计算无梯度 patch 可靠性。
 - `src/weather_vpr/data/correspondence.py`：复用项目内部 Stage2B 匹配校准。
 - `src/weather_vpr/data/evaluation_dataset.py`：CSV 显式地点标注。
 - `src/weather_vpr/inference/evaluate.py`：描述符抽取及 Recall 计算。
+- `src/weather_vpr/inference/patch_attribution.py`：固定正负 Gallery 对的 SALAD 精确有符号 Patch 贡献分解，只用于诊断。
 - `src/weather_vpr/inference/tokyo.py`：官方 MAT 查询子集、CSV 夜间标签及完整图库 25 m 真值。
 - `src/weather_vpr/inference/robotcar.py`：公开 train 位姿与 49 个对齐 COLMAP 模型的 25 m 只读检索诊断。
 - `src/weather_vpr/utils/backend.py`：仅加载本项目 `third_party/salad/` 后端。
-- `configs/*_global.sh`：各天气两步 Global smoke。
+- `configs/night_specialist.sh`：默认后四层 Night 原始权重微调、固定 Day bank 和模拟低照度辅助视图。
+- `configs/night_patch.sh` / `night_patch_camera.json`：每张 Qwen 均做相机处理的后四层 SGPD / DINO 注意力消融入口。
+- `configs/night_full_global.sh` / `night_full_sgpd.sh`：显式保留全部参数微调的历史两阶段消融。
+- `configs/*_global.sh`：其它天气与旧 Adapter 的 Global 实验入口。
 - `configs/*_sgpd.sh`：各天气 SGPD 实验。
 - `data/train/`：已配对的 7,719 组 night/day 图像。
 - `data/splits/`：已隔离地点的训练/合成验证清单。
@@ -34,5 +44,8 @@
 - `weights/`：唯一完整白天 SALAD checkpoint。
 - `runs/`：每个天气的独立 Adapter 训练与评估结果。
 - `docs/DOWNLOADS.md`：现有资源状态与迁移后的下载来源。
+- `docs/SALAD_TRAINING.md`：SALAD 原始训练设置、当前后四层默认与 32 GB 内存运行。
+- `docs/NIGHT_PATCH_ATTENTION.md`：可信 Patch、退化输入可靠性、DINO CLS 注意力蒸馏及固定三组实验协议。
+- `docs/NIGHT_FAILURE_ANALYSIS.md`：失败与成功图片对照、检索贡献、遮挡干预、条件注意力损失限制与复现记录。
 - `docs/EXTERNAL_NIGHT_RESULTS.md`：其他夜间数据集协议、Recall 对照与缺失真值说明。
 - `tests/`：单元测试。
