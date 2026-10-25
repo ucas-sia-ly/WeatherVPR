@@ -1,0 +1,365 @@
+{
+  "created_utc": "2026-10-25T14:50:25.452352+00:00",
+  "summary": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/summary.json",
+  "summary_sha256": "b5fbc23d140d42f77a970557d8b7b28302d93c8f96e4d10a4ed19646af8fb3ee",
+  "plot_helper_sha256": "42892edc7927292c274f9ebe752635e94c3c4cba96d466f0e400bf2f66e4fecd",
+  "matplotlib_version": "3.11.2",
+  "metric": "Top-1 recall difference in percentage points",
+  "three_seed_spread": "sample SD, not a confidence interval",
+  "inference": "None; plotting reads existing completed retrieval results only",
+  "data": {
+    "svox_test": {
+      "num_queries": 823,
+      "original_day_top1_hits": 763,
+      "paired_B_minus_A": [
+        {
+          "seed": 42,
+          "net_correct_queries": 4,
+          "delta_pp": 0.48602673147023084,
+          "repaired": 6,
+          "regressed": 2
+        },
+        {
+          "seed": 43,
+          "net_correct_queries": 4,
+          "delta_pp": 0.48602673147023084,
+          "repaired": 6,
+          "regressed": 2
+        },
+        {
+          "seed": 44,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 2,
+          "regressed": 2
+        }
+      ],
+      "P0_vs_day": {
+        "A": {
+          "seed_hits": [
+            760,
+            759,
+            762
+          ],
+          "seed_delta_vs_day_pp": [
+            -0.3645200486026732,
+            -0.48602673147023084,
+            -0.12150668286755771
+          ],
+          "mean_delta_vs_day_pp": -0.3240178209801539,
+          "sample_sd_pp": 0.18560452389452572
+        },
+        "B": {
+          "seed_hits": [
+            764,
+            763,
+            762
+          ],
+          "seed_delta_vs_day_pp": [
+            0.12150668286755771,
+            0.0,
+            -0.12150668286755771
+          ],
+          "mean_delta_vs_day_pp": 0.0,
+          "sample_sd_pp": 0.12150668286755771
+        },
+        "C": {
+          "seed_hits": [
+            762,
+            761,
+            763
+          ],
+          "seed_delta_vs_day_pp": [
+            -0.12150668286755771,
+            -0.24301336573511542,
+            0.0
+          ],
+          "mean_delta_vs_day_pp": -0.12150668286755771,
+          "sample_sd_pp": 0.12150668286755771
+        }
+      },
+      "source_scale_G2_minus_G1": {
+        "A": {
+          "seed": 42,
+          "G1_hits": 761,
+          "G2_hits": 761,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        },
+        "B": {
+          "seed": 42,
+          "G1_hits": 763,
+          "G2_hits": 763,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        }
+      }
+    },
+    "tokyo247_night": {
+      "num_queries": 105,
+      "original_day_top1_hits": 91,
+      "paired_B_minus_A": [
+        {
+          "seed": 42,
+          "net_correct_queries": 1,
+          "delta_pp": 0.9523809523809523,
+          "repaired": 1,
+          "regressed": 0
+        },
+        {
+          "seed": 43,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        },
+        {
+          "seed": 44,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        }
+      ],
+      "P0_vs_day": {
+        "A": {
+          "seed_hits": [
+            88,
+            89,
+            89
+          ],
+          "seed_delta_vs_day_pp": [
+            -2.857142857142857,
+            -1.9047619047619047,
+            -1.9047619047619047
+          ],
+          "mean_delta_vs_day_pp": -2.2222222222222223,
+          "sample_sd_pp": 0.5498573992282151
+        },
+        "B": {
+          "seed_hits": [
+            89,
+            89,
+            89
+          ],
+          "seed_delta_vs_day_pp": [
+            -1.9047619047619047,
+            -1.9047619047619047,
+            -1.9047619047619047
+          ],
+          "mean_delta_vs_day_pp": -1.9047619047619047,
+          "sample_sd_pp": 0.0
+        },
+        "C": {
+          "seed_hits": [
+            88,
+            88,
+            89
+          ],
+          "seed_delta_vs_day_pp": [
+            -2.857142857142857,
+            -2.857142857142857,
+            -1.9047619047619047
+          ],
+          "mean_delta_vs_day_pp": -2.5396825396825395,
+          "sample_sd_pp": 0.5498573992282151
+        }
+      },
+      "source_scale_G2_minus_G1": {
+        "A": {
+          "seed": 42,
+          "G1_hits": 89,
+          "G2_hits": 90,
+          "net_correct_queries": 1,
+          "delta_pp": 0.9523809523809523
+        },
+        "B": {
+          "seed": 42,
+          "G1_hits": 89,
+          "G2_hits": 89,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        }
+      }
+    },
+    "robotcar_night": {
+      "num_queries": 197,
+      "original_day_top1_hits": 179,
+      "paired_B_minus_A": [
+        {
+          "seed": 42,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        },
+        {
+          "seed": 43,
+          "net_correct_queries": 1,
+          "delta_pp": 0.5076142131979695,
+          "repaired": 1,
+          "regressed": 0
+        },
+        {
+          "seed": 44,
+          "net_correct_queries": 1,
+          "delta_pp": 0.5076142131979695,
+          "repaired": 1,
+          "regressed": 0
+        }
+      ],
+      "P0_vs_day": {
+        "A": {
+          "seed_hits": [
+            179,
+            178,
+            178
+          ],
+          "seed_delta_vs_day_pp": [
+            0.0,
+            -0.5076142131979695,
+            -0.5076142131979695
+          ],
+          "mean_delta_vs_day_pp": -0.338409475465313,
+          "sample_sd_pp": 0.2930712026343278
+        },
+        "B": {
+          "seed_hits": [
+            179,
+            179,
+            179
+          ],
+          "seed_delta_vs_day_pp": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean_delta_vs_day_pp": 0.0,
+          "sample_sd_pp": 0.0
+        },
+        "C": {
+          "seed_hits": [
+            179,
+            178,
+            178
+          ],
+          "seed_delta_vs_day_pp": [
+            0.0,
+            -0.5076142131979695,
+            -0.5076142131979695
+          ],
+          "mean_delta_vs_day_pp": -0.338409475465313,
+          "sample_sd_pp": 0.2930712026343278
+        }
+      },
+      "source_scale_G2_minus_G1": {
+        "A": {
+          "seed": 42,
+          "G1_hits": 178,
+          "G2_hits": 178,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        },
+        "B": {
+          "seed": 42,
+          "G1_hits": 180,
+          "G2_hits": 179,
+          "net_correct_queries": -1,
+          "delta_pp": -0.5076142131979695
+        }
+      }
+    },
+    "robotcar_night_rain": {
+      "num_queries": 224,
+      "original_day_top1_hits": 214,
+      "paired_B_minus_A": [
+        {
+          "seed": 42,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        },
+        {
+          "seed": 43,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        },
+        {
+          "seed": 44,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0,
+          "repaired": 0,
+          "regressed": 0
+        }
+      ],
+      "P0_vs_day": {
+        "A": {
+          "seed_hits": [
+            213,
+            213,
+            213
+          ],
+          "seed_delta_vs_day_pp": [
+            -0.44642857142857145,
+            -0.44642857142857145,
+            -0.44642857142857145
+          ],
+          "mean_delta_vs_day_pp": -0.44642857142857145,
+          "sample_sd_pp": 0.0
+        },
+        "B": {
+          "seed_hits": [
+            213,
+            213,
+            213
+          ],
+          "seed_delta_vs_day_pp": [
+            -0.44642857142857145,
+            -0.44642857142857145,
+            -0.44642857142857145
+          ],
+          "mean_delta_vs_day_pp": -0.44642857142857145,
+          "sample_sd_pp": 0.0
+        },
+        "C": {
+          "seed_hits": [
+            213,
+            213,
+            213
+          ],
+          "seed_delta_vs_day_pp": [
+            -0.44642857142857145,
+            -0.44642857142857145,
+            -0.44642857142857145
+          ],
+          "mean_delta_vs_day_pp": -0.44642857142857145,
+          "sample_sd_pp": 0.0
+        }
+      },
+      "source_scale_G2_minus_G1": {
+        "A": {
+          "seed": 42,
+          "G1_hits": 213,
+          "G2_hits": 213,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        },
+        "B": {
+          "seed": 42,
+          "G1_hits": 213,
+          "G2_hits": 213,
+          "net_correct_queries": 0,
+          "delta_pp": 0.0
+        }
+      }
+    }
+  },
+  "figures": {
+    "/home/admin123/github/WeatherVPR/outputs/revised_external_night_20261025/figures/external_night_top1_comparisons.png": "c81906b45f8095e5d4ac02ede5a1c735c1150e900c26918af3f24c3a006cd105",
+    "/home/admin123/github/WeatherVPR/outputs/revised_external_night_20261025/figures/external_night_top1_comparisons.svg": "db31125d9362edef1614d18a0a6d9728170ebb5fda3468a4671d6e2592656e1e"
+  },
+  "baseline_audit_warnings": []
+}

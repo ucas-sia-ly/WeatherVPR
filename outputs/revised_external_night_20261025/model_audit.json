@@ -1,0 +1,1009 @@
+{
+  "created_utc": "2026-10-25T13:02:17.506033+00:00",
+  "scope": "Read-only artifact, metadata, training-log, and safetensors-header audit; no model execution or image scans",
+  "checkpoint_sha256_actual": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+  "model_count": 13,
+  "total_weights_bytes_hashed": 4502407936,
+  "all_checks_pass": true,
+  "issues": [],
+  "duplicate_weight_groups": [],
+  "all_models_same_tensor_schema": true,
+  "models": [
+    {
+      "model": "seed42_A",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42/T0",
+      "seed": 42,
+      "arm": "A",
+      "adapter_sha256": "2d9de08d9c79984edcde9723d9d867b115f3e6e27334d14227769f567883a262",
+      "metadata_sha256": "c6a82024eda9f3aa11f1b8ded0c739b938aae6eba73dbddc6f5b762e7e3a4b7c",
+      "training_config_sha256": "24b46cc0ad7e28b57216cb6d9952dbc7a8d04a16af280a303480ee9f20d51168",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": false,
+        "mode": "none",
+        "weight": 0.0
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch_historical_no_source_stream_field"
+      },
+      "logged_source_bank_policies": [],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_full_night_patch_attention_v7",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed42_B",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42/T1",
+      "seed": 42,
+      "arm": "B",
+      "adapter_sha256": "a9a804c85470b93a7ef3de79a9a74c7b6b7706cc9700bac645511ec8ee2673f9",
+      "metadata_sha256": "03354ca9d444727f0a78c128a611976e1741e0de791fab269d3f374a26944ae8",
+      "training_config_sha256": "9e549a6c145e56f9fe8725b216c81d76842ec1a249c7f2240bb79002b8579740",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "real",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch_historical_no_source_stream_field"
+      },
+      "logged_source_bank_policies": [],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed42_C",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast",
+      "seed": 42,
+      "arm": "C",
+      "adapter_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+      "metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+      "training_config_sha256": "011ff247fa7546b151ae9c8ad933efc5e7cd3c55f8cba58d30a430f8304efd30",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 1816
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "synthetic",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch_historical_no_source_stream_field"
+      },
+      "logged_source_bank_policies": [],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": false,
+        "enabled": false,
+        "probability": null
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed43_A",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed43/A",
+      "seed": 43,
+      "arm": "A",
+      "adapter_sha256": "46fd4b3648e3dd389874896406be88ef3a501b348fa5c8ea4b75ef7430058870",
+      "metadata_sha256": "e69361cfd9207ee101143739a9e90a70aff11959ce3655344a0010358c3422cf",
+      "training_config_sha256": "2a55e1702f41c63da25e2ae4b4a3e08ecc7f0a6edad22cdc7b5654e03082f57c",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": false,
+        "mode": "none",
+        "weight": 0.0
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "689e14317c1d5e31c424d733ee466642a295645c0964f486c357b0517efc939c",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_full_night_patch_attention_v7",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed43_B",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed43/B",
+      "seed": 43,
+      "arm": "B",
+      "adapter_sha256": "2e4711fea5812357d4e33ad523bb104a0852c802e9147fe462ab1fcaea6ea7b1",
+      "metadata_sha256": "48a28b508f36d718110e18cd4b55f003c1d67aac205b261fbaeb59facef511a3",
+      "training_config_sha256": "d265707909bf7653b5acd06a178d86445634c03666f12897acdb89bc088b55a6",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "real",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "689e14317c1d5e31c424d733ee466642a295645c0964f486c357b0517efc939c",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed43_C",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed43/C",
+      "seed": 43,
+      "arm": "C",
+      "adapter_sha256": "4b65a6e9156d94cb79f2bbea3f894e6b9e3f9b2a02befc2fa554154daeec32cb",
+      "metadata_sha256": "b37cc36f8cdc627c5b50da56c654df90a3eca683f63d3cd76bd06eed892f1952",
+      "training_config_sha256": "663f6c1ea054a7d4bd817fe95053cc6e774a28afb8700f10f814dd37fff1ffc7",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 1816
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "synthetic",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "689e14317c1d5e31c424d733ee466642a295645c0964f486c357b0517efc939c",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed44_A",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed44/A",
+      "seed": 44,
+      "arm": "A",
+      "adapter_sha256": "7375fb17118422f1f9cec528f393651f918a28caba28fbc2a51fff21726c5d1a",
+      "metadata_sha256": "b556ccc8050dabd2a63e7b4c2132de8e28400b37bb6a8990ea9d25607c7039bf",
+      "training_config_sha256": "9dc2b86e9036d90e35112c41586dc871e2f933342608bc7084d548c28582af6c",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": false,
+        "mode": "none",
+        "weight": 0.0
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "abe4e230769a813383bcd0049df5c4b21c193bb9123e6038ef7741f43b821efd",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_full_night_patch_attention_v7",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed44_B",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed44/B",
+      "seed": 44,
+      "arm": "B",
+      "adapter_sha256": "229a16ae9e41ae01bc752fb6b67d6ef8b67e1ebfb56a771beba0a849c7f598f5",
+      "metadata_sha256": "08cddd28d3f8ea94340578866d109b73d09c347ffaab054bf6bc516ad593a14c",
+      "training_config_sha256": "6e8677b44f73da658a5b0e8941ac96d2a9cbe822cefa436f9acb1c0a8de4a7d6",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "real",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "abe4e230769a813383bcd0049df5c4b21c193bb9123e6038ef7741f43b821efd",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "seed44_C",
+      "research_axis": "H1",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_stage1_multiseed_20261025/seed44/C",
+      "seed": 44,
+      "arm": "C",
+      "adapter_sha256": "3d93b2088a25ae46a2320f0251114ad4604dff1e1b79c5d2600c6b733a8130a3",
+      "metadata_sha256": "e60f077e7e058478684f7fe3a502c39d8b3bf8f33edf2ea7a0d57fd6cb1a2bbf",
+      "training_config_sha256": "df38232c44bf4245640da7290662a4ed3979e69731b15dd5b5f6d8ad5deacb8b",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 1816
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "synthetic",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": false,
+        "mode": "same_main_batch"
+      },
+      "logged_source_bank_policies": [
+        "shared_main_gsv"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "abe4e230769a813383bcd0049df5c4b21c193bb9123e6038ef7741f43b821efd",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_stage1_paired_auxiliary_v8",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "G1_A",
+      "research_axis": "H3",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_gsv_scale_20261025/G1_A",
+      "seed": 42,
+      "arm": "A",
+      "adapter_sha256": "99bf5aad8d328aeef192b9bd147cf255b15f621a6f0c87cc0a50466f48064c08",
+      "metadata_sha256": "75a779a489f4f33f06d4663d1137c3474b531477a2370c6380011112158c6abf",
+      "training_config_sha256": "af536480bf679b895340ecd441f0f40d6b8460fe3bfc9a5e9d36e3022421fc04",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": false,
+        "mode": "none",
+        "weight": 0.0
+      },
+      "source_stream": {
+        "enabled": true,
+        "manifest": "/home/admin123/github/WeatherVPR/outputs/revised_plan_20261025/data_inventory/g1_day.jsonl",
+        "training_images": 7263,
+        "training_places": 6441,
+        "samples_per_microbatch": 1,
+        "source_night_weight": 0.5,
+        "batches": 1816,
+        "exposed_unique_places": 1816,
+        "bank_policy": "separate Source-only fixed bank; Qwen bank unchanged across scales"
+      },
+      "logged_source_bank_policies": [
+        "separate_source_only"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_independent_source_v10",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "G1_B",
+      "research_axis": "H3",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_gsv_scale_20261025/G1_B",
+      "seed": 42,
+      "arm": "B",
+      "adapter_sha256": "91e79a3fc67c8b5a2730eceb67d967a2acbc88a3b51c8cc55eff9f94dfef93ef",
+      "metadata_sha256": "724b76be018538375881ad746a6eedeb21dcf0c55d2e69313e6d09b42d2e5a86",
+      "training_config_sha256": "532d36403aeaa67739dcf8c64c53bb76cd91a3d0174022fe08a1cbf6c9015602",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "real",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": true,
+        "manifest": "/home/admin123/github/WeatherVPR/outputs/revised_plan_20261025/data_inventory/g1_day.jsonl",
+        "training_images": 7263,
+        "training_places": 6441,
+        "samples_per_microbatch": 1,
+        "source_night_weight": 0.5,
+        "batches": 1816,
+        "exposed_unique_places": 1816,
+        "bank_policy": "separate Source-only fixed bank; Qwen bank unchanged across scales"
+      },
+      "logged_source_bank_policies": [
+        "separate_source_only"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_independent_source_v10",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "G2_A",
+      "research_axis": "H3",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_gsv_scale_20261025/G2_A",
+      "seed": 42,
+      "arm": "A",
+      "adapter_sha256": "0fb5862b308834048ea69872251aabe99aed20c5d87dfb4cff2951b7faeb0844",
+      "metadata_sha256": "5ad8f56e957bebbcab67d418633bb432c7cacc1b74ca0f1c2cf828a1b7c86019",
+      "training_config_sha256": "022bb383475c6c3d272ddabbbafe573148f753e4d766e2990d7ac7c4584a4044",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 0,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": false,
+        "mode": "none",
+        "weight": 0.0
+      },
+      "source_stream": {
+        "enabled": true,
+        "manifest": "/home/admin123/github/WeatherVPR/outputs/revised_plan_20261025/data_inventory/g2_day.jsonl",
+        "training_images": 17263,
+        "training_places": 11441,
+        "samples_per_microbatch": 1,
+        "source_night_weight": 0.5,
+        "batches": 1816,
+        "exposed_unique_places": 1816,
+        "bank_policy": "separate Source-only fixed bank; Qwen bank unchanged across scales"
+      },
+      "logged_source_bank_policies": [
+        "separate_source_only"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_independent_source_v10",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    },
+    {
+      "model": "G2_B",
+      "research_axis": "H3",
+      "directory": "/home/admin123/github/WeatherVPR/runs/revised_gsv_scale_20261025/G2_B",
+      "seed": 42,
+      "arm": "B",
+      "adapter_sha256": "b68d49e87d3eacf2ac53c000cdd0bc9b338ef69e7cf7ad439c2a1efdabb93468",
+      "metadata_sha256": "ee6bc891e041e8edbbb1d7266755a63791716d4a1fcb598397247c51e83e11fe",
+      "training_config_sha256": "8a9cb0f088b91bbdf96f2b8a8e8aba72641d7d0f620f04304cbf06aefdb31dc5",
+      "weights_bytes": 346339072,
+      "weights_tensor_count": 175,
+      "tensor_schema_sha256": "ac002f9102050154b07e6ef29f8254f6507269907514ec139797a7399459a4f7",
+      "checkpoint_sha256": "6b3f1720954293e83da6966c5cfcfc6713200d7fefadcca76fc51aeb80b3cada",
+      "optimizer_steps": 908,
+      "microbatches": 1816,
+      "epochs": 1,
+      "adapter_type": "full",
+      "trained_blocks": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "init_adapter_dir": null,
+      "student_views": {
+        "qwen": 7263,
+        "source_night": 1816,
+        "real_auxiliary": 1816,
+        "synthetic_auxiliary": 0
+      },
+      "auxiliary": {
+        "enabled": true,
+        "mode": "real",
+        "weight": 0.1,
+        "samples_per_microbatch": 1,
+        "batches": 1816
+      },
+      "source_stream": {
+        "enabled": true,
+        "manifest": "/home/admin123/github/WeatherVPR/outputs/revised_plan_20261025/data_inventory/g2_day.jsonl",
+        "training_images": 17263,
+        "training_places": 11441,
+        "samples_per_microbatch": 1,
+        "source_night_weight": 0.5,
+        "batches": 1816,
+        "exposed_unique_places": 1816,
+        "bank_policy": "separate Source-only fixed bank; Qwen bank unchanged across scales"
+      },
+      "logged_source_bank_policies": [
+        "separate_source_only"
+      ],
+      "main_bank_signature": "e949930384c564e766154c5033b0569d5bc1324240dc723acb978d59106e2520",
+      "main_bank_tensor_sha256": "bfcb697866ab03f2839f9739e1f861c6ae31da412c3831069f7282ff4362d9e6",
+      "main_stream_sha256": "ba70eac051bb659ee0685d01a27b40201db823807c8e3f2e95ff29835b738cd8",
+      "token_style": {
+        "recorded": true,
+        "enabled": false,
+        "probability": 0.0
+      },
+      "code_version": "weather_vpr_independent_source_v10",
+      "checks": {
+        "weights_match_training_summary": true,
+        "original_checkpoint_matches_metadata_and_summary": true,
+        "908_optimizer_updates": true,
+        "1816_sequential_microbatches": true,
+        "one_complete_epoch": true,
+        "no_initial_adapter_or_step_limit": true,
+        "full_late4_backbone_student": true,
+        "native224_model": true,
+        "same_main_manifest": true,
+        "matched_view_budgets": true,
+        "expected_auxiliary_arm": true,
+        "source_night_enabled": true,
+        "token_style_inactive_or_historical_absent": true,
+        "no_fusion_config": true,
+        "original_fixed_main_bank": true,
+        "expected_source_regime": true
+      }
+    }
+  ],
+  "historical_seed42_C_external_result_identity": [
+    {
+      "file": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/svox_test.json",
+      "adapter_directory_matches": true,
+      "recorded_weights_sha256": null,
+      "recorded_metadata_sha256": null,
+      "recorded_weights_hash_matches_actual": null,
+      "recorded_metadata_hash_matches_actual": null,
+      "embedded_adapter_metadata_matches_current": true,
+      "checkpoint_matches_actual": true
+    },
+    {
+      "file": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/tokyo247_night.json",
+      "adapter_directory_matches": true,
+      "recorded_weights_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+      "recorded_metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+      "recorded_weights_hash_matches_actual": true,
+      "recorded_metadata_hash_matches_actual": true,
+      "embedded_adapter_metadata_matches_current": true,
+      "checkpoint_matches_actual": true
+    },
+    {
+      "file": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/robotcar-public_night.json",
+      "adapter_directory_matches": true,
+      "recorded_weights_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+      "recorded_metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+      "recorded_weights_hash_matches_actual": true,
+      "recorded_metadata_hash_matches_actual": true,
+      "embedded_adapter_metadata_matches_current": true,
+      "checkpoint_matches_actual": true
+    },
+    {
+      "file": "/home/admin123/github/WeatherVPR/runs/night_real_stage1_20261025_053154_seed42/C_fast/robotcar-public_night-rain.json",
+      "adapter_directory_matches": true,
+      "recorded_weights_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+      "recorded_metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+      "recorded_weights_hash_matches_actual": true,
+      "recorded_metadata_hash_matches_actual": true,
+      "embedded_adapter_metadata_matches_current": true,
+      "checkpoint_matches_actual": true
+    }
+  ],
+  "interpretation": [
+    "H1 uses same-main-batch Source Night with the unchanged Qwen bank; H3 uses a separate independent Source pool and Source-only bank. They are separate protocols, not interchangeable repetitions.",
+    "All artifacts represent final one-epoch 908-update full late4 backbone Students freshly initialized from original Day; token stylization and query fusion are inactive.",
+    "No initialization from a prior adapter, no partial max-steps stop, sequential training logs, and no recorded resume options were found. This is an artifact audit, not a bitwise replay proof.",
+    "Historical C_fast SVOX result has no explicit adapter-weight hash; metadata equality alone cannot certify the evaluated tensor identity. Fresh evaluation removes that ambiguity."
+  ]
+}

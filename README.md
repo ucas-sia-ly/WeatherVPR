@@ -40,6 +40,8 @@ Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述
 
 [修订方案本轮总结果](outputs/revised_plan_20261025/report.md) 包含已完成的 G1/G2×A/B：Top-1 分别为 G1 621/624、G2 623/624；G2-B 的 Top-1 命中集合未增加，Top-10 增加 2 张，单 seed 尚未显示明确互补。321 项检查及全部 10 次新完整训练通过。
 
+[后续外部夜间评估](outputs/revised_external_night_20261025/report.md) 已完成 13 个模型×4 个协议的 52 次新推理。真实配对 B 的三 seed 平均 Top-1 在 SVOX test / RobotCar public Night 与原始 Day 持平，在 Tokyo247 Night / Night-rain 分别低 1.90 / 0.45 个百分点；仍无稳定跨数据集优势。全部 Top-k、配对错误变化、规模对照及图表均已保存，没有据此追加训练或挑参。
+
 ### 可信 Patch 与 DINO 注意力实验
 
 新增 `configs/night_patch.sh`：每张训练 Qwen 图都经过相机退化，再在 Stage 2B A 类对应上监督 Student Patch。可见比例只对黑场和全通道过曝区域降权，不创建对应。独立的 `ATTENTION_WEIGHT` 对齐最后一个 DINOv2 Block 的 CLS→Patch 注意力分布，Teacher 目标与权重冻结，区别于 SALAD Keep。

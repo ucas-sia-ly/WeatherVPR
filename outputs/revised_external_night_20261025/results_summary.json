@@ -1,0 +1,3821 @@
+{
+  "created_utc": "2026-10-25T14:51:09.360118+00:00",
+  "state": "complete",
+  "completed_fresh_evaluations": 52,
+  "num_models": 13,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "protocol": {
+    "image_size": [
+      224,
+      224
+    ],
+    "precision": "fp32",
+    "query_fusion": null,
+    "test_time_augmentation": false,
+    "gallery": "original frozen Day checkpoint",
+    "batch_size": 64,
+    "num_workers": 4,
+    "reference_cache_mib": 4096,
+    "training": false,
+    "expected_default_jobs": 52
+  },
+  "intent": "Exploratory external comparison of every completed final model; no tuning or winner selection",
+  "resources": {
+    "num_successful_guarded_jobs": 52,
+    "oom_events": 0,
+    "peak_cgroup_bytes": 6443802624,
+    "peak_cgroup_gib": 6.001258850097656,
+    "minimum_system_available_bytes": 5308915712,
+    "minimum_system_available_gib": 4.944313049316406,
+    "queue_elapsed_seconds": 1691.1308051520027,
+    "memory_limit_gib": 7,
+    "memory_high_gib": 6,
+    "minimum_reserve_gib": 2,
+    "reference_device_cache_mib": 4096,
+    "note": "cgroup peak measures host RAM of each evaluation subprocess, not GPU VRAM; device reference cache uses GPU"
+  },
+  "unit_checks": {
+    "focused_cases_passed": 8,
+    "source": "/home/admin123/github/WeatherVPR/tests/test_revised_night_evaluation.py",
+    "execution_log": "/home/admin123/github/WeatherVPR/runs/revised_external_night_units.console.log"
+  },
+  "benchmarks": {
+    "svox_test": {
+      "label": "SVOX test",
+      "num_queries": 823,
+      "num_references": 17166,
+      "baseline": {
+        "R@1": {
+          "hits": 763,
+          "recall": 0.9270959902794653,
+          "percent": 92.70959902794654
+        },
+        "R@5": {
+          "hits": 810,
+          "recall": 0.9842041312272175,
+          "percent": 98.42041312272175
+        },
+        "R@10": {
+          "hits": 816,
+          "recall": 0.991494532199271,
+          "percent": 99.1494532199271
+        }
+      },
+      "models": {
+        "seed42_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 760,
+              "recall": 0.9234507897934386,
+              "percent": 92.34507897934387
+            },
+            "R@5": {
+              "hits": 813,
+              "recall": 0.9878493317132442,
+              "percent": 98.78493317132441
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "2d9de08d9c79984edcde9723d9d867b115f3e6e27334d14227769f567883a262",
+          "metadata_sha256": "c6a82024eda9f3aa11f1b8ded0c739b938aae6eba73dbddc6f5b762e7e3a4b7c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.svox_test.json",
+          "result_sha256": "d613a0e125af28b5709ca6d2aaeb3cc5582bff4c7ddc74090b63c65d97727182"
+        },
+        "seed42_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 764,
+              "recall": 0.928311057108141,
+              "percent": 92.8311057108141
+            },
+            "R@5": {
+              "hits": 813,
+              "recall": 0.9878493317132442,
+              "percent": 98.78493317132441
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "a9a804c85470b93a7ef3de79a9a74c7b6b7706cc9700bac645511ec8ee2673f9",
+          "metadata_sha256": "03354ca9d444727f0a78c128a611976e1741e0de791fab269d3f374a26944ae8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.svox_test.json",
+          "result_sha256": "a2b7b9bdbdac89b59182b6ae3b12a020680f1237945b0e6b04112357ee55e8d3"
+        },
+        "seed42_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 762,
+              "recall": 0.9258809234507898,
+              "percent": 92.58809234507898
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+          "metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.svox_test.json",
+          "result_sha256": "9b5a0007492f9c0a4e5fd2c1ec27010ab1986959598531f2941e2e2a5e1aaafc"
+        },
+        "seed43_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 759,
+              "recall": 0.9222357229647631,
+              "percent": 92.2235722964763
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "46fd4b3648e3dd389874896406be88ef3a501b348fa5c8ea4b75ef7430058870",
+          "metadata_sha256": "e69361cfd9207ee101143739a9e90a70aff11959ce3655344a0010358c3422cf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.svox_test.json",
+          "result_sha256": "2c2e430f1004be8f17371ffdc9802d01fd05616c9a10b85d63d5f88b757bc6f0"
+        },
+        "seed43_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 763,
+              "recall": 0.9270959902794653,
+              "percent": 92.70959902794654
+            },
+            "R@5": {
+              "hits": 813,
+              "recall": 0.9878493317132442,
+              "percent": 98.78493317132441
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "2e4711fea5812357d4e33ad523bb104a0852c802e9147fe462ab1fcaea6ea7b1",
+          "metadata_sha256": "48a28b508f36d718110e18cd4b55f003c1d67aac205b261fbaeb59facef511a3",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.svox_test.json",
+          "result_sha256": "8e7f5f57d7aa2a9ce10a3d4626eb90fd5d5c5dbe057bb4e7fac4c6d411179d40"
+        },
+        "seed43_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 761,
+              "recall": 0.9246658566221142,
+              "percent": 92.46658566221141
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "4b65a6e9156d94cb79f2bbea3f894e6b9e3f9b2a02befc2fa554154daeec32cb",
+          "metadata_sha256": "b37cc36f8cdc627c5b50da56c654df90a3eca683f63d3cd76bd06eed892f1952",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.svox_test.json",
+          "result_sha256": "bc2cf49f6c1fdb6625bb82d866d18447c5c3a70850d91f975fd990cdd5cbdd61"
+        },
+        "seed44_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 762,
+              "recall": 0.9258809234507898,
+              "percent": 92.58809234507898
+            },
+            "R@5": {
+              "hits": 811,
+              "recall": 0.9854191980558931,
+              "percent": 98.5419198055893
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "7375fb17118422f1f9cec528f393651f918a28caba28fbc2a51fff21726c5d1a",
+          "metadata_sha256": "b556ccc8050dabd2a63e7b4c2132de8e28400b37bb6a8990ea9d25607c7039bf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.svox_test.json",
+          "result_sha256": "83e178cb67f60e19d7154eea38c1fb71baf6603ed74f3581b67df204306f2dc3"
+        },
+        "seed44_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 762,
+              "recall": 0.9258809234507898,
+              "percent": 92.58809234507898
+            },
+            "R@5": {
+              "hits": 813,
+              "recall": 0.9878493317132442,
+              "percent": 98.78493317132441
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "229a16ae9e41ae01bc752fb6b67d6ef8b67e1ebfb56a771beba0a849c7f598f5",
+          "metadata_sha256": "08cddd28d3f8ea94340578866d109b73d09c347ffaab054bf6bc516ad593a14c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.svox_test.json",
+          "result_sha256": "1fb093c9b9a13bf9bfcff03ae63a6a6e8ca18b561a2e47f98226ce484d9ec36e"
+        },
+        "seed44_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 763,
+              "recall": 0.9270959902794653,
+              "percent": 92.70959902794654
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "3d93b2088a25ae46a2320f0251114ad4604dff1e1b79c5d2600c6b733a8130a3",
+          "metadata_sha256": "e60f077e7e058478684f7fe3a502c39d8b3bf8f33edf2ea7a0d57fd6cb1a2bbf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.svox_test.json",
+          "result_sha256": "301d6e97dfe124e986159d372eb548123dc984eb8bce4e970fecc1904208c22d"
+        },
+        "G1_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 761,
+              "recall": 0.9246658566221142,
+              "percent": 92.46658566221141
+            },
+            "R@5": {
+              "hits": 810,
+              "recall": 0.9842041312272175,
+              "percent": 98.42041312272175
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "99bf5aad8d328aeef192b9bd147cf255b15f621a6f0c87cc0a50466f48064c08",
+          "metadata_sha256": "75a779a489f4f33f06d4663d1137c3474b531477a2370c6380011112158c6abf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.svox_test.json",
+          "result_sha256": "8fe251d9c97ac212865d2c42acab788c442f12f19629fdea71382cd9c37af23f"
+        },
+        "G1_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 763,
+              "recall": 0.9270959902794653,
+              "percent": 92.70959902794654
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "91e79a3fc67c8b5a2730eceb67d967a2acbc88a3b51c8cc55eff9f94dfef93ef",
+          "metadata_sha256": "724b76be018538375881ad746a6eedeb21dcf0c55d2e69313e6d09b42d2e5a86",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.svox_test.json",
+          "result_sha256": "c785c44e6c122d03128d26d12729731b64cc23a8f47b004ebafd398e17d03147"
+        },
+        "G2_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 761,
+              "recall": 0.9246658566221142,
+              "percent": 92.46658566221141
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "0fb5862b308834048ea69872251aabe99aed20c5d87dfb4cff2951b7faeb0844",
+          "metadata_sha256": "5ad8f56e957bebbcab67d418633bb432c7cacc1b74ca0f1c2cf828a1b7c86019",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.svox_test.json",
+          "result_sha256": "86da07e1ce17698b59e01a73dc736e156fe57a5ed362182ffdd8dfa39468381c"
+        },
+        "G2_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 763,
+              "recall": 0.9270959902794653,
+              "percent": 92.70959902794654
+            },
+            "R@5": {
+              "hits": 812,
+              "recall": 0.9866342648845686,
+              "percent": 98.66342648845686
+            },
+            "R@10": {
+              "hits": 816,
+              "recall": 0.991494532199271,
+              "percent": 99.1494532199271
+            }
+          },
+          "adapter_sha256": "b68d49e87d3eacf2ac53c000cdd0bc9b338ef69e7cf7ad439c2a1efdabb93468",
+          "metadata_sha256": "ee6bc891e041e8edbbb1d7266755a63791716d4a1fcb598397247c51e83e11fe",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.svox_test.json",
+          "result_sha256": "240385dd2afe68c09905c65c2cfb1e88f0f818d6e48baa9a1c6919827a20eac9"
+        }
+      },
+      "P0_three_seed": {
+        "A": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              760,
+              759,
+              762
+            ],
+            "mean": 0.9238558120696638,
+            "sample_std": 0.00185604523894523,
+            "mean_percent": 92.38558120696638,
+            "sample_std_pp": 0.185604523894523,
+            "mean_hits": 760.3333333333334,
+            "mean_delta_vs_day_pp": -0.3240178209801492,
+            "mean_delta_vs_day_hits": -2.6666666666666288
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              813,
+              812,
+              811
+            ],
+            "mean": 0.9866342648845686,
+            "sample_std": 0.0012150668286755595,
+            "mean_percent": 98.66342648845686,
+            "sample_std_pp": 0.12150668286755595,
+            "mean_hits": 812,
+            "mean_delta_vs_day_pp": 0.2430133657351119,
+            "mean_delta_vs_day_hits": 2
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              816,
+              816,
+              816
+            ],
+            "mean": 0.991494532199271,
+            "sample_std": 0.0,
+            "mean_percent": 99.1494532199271,
+            "sample_std_pp": 0.0,
+            "mean_hits": 816,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        },
+        "B": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              764,
+              763,
+              762
+            ],
+            "mean": 0.9270959902794653,
+            "sample_std": 0.001215066828675615,
+            "mean_percent": 92.70959902794654,
+            "sample_std_pp": 0.1215066828675615,
+            "mean_hits": 763,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              813,
+              813,
+              813
+            ],
+            "mean": 0.9878493317132442,
+            "sample_std": 0.0,
+            "mean_percent": 98.78493317132441,
+            "sample_std_pp": 0.0,
+            "mean_hits": 813,
+            "mean_delta_vs_day_pp": 0.36452004860266785,
+            "mean_delta_vs_day_hits": 3
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              816,
+              816,
+              816
+            ],
+            "mean": 0.991494532199271,
+            "sample_std": 0.0,
+            "mean_percent": 99.1494532199271,
+            "sample_std_pp": 0.0,
+            "mean_hits": 816,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        },
+        "C": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              762,
+              761,
+              763
+            ],
+            "mean": 0.9258809234507898,
+            "sample_std": 0.0012150668286755595,
+            "mean_percent": 92.58809234507898,
+            "sample_std_pp": 0.12150668286755595,
+            "mean_hits": 762,
+            "mean_delta_vs_day_pp": -0.12150668286755595,
+            "mean_delta_vs_day_hits": -1
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              812,
+              812,
+              812
+            ],
+            "mean": 0.9866342648845686,
+            "sample_std": 0.0,
+            "mean_percent": 98.66342648845686,
+            "sample_std_pp": 0.0,
+            "mean_hits": 812,
+            "mean_delta_vs_day_pp": 0.2430133657351119,
+            "mean_delta_vs_day_hits": 2
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              816,
+              816,
+              816
+            ],
+            "mean": 0.991494532199271,
+            "sample_std": 0.0,
+            "mean_percent": 99.1494532199271,
+            "sample_std_pp": 0.0,
+            "mean_hits": 816,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        }
+      },
+      "per_seed_paired_topk": {
+        "seed42_B_vs_seed42_A": {
+          "R@1": {
+            "delta_hits": 4,
+            "delta_pp": 0.48602673147023084,
+            "repaired_count": 6,
+            "regressed_count": 2
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed42_B_vs_seed42_C": {
+          "R@1": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 5,
+            "regressed_count": 3
+          },
+          "R@5": {
+            "delta_hits": 1,
+            "delta_pp": 0.12150668286755771,
+            "repaired_count": 2,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed43_B_vs_seed43_A": {
+          "R@1": {
+            "delta_hits": 4,
+            "delta_pp": 0.48602673147023084,
+            "repaired_count": 6,
+            "regressed_count": 2
+          },
+          "R@5": {
+            "delta_hits": 1,
+            "delta_pp": 0.12150668286755771,
+            "repaired_count": 2,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed43_B_vs_seed43_C": {
+          "R@1": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 5,
+            "regressed_count": 3
+          },
+          "R@5": {
+            "delta_hits": 1,
+            "delta_pp": 0.12150668286755771,
+            "repaired_count": 2,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed44_B_vs_seed44_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 2,
+            "regressed_count": 2
+          },
+          "R@5": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 3,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed44_B_vs_seed44_C": {
+          "R@1": {
+            "delta_hits": -1,
+            "delta_pp": -0.12150668286755771,
+            "repaired_count": 2,
+            "regressed_count": 3
+          },
+          "R@5": {
+            "delta_hits": 1,
+            "delta_pp": 0.12150668286755771,
+            "repaired_count": 2,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        }
+      },
+      "P0_contrast_means": {
+        "B_minus_A": {
+          "R@1": {
+            "seed_delta_hits": [
+              4,
+              4,
+              0
+            ],
+            "mean_delta_hits": 2.6666666666666665,
+            "mean_delta_pp": 0.3240178209801539,
+            "sample_std_delta_pp": 0.28060766424769173
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              0,
+              1,
+              2
+            ],
+            "mean_delta_hits": 1,
+            "mean_delta_pp": 0.12150668286755771,
+            "sample_std_delta_pp": 0.12150668286755771
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          }
+        },
+        "B_minus_C": {
+          "R@1": {
+            "seed_delta_hits": [
+              2,
+              2,
+              -1
+            ],
+            "mean_delta_hits": 1,
+            "mean_delta_pp": 0.12150668286755771,
+            "sample_std_delta_pp": 0.2104557481857688
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              1,
+              1,
+              1
+            ],
+            "mean_delta_hits": 1,
+            "mean_delta_pp": 0.12150668286755771,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          }
+        }
+      },
+      "Source_scale_paired_topk": {
+        "G2_A_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          },
+          "R@5": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 2,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G1_B": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G1_B_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 4,
+            "regressed_count": 2
+          },
+          "R@5": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 2,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G2_A": {
+          "R@1": {
+            "delta_hits": 2,
+            "delta_pp": 0.24301336573511542,
+            "repaired_count": 4,
+            "regressed_count": 2
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        }
+      },
+      "protocol": {
+        "ground_truth": "utm_radius",
+        "positive_radius_meters": 25.0,
+        "split": "test",
+        "query_subdirs": [
+          "queries_night"
+        ]
+      },
+      "gallery_sha256": "421119605b29fc56b7bdd6e7488cf122d284132640cb1718775c1bc3382f20a4",
+      "query_sha256": null
+    },
+    "tokyo247_night": {
+      "label": "Tokyo247 Night",
+      "num_queries": 105,
+      "num_references": 75984,
+      "baseline": {
+        "R@1": {
+          "hits": 91,
+          "recall": 0.8666666666666667,
+          "percent": 86.66666666666667
+        },
+        "R@5": {
+          "hits": 95,
+          "recall": 0.9047619047619048,
+          "percent": 90.47619047619048
+        },
+        "R@10": {
+          "hits": 98,
+          "recall": 0.9333333333333333,
+          "percent": 93.33333333333333
+        }
+      },
+      "models": {
+        "seed42_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 88,
+              "recall": 0.8380952380952381,
+              "percent": 83.80952380952381
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 100,
+              "recall": 0.9523809523809523,
+              "percent": 95.23809523809523
+            }
+          },
+          "adapter_sha256": "2d9de08d9c79984edcde9723d9d867b115f3e6e27334d14227769f567883a262",
+          "metadata_sha256": "c6a82024eda9f3aa11f1b8ded0c739b938aae6eba73dbddc6f5b762e7e3a4b7c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.tokyo247_night.json",
+          "result_sha256": "1d84c3dfbf7d527afdd1a1645edcd59f5938a47e97932c5714a49fa8948bee75"
+        },
+        "seed42_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "a9a804c85470b93a7ef3de79a9a74c7b6b7706cc9700bac645511ec8ee2673f9",
+          "metadata_sha256": "03354ca9d444727f0a78c128a611976e1741e0de791fab269d3f374a26944ae8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.tokyo247_night.json",
+          "result_sha256": "737c462d3bf82976a81459c1810ab9b1491eb42ab68a33b3e99997053411cfdd"
+        },
+        "seed42_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 88,
+              "recall": 0.8380952380952381,
+              "percent": 83.80952380952381
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+          "metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.tokyo247_night.json",
+          "result_sha256": "1eabb1ac5f7baef755e08ba8e754930438c3b700c5b09a6412fa927bbaad00c7"
+        },
+        "seed43_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 99,
+              "recall": 0.9428571428571428,
+              "percent": 94.28571428571428
+            }
+          },
+          "adapter_sha256": "46fd4b3648e3dd389874896406be88ef3a501b348fa5c8ea4b75ef7430058870",
+          "metadata_sha256": "e69361cfd9207ee101143739a9e90a70aff11959ce3655344a0010358c3422cf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.tokyo247_night.json",
+          "result_sha256": "bb576b34bc767d1b1c445065cf89d34249b06ef81bd22d666d1a7bb44f6a8388"
+        },
+        "seed43_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 99,
+              "recall": 0.9428571428571428,
+              "percent": 94.28571428571428
+            }
+          },
+          "adapter_sha256": "2e4711fea5812357d4e33ad523bb104a0852c802e9147fe462ab1fcaea6ea7b1",
+          "metadata_sha256": "48a28b508f36d718110e18cd4b55f003c1d67aac205b261fbaeb59facef511a3",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.tokyo247_night.json",
+          "result_sha256": "32972fc3bdf29830c55962252be6924a4707d9aed47181baad4b63f9d0c64598"
+        },
+        "seed43_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 88,
+              "recall": 0.8380952380952381,
+              "percent": 83.80952380952381
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "4b65a6e9156d94cb79f2bbea3f894e6b9e3f9b2a02befc2fa554154daeec32cb",
+          "metadata_sha256": "b37cc36f8cdc627c5b50da56c654df90a3eca683f63d3cd76bd06eed892f1952",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.tokyo247_night.json",
+          "result_sha256": "631426d6993ace4fe0a1ffba6e99931e65c93eba17aa6239541ece4d3d37f66c"
+        },
+        "seed44_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 100,
+              "recall": 0.9523809523809523,
+              "percent": 95.23809523809523
+            }
+          },
+          "adapter_sha256": "7375fb17118422f1f9cec528f393651f918a28caba28fbc2a51fff21726c5d1a",
+          "metadata_sha256": "b556ccc8050dabd2a63e7b4c2132de8e28400b37bb6a8990ea9d25607c7039bf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.tokyo247_night.json",
+          "result_sha256": "af6f23aeda297de9e865d6d08c4745c3a221e6be291a1477dbedd6a3cda5dce0"
+        },
+        "seed44_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "229a16ae9e41ae01bc752fb6b67d6ef8b67e1ebfb56a771beba0a849c7f598f5",
+          "metadata_sha256": "08cddd28d3f8ea94340578866d109b73d09c347ffaab054bf6bc516ad593a14c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.tokyo247_night.json",
+          "result_sha256": "af17ff6cf7fce27d3ccfedb42a2a423f4689846a25f3d8118c6c994bd82b9230"
+        },
+        "seed44_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "3d93b2088a25ae46a2320f0251114ad4604dff1e1b79c5d2600c6b733a8130a3",
+          "metadata_sha256": "e60f077e7e058478684f7fe3a502c39d8b3bf8f33edf2ea7a0d57fd6cb1a2bbf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.tokyo247_night.json",
+          "result_sha256": "d0168a96e368c30cb3889166e8fab67e2285285dc083e2bee33b3e6534d01baa"
+        },
+        "G1_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 100,
+              "recall": 0.9523809523809523,
+              "percent": 95.23809523809523
+            }
+          },
+          "adapter_sha256": "99bf5aad8d328aeef192b9bd147cf255b15f621a6f0c87cc0a50466f48064c08",
+          "metadata_sha256": "75a779a489f4f33f06d4663d1137c3474b531477a2370c6380011112158c6abf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.tokyo247_night.json",
+          "result_sha256": "66d0ae1aeb467c24c6600b02a836fb3d3ba93bb259eb262ae961efdf7c70bcce"
+        },
+        "G1_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "91e79a3fc67c8b5a2730eceb67d967a2acbc88a3b51c8cc55eff9f94dfef93ef",
+          "metadata_sha256": "724b76be018538375881ad746a6eedeb21dcf0c55d2e69313e6d09b42d2e5a86",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.tokyo247_night.json",
+          "result_sha256": "ae1296ecfef1515451e4597bfebbb93ee7e8d46d60ad387c562d35fa72afef51"
+        },
+        "G2_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 90,
+              "recall": 0.8571428571428571,
+              "percent": 85.71428571428571
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 100,
+              "recall": 0.9523809523809523,
+              "percent": 95.23809523809523
+            }
+          },
+          "adapter_sha256": "0fb5862b308834048ea69872251aabe99aed20c5d87dfb4cff2951b7faeb0844",
+          "metadata_sha256": "5ad8f56e957bebbcab67d418633bb432c7cacc1b74ca0f1c2cf828a1b7c86019",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.tokyo247_night.json",
+          "result_sha256": "ce286b99447645cb45773ceea33e0594b60040a4a099c6d8895733383beb46ad"
+        },
+        "G2_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 89,
+              "recall": 0.8476190476190476,
+              "percent": 84.76190476190476
+            },
+            "R@5": {
+              "hits": 96,
+              "recall": 0.9142857142857143,
+              "percent": 91.42857142857143
+            },
+            "R@10": {
+              "hits": 98,
+              "recall": 0.9333333333333333,
+              "percent": 93.33333333333333
+            }
+          },
+          "adapter_sha256": "b68d49e87d3eacf2ac53c000cdd0bc9b338ef69e7cf7ad439c2a1efdabb93468",
+          "metadata_sha256": "ee6bc891e041e8edbbb1d7266755a63791716d4a1fcb598397247c51e83e11fe",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.tokyo247_night.json",
+          "result_sha256": "a4f4ef9b1b1da43e1162f4eb7ca546079c2e5eb76102209574ce731ce6db3f81"
+        }
+      },
+      "P0_three_seed": {
+        "A": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              88,
+              89,
+              89
+            ],
+            "mean": 0.8444444444444444,
+            "sample_std": 0.00549857399228213,
+            "mean_percent": 84.44444444444444,
+            "sample_std_pp": 0.549857399228213,
+            "mean_hits": 88.66666666666667,
+            "mean_delta_vs_day_pp": -2.2222222222222254,
+            "mean_delta_vs_day_hits": -2.3333333333333286
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              96,
+              96,
+              96
+            ],
+            "mean": 0.9142857142857143,
+            "sample_std": 0.0,
+            "mean_percent": 91.42857142857143,
+            "sample_std_pp": 0.0,
+            "mean_hits": 96,
+            "mean_delta_vs_day_pp": 0.952380952380949,
+            "mean_delta_vs_day_hits": 1
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              100,
+              99,
+              100
+            ],
+            "mean": 0.9492063492063492,
+            "sample_std": 0.00549857399228213,
+            "mean_percent": 94.92063492063491,
+            "sample_std_pp": 0.549857399228213,
+            "mean_hits": 99.66666666666667,
+            "mean_delta_vs_day_pp": 1.5873015873015817,
+            "mean_delta_vs_day_hits": 1.6666666666666714
+          }
+        },
+        "B": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              89,
+              89,
+              89
+            ],
+            "mean": 0.8476190476190476,
+            "sample_std": 0.0,
+            "mean_percent": 84.76190476190476,
+            "sample_std_pp": 0.0,
+            "mean_hits": 89,
+            "mean_delta_vs_day_pp": -1.904761904761909,
+            "mean_delta_vs_day_hits": -2
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              96,
+              96,
+              96
+            ],
+            "mean": 0.9142857142857143,
+            "sample_std": 0.0,
+            "mean_percent": 91.42857142857143,
+            "sample_std_pp": 0.0,
+            "mean_hits": 96,
+            "mean_delta_vs_day_pp": 0.952380952380949,
+            "mean_delta_vs_day_hits": 1
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              98,
+              99,
+              98
+            ],
+            "mean": 0.9365079365079365,
+            "sample_std": 0.00549857399228213,
+            "mean_percent": 93.65079365079364,
+            "sample_std_pp": 0.549857399228213,
+            "mean_hits": 98.33333333333333,
+            "mean_delta_vs_day_pp": 0.31746031746031633,
+            "mean_delta_vs_day_hits": 0.3333333333333286
+          }
+        },
+        "C": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              88,
+              88,
+              89
+            ],
+            "mean": 0.8412698412698413,
+            "sample_std": 0.00549857399228213,
+            "mean_percent": 84.12698412698413,
+            "sample_std_pp": 0.549857399228213,
+            "mean_hits": 88.33333333333333,
+            "mean_delta_vs_day_pp": -2.5396825396825418,
+            "mean_delta_vs_day_hits": -2.6666666666666714
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              96,
+              96,
+              96
+            ],
+            "mean": 0.9142857142857143,
+            "sample_std": 0.0,
+            "mean_percent": 91.42857142857143,
+            "sample_std_pp": 0.0,
+            "mean_hits": 96,
+            "mean_delta_vs_day_pp": 0.952380952380949,
+            "mean_delta_vs_day_hits": 1
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              98,
+              98,
+              98
+            ],
+            "mean": 0.9333333333333333,
+            "sample_std": 0.0,
+            "mean_percent": 93.33333333333333,
+            "sample_std_pp": 0.0,
+            "mean_hits": 98,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        }
+      },
+      "per_seed_paired_topk": {
+        "seed42_B_vs_seed42_A": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.9523809523809523,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.9047619047619047,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        },
+        "seed42_B_vs_seed42_C": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.9523809523809523,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          }
+        },
+        "seed43_B_vs_seed43_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 2,
+            "regressed_count": 2
+          }
+        },
+        "seed43_B_vs_seed43_C": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.9523809523809523,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 1,
+            "delta_pp": 0.9523809523809523,
+            "repaired_count": 2,
+            "regressed_count": 1
+          }
+        },
+        "seed44_B_vs_seed44_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.9047619047619047,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        },
+        "seed44_B_vs_seed44_C": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          }
+        }
+      },
+      "P0_contrast_means": {
+        "B_minus_A": {
+          "R@1": {
+            "seed_delta_hits": [
+              1,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0.3333333333333333,
+            "mean_delta_pp": 0.31746031746031744,
+            "sample_std_delta_pp": 0.549857399228215
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              -2,
+              0,
+              -2
+            ],
+            "mean_delta_hits": -1.3333333333333333,
+            "mean_delta_pp": -1.2698412698412698,
+            "sample_std_delta_pp": 1.09971479845643
+          }
+        },
+        "B_minus_C": {
+          "R@1": {
+            "seed_delta_hits": [
+              1,
+              1,
+              0
+            ],
+            "mean_delta_hits": 0.6666666666666666,
+            "mean_delta_pp": 0.6349206349206349,
+            "sample_std_delta_pp": 0.549857399228215
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              0,
+              1,
+              0
+            ],
+            "mean_delta_hits": 0.3333333333333333,
+            "mean_delta_pp": 0.31746031746031744,
+            "sample_std_delta_pp": 0.549857399228215
+          }
+        }
+      },
+      "Source_scale_paired_topk": {
+        "G2_A_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.9523809523809523,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G1_B": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G1_B_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.9047619047619047,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        },
+        "G2_B_vs_G2_A": {
+          "R@1": {
+            "delta_hits": -1,
+            "delta_pp": -0.9523809523809523,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.9047619047619047,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        }
+      },
+      "protocol": {
+        "ground_truth": "official_netvlad_mat_utm_radius",
+        "split": "test",
+        "positive_radius_meters": 25.0,
+        "gallery": "complete_official_mat_gallery",
+        "official_full_query_count": 315,
+        "query_subset": "official_mat_queries_with_csv_column_6_equal_N",
+        "night_label_rule": "queries/<qImageFn stem>.csv column 6 (zero-based index 5) == N",
+        "query_coordinates": "official_mat_utmQ_not_local_csv_coordinates",
+        "gallery_extension_mapping": "MAT .jpg names map to local original .png images",
+        "mat_path": "/home/admin123/github/WeatherVPR/configs/evaluation_sources/tokyo247_netvlad_v100.mat",
+        "mat_sha256": "8fa9474524500bfa844664d5d7b850f4af8bd755e03e8d081cc2dbafcde4d250",
+        "source_path": "/home/admin123/github/WeatherVPR/configs/evaluation_sources/tokyo247_netvlad_v100.source.json",
+        "source_sha256": "f516b055a128e7af122b1858c0960e98b6c8ba577ab503f47df3036f11b53fb7",
+        "source_url": "https://www.di.ens.fr/willow/research/netvlad/data/netvlad_v100_datasets.tar.gz",
+        "source_page": "https://www.di.ens.fr/willow/research/netvlad/",
+        "archive_member": "datasets/tokyo247.mat",
+        "local_query_release_note": "Local queries use the expanded v3 naming; only official MAT query IDs are used. Exact identity of local v3 images versus original v2 images has not been independently verified byte for byte."
+      },
+      "gallery_sha256": "28698ab0e5da76f928bd4d3895efb6bb571f5cc4bc91c1c1ade62ccee91a6747",
+      "query_sha256": "5e0940f669b8d978d6681786d1a29ffd5b23b37bb9bad206c427905988b8a386"
+    },
+    "robotcar_night": {
+      "label": "RobotCar Night*",
+      "num_queries": 197,
+      "num_references": 20862,
+      "baseline": {
+        "R@1": {
+          "hits": 179,
+          "recall": 0.9086294416243654,
+          "percent": 90.86294416243655
+        },
+        "R@5": {
+          "hits": 187,
+          "recall": 0.949238578680203,
+          "percent": 94.9238578680203
+        },
+        "R@10": {
+          "hits": 190,
+          "recall": 0.9644670050761421,
+          "percent": 96.44670050761421
+        }
+      },
+      "models": {
+        "seed42_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "2d9de08d9c79984edcde9723d9d867b115f3e6e27334d14227769f567883a262",
+          "metadata_sha256": "c6a82024eda9f3aa11f1b8ded0c739b938aae6eba73dbddc6f5b762e7e3a4b7c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.robotcar_night.json",
+          "result_sha256": "5935265ab3a2e5815b0eda22a6f0d4d0131e44eb8aef78951a11c490a6b3fecd"
+        },
+        "seed42_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "a9a804c85470b93a7ef3de79a9a74c7b6b7706cc9700bac645511ec8ee2673f9",
+          "metadata_sha256": "03354ca9d444727f0a78c128a611976e1741e0de791fab269d3f374a26944ae8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.robotcar_night.json",
+          "result_sha256": "cb2b433c34351c76d76a2a800b12b1089826cf4b08e79ca74ba18ee43c41e4d6"
+        },
+        "seed42_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 191,
+              "recall": 0.9695431472081218,
+              "percent": 96.95431472081218
+            }
+          },
+          "adapter_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+          "metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.robotcar_night.json",
+          "result_sha256": "4d2bd617dfcd32eae5f6c084d8e8c4f8ceee736607481c7df67e7f8cec16ecd7"
+        },
+        "seed43_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 191,
+              "recall": 0.9695431472081218,
+              "percent": 96.95431472081218
+            }
+          },
+          "adapter_sha256": "46fd4b3648e3dd389874896406be88ef3a501b348fa5c8ea4b75ef7430058870",
+          "metadata_sha256": "e69361cfd9207ee101143739a9e90a70aff11959ce3655344a0010358c3422cf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.robotcar_night.json",
+          "result_sha256": "dbf4e2db2d5253748f3e747917aadf1597f175091a036169be962fa1588413d5"
+        },
+        "seed43_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "2e4711fea5812357d4e33ad523bb104a0852c802e9147fe462ab1fcaea6ea7b1",
+          "metadata_sha256": "48a28b508f36d718110e18cd4b55f003c1d67aac205b261fbaeb59facef511a3",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.robotcar_night.json",
+          "result_sha256": "818821adaafc3b29a54d598e051193ffb060d707e9d1e9badcd6b6ea452e9457"
+        },
+        "seed43_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 192,
+              "recall": 0.9746192893401016,
+              "percent": 97.46192893401016
+            }
+          },
+          "adapter_sha256": "4b65a6e9156d94cb79f2bbea3f894e6b9e3f9b2a02befc2fa554154daeec32cb",
+          "metadata_sha256": "b37cc36f8cdc627c5b50da56c654df90a3eca683f63d3cd76bd06eed892f1952",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.robotcar_night.json",
+          "result_sha256": "a72d404dd5821a0a9fe5b23dbd096b345f3599856bb3449f4aa1c2ab52d2f85a"
+        },
+        "seed44_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 192,
+              "recall": 0.9746192893401016,
+              "percent": 97.46192893401016
+            }
+          },
+          "adapter_sha256": "7375fb17118422f1f9cec528f393651f918a28caba28fbc2a51fff21726c5d1a",
+          "metadata_sha256": "b556ccc8050dabd2a63e7b4c2132de8e28400b37bb6a8990ea9d25607c7039bf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.robotcar_night.json",
+          "result_sha256": "29223104c1e9288fc37bf617c892efb723385f856b2b684e1ede3ce1b1e6e4f0"
+        },
+        "seed44_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "229a16ae9e41ae01bc752fb6b67d6ef8b67e1ebfb56a771beba0a849c7f598f5",
+          "metadata_sha256": "08cddd28d3f8ea94340578866d109b73d09c347ffaab054bf6bc516ad593a14c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.robotcar_night.json",
+          "result_sha256": "24da79a4d0bebe4ca5618b2316853f87b3057919d74fdd3436fd442308b7d212"
+        },
+        "seed44_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 192,
+              "recall": 0.9746192893401016,
+              "percent": 97.46192893401016
+            }
+          },
+          "adapter_sha256": "3d93b2088a25ae46a2320f0251114ad4604dff1e1b79c5d2600c6b733a8130a3",
+          "metadata_sha256": "e60f077e7e058478684f7fe3a502c39d8b3bf8f33edf2ea7a0d57fd6cb1a2bbf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.robotcar_night.json",
+          "result_sha256": "e6e7c15a25bdb710bfe614500efcc193d992b8bdc69f9382fa586e4a3821bad2"
+        },
+        "G1_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "99bf5aad8d328aeef192b9bd147cf255b15f621a6f0c87cc0a50466f48064c08",
+          "metadata_sha256": "75a779a489f4f33f06d4663d1137c3474b531477a2370c6380011112158c6abf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.robotcar_night.json",
+          "result_sha256": "00342485f7664ec78c81fc30aa1e7758d14dfeec654d4eb3aa1f4d41c6d0ddb7"
+        },
+        "G1_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 180,
+              "recall": 0.9137055837563451,
+              "percent": 91.37055837563452
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "91e79a3fc67c8b5a2730eceb67d967a2acbc88a3b51c8cc55eff9f94dfef93ef",
+          "metadata_sha256": "724b76be018538375881ad746a6eedeb21dcf0c55d2e69313e6d09b42d2e5a86",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.robotcar_night.json",
+          "result_sha256": "674005c4b6a7023100bf1e399bb8e63beef60dfe5152646912af7237ec6e3a6a"
+        },
+        "G2_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 178,
+              "recall": 0.9035532994923858,
+              "percent": 90.35532994923858
+            },
+            "R@5": {
+              "hits": 188,
+              "recall": 0.9543147208121827,
+              "percent": 95.43147208121827
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "0fb5862b308834048ea69872251aabe99aed20c5d87dfb4cff2951b7faeb0844",
+          "metadata_sha256": "5ad8f56e957bebbcab67d418633bb432c7cacc1b74ca0f1c2cf828a1b7c86019",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.robotcar_night.json",
+          "result_sha256": "cc0fb0833fd5b13a9e3af8c0fd438a611a989773e35838b95f212f07c64cc3b4"
+        },
+        "G2_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 179,
+              "recall": 0.9086294416243654,
+              "percent": 90.86294416243655
+            },
+            "R@5": {
+              "hits": 187,
+              "recall": 0.949238578680203,
+              "percent": 94.9238578680203
+            },
+            "R@10": {
+              "hits": 190,
+              "recall": 0.9644670050761421,
+              "percent": 96.44670050761421
+            }
+          },
+          "adapter_sha256": "b68d49e87d3eacf2ac53c000cdd0bc9b338ef69e7cf7ad439c2a1efdabb93468",
+          "metadata_sha256": "ee6bc891e041e8edbbb1d7266755a63791716d4a1fcb598397247c51e83e11fe",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.robotcar_night.json",
+          "result_sha256": "028e79598fdbcb5d7afbb18d328bf7775c53982a277557f717a6198a3b1b7516"
+        }
+      },
+      "P0_three_seed": {
+        "A": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              179,
+              178,
+              178
+            ],
+            "mean": 0.9052453468697124,
+            "sample_std": 0.0029307120263432226,
+            "mean_percent": 90.52453468697124,
+            "sample_std_pp": 0.29307120263432224,
+            "mean_hits": 178.33333333333334,
+            "mean_delta_vs_day_pp": -0.33840947546530664,
+            "mean_delta_vs_day_hits": -0.6666666666666572
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              188,
+              188,
+              188
+            ],
+            "mean": 0.9543147208121827,
+            "sample_std": 0.0,
+            "mean_percent": 95.43147208121827,
+            "sample_std_pp": 0.0,
+            "mean_hits": 188,
+            "mean_delta_vs_day_pp": 0.5076142131979711,
+            "mean_delta_vs_day_hits": 1
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              190,
+              191,
+              192
+            ],
+            "mean": 0.9695431472081218,
+            "sample_std": 0.005076142131979711,
+            "mean_percent": 96.95431472081218,
+            "sample_std_pp": 0.5076142131979711,
+            "mean_hits": 191,
+            "mean_delta_vs_day_pp": 0.5076142131979711,
+            "mean_delta_vs_day_hits": 1
+          }
+        },
+        "B": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              179,
+              179,
+              179
+            ],
+            "mean": 0.9086294416243654,
+            "sample_std": 0.0,
+            "mean_percent": 90.86294416243655,
+            "sample_std_pp": 0.0,
+            "mean_hits": 179,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              187,
+              187,
+              187
+            ],
+            "mean": 0.949238578680203,
+            "sample_std": 0.0,
+            "mean_percent": 94.9238578680203,
+            "sample_std_pp": 0.0,
+            "mean_hits": 187,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              190,
+              190,
+              190
+            ],
+            "mean": 0.9644670050761421,
+            "sample_std": 0.0,
+            "mean_percent": 96.44670050761421,
+            "sample_std_pp": 0.0,
+            "mean_hits": 190,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        },
+        "C": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              179,
+              178,
+              178
+            ],
+            "mean": 0.9052453468697124,
+            "sample_std": 0.0029307120263432226,
+            "mean_percent": 90.52453468697124,
+            "sample_std_pp": 0.29307120263432224,
+            "mean_hits": 178.33333333333334,
+            "mean_delta_vs_day_pp": -0.33840947546530664,
+            "mean_delta_vs_day_hits": -0.6666666666666572
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              188,
+              187,
+              188
+            ],
+            "mean": 0.9526226734348562,
+            "sample_std": 0.0029307120263432867,
+            "mean_percent": 95.26226734348562,
+            "sample_std_pp": 0.2930712026343287,
+            "mean_hits": 187.66666666666666,
+            "mean_delta_vs_day_pp": 0.33840947546531774,
+            "mean_delta_vs_day_hits": 0.6666666666666572
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              191,
+              192,
+              192
+            ],
+            "mean": 0.972927241962775,
+            "sample_std": 0.0029307120263432867,
+            "mean_percent": 97.2927241962775,
+            "sample_std_pp": 0.2930712026343287,
+            "mean_hits": 191.66666666666666,
+            "mean_delta_vs_day_pp": 0.8460236886632888,
+            "mean_delta_vs_day_hits": 1.6666666666666572
+          }
+        }
+      },
+      "per_seed_paired_topk": {
+        "seed42_B_vs_seed42_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "seed42_B_vs_seed42_C": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          }
+        },
+        "seed43_B_vs_seed43_A": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          }
+        },
+        "seed43_B_vs_seed43_C": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.015228426395939,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        },
+        "seed44_B_vs_seed44_A": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.015228426395939,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        },
+        "seed44_B_vs_seed44_C": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": -2,
+            "delta_pp": -1.015228426395939,
+            "repaired_count": 0,
+            "regressed_count": 2
+          }
+        }
+      },
+      "P0_contrast_means": {
+        "B_minus_A": {
+          "R@1": {
+            "seed_delta_hits": [
+              0,
+              1,
+              1
+            ],
+            "mean_delta_hits": 0.6666666666666666,
+            "mean_delta_pp": 0.338409475465313,
+            "sample_std_delta_pp": 0.2930712026343278
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              -1,
+              -1,
+              -1
+            ],
+            "mean_delta_hits": -1,
+            "mean_delta_pp": -0.5076142131979695,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              0,
+              -1,
+              -2
+            ],
+            "mean_delta_hits": -1,
+            "mean_delta_pp": -0.5076142131979695,
+            "sample_std_delta_pp": 0.5076142131979695
+          }
+        },
+        "B_minus_C": {
+          "R@1": {
+            "seed_delta_hits": [
+              0,
+              1,
+              1
+            ],
+            "mean_delta_hits": 0.6666666666666666,
+            "mean_delta_pp": 0.338409475465313,
+            "sample_std_delta_pp": 0.2930712026343278
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              -1,
+              0,
+              -1
+            ],
+            "mean_delta_hits": -0.6666666666666666,
+            "mean_delta_pp": -0.338409475465313,
+            "sample_std_delta_pp": 0.2930712026343278
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              -1,
+              -2,
+              -2
+            ],
+            "mean_delta_hits": -1.6666666666666667,
+            "mean_delta_pp": -0.8460236886632825,
+            "sample_std_delta_pp": 0.2930712026343278
+          }
+        }
+      },
+      "Source_scale_paired_topk": {
+        "G2_A_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G1_B": {
+          "R@1": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 1,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G1_B_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 2,
+            "delta_pp": 1.015228426395939,
+            "repaired_count": 2,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G2_A": {
+          "R@1": {
+            "delta_hits": 1,
+            "delta_pp": 0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.5076142131979695,
+            "repaired_count": 1,
+            "regressed_count": 2
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        }
+      },
+      "protocol": {
+        "ground_truth": "public_camera_to_world_and_aligned_colmap_3d_radius",
+        "split": "public_train_diagnostic",
+        "usage": "evaluation_only_no_training",
+        "official_test": false,
+        "condition": "night",
+        "query_camera": "rear",
+        "gallery_cameras": [
+          "left",
+          "rear",
+          "right"
+        ],
+        "gallery": "complete_registered_overcast_reference_in_all_49_aligned_models",
+        "positive_radius_meters": 25.0,
+        "positive_boundary": "distance <= 25.0",
+        "distance": "3D_Euclidean_world_camera_centers",
+        "orientation_filter": null,
+        "query_pose_convention": "camera_to_world_p_w=R*p_c+C; center=matrix[:3,3]",
+        "reference_pose_convention": "COLMAP_world_to_camera_p_c=R*p_w+t; center=-R.T@t",
+        "coordinate_frame": "official_README_all_49_aligned_models_share_global_world_frame",
+        "reference_extension_mapping": "COLMAP .png names map to local original .jpg images",
+        "metadata_path": "/home/admin123/github/WeatherVPR/data/RobotCar-Seasons/metadata/robotcar_v2_train.txt?utm_source=chatgpt.com",
+        "metadata_sha256": "842cb03eccf2b10b7ba0a2fe431c1f063f4a1c4459f042b536c9fb39a0315744",
+        "public_train_pose_count": 1906,
+        "colmap_pose_models": [
+          {
+            "path": "3D-models/individual/colmap_reconstructions/001_aligned/001_aligned/images.txt",
+            "sha256": "a509b3562a1537f276c5790cebb93a61f595d6298bcbc0618030cd6023a79171"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/002_aligned/002_aligned/images.txt",
+            "sha256": "6ddb664a5c0d05091d28bf869d56c3ca0dd990a8773065637dd413c3940d7f6c"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/003_aligned/003_aligned/images.txt",
+            "sha256": "35133c880a06cfae4bf530581605ac8c97d16151db459aaf073a5461989402b6"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/004_aligned/004_aligned/images.txt",
+            "sha256": "7cefe64c258ec4fcec31ec289440ed84deaa7db59a71d2eba42e21d583866114"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/005_aligned/005_aligned/images.txt",
+            "sha256": "66185231070e815fe1075094015c1871281fc862c481c254aa48247c7f3413bc"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/006_aligned/006_aligned/images.txt",
+            "sha256": "a312ed5f018ca35e185c5beb4ac95da2d5565547de17984616db9d90d4250016"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/007_aligned/007_aligned/images.txt",
+            "sha256": "4de43a12d26f08dad8d9a50673df0779781311ad3ad43258a39e1bc790b3169e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/008_aligned/008_aligned/images.txt",
+            "sha256": "b1758437ac2ac36fae462de06cea502989b60ee1f4bc8a20532c562a5d314397"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/009_aligned/009_aligned/images.txt",
+            "sha256": "bc6a54e9afab4354708b917dec38cf377de62490af76e00b3f8a474406871601"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/010_aligned/010_aligned/images.txt",
+            "sha256": "8b2659cd61c61f6cfb67745a58a612d3f7d56b5d924d4c166ac696fb81ac3fe5"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/011_aligned/011_aligned/images.txt",
+            "sha256": "56d0f4bd356611e9fa8b51243a415a8c000d476e8ab9bae54eca9a91cbf31a87"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/012_aligned/012_aligned/images.txt",
+            "sha256": "dd1c24c6654c8b28fe8cab5ea72c8953fc7e5992679b7b3a61989738c9c58bed"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/013_aligned/013_aligned/images.txt",
+            "sha256": "95b376d4ba3f56940c3632649534f3eb7348b0a1cfe7c1dfb97a9f1d212e770a"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/014_aligned/014_aligned/images.txt",
+            "sha256": "db6e43b5f5fb8c96d95523429b6c8116a236971faa72811dc1f144cbaf493a6e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/015_aligned/015_aligned/images.txt",
+            "sha256": "ef6a8aa8ce7364542fe3e79bfc106c756705238ac623486e9c3f23553442fe75"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/016_aligned/016_aligned/images.txt",
+            "sha256": "9b2e1834909807a90cf8402a527d201d73996690e28d51316a327d7062f266e2"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/017_aligned/017_aligned/images.txt",
+            "sha256": "02455194e09ccacf1733602b3188ab919711a6c4ebbf817ade410bd8a16591e6"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/018_aligned/018_aligned/images.txt",
+            "sha256": "b7ba3bc91e377b873a40d75f666e3c8ec0f81a928d136dd96d64a72d3e52d461"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/019_aligned/019_aligned/images.txt",
+            "sha256": "95369df94e4a30bf7d1a519bb77af99840bac4f6b6a66420da2840263c0c61ae"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/020_aligned/020_aligned/images.txt",
+            "sha256": "68d7414ae6286baf369f88e6f253d72a464de9ed882c50223d7ac9d36d10fb8e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/021_aligned/021_aligned/images.txt",
+            "sha256": "dd773dbabb068a488b84160feef36b22aa6a25e5ed2377aad41a9ff20354b7cf"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/022_aligned/022_aligned/images.txt",
+            "sha256": "a25ec27ac3c6bfce33a544c60fcee4087ca993e789b5a914d0ba3ff065efe26d"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/023_aligned/023_aligned/images.txt",
+            "sha256": "e809bda10a9aabbb18c1b19e522c15494925bfa2fdc1d0f605c7a4e60c6ae1e9"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/024_aligned/024_aligned/images.txt",
+            "sha256": "e4ca9498eb4f82f9f1c232d14ff5d05e44027805f2583327797c80522375bb0b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/025_aligned/025_aligned/images.txt",
+            "sha256": "1d152f94bda11b68982b316f794892887b48959f21677c026ffa1f49f7dd11a3"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/026_aligned/026_aligned/images.txt",
+            "sha256": "6291f2b67b9c66e3e866543711a5a549790f17a41ccdb52f5ee515f72f842398"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/027_aligned/027_aligned/images.txt",
+            "sha256": "a62faa0ee0df6d393d81ca899bb6f8740dce3461a01e49bccb9b5625afabd58c"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/028_aligned/028_aligned/images.txt",
+            "sha256": "4a028de66981aa5c544c9c9d6d13a3a0078a6384d7abd7ef11eb881b3846c1c5"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/029_aligned/029_aligned/images.txt",
+            "sha256": "67461bd472c93577c8559d4aaca43605e2ebf0832d11a04c5e7b37a21fe250a1"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/030_aligned/030_aligned/images.txt",
+            "sha256": "b6635b7fac27e87eb3caba5cbd1e2c0e9cfd62903d77cbec7c7910409b4b4e07"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/031_aligned/031_aligned/images.txt",
+            "sha256": "39ed682c91998ffb2cb8da7dceb13d5becb6dc8d64f1e5d7ca817b4a5ba49857"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/032_aligned/032_aligned/images.txt",
+            "sha256": "3baa3bb874ed41c50dce6c5236480c4ab88940e1bb1e1d8c1617c0c63570576d"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/033_aligned/033_aligned/images.txt",
+            "sha256": "a51fa550008138b6db3dd30f3f131764ac0d95f47d2c64b47e1b7b70ac7e8337"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/034_aligned/034_aligned/images.txt",
+            "sha256": "ec6849638ea8cb7a34449fcdb42b1c8a6d4d3f4a7131c0e6272a35e7a9cba52e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/035_aligned/035_aligned/images.txt",
+            "sha256": "d27bec55c0818e231646680e8cf97334ca2d791e393948de072693b64b66f233"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/036_aligned/036_aligned/images.txt",
+            "sha256": "bea3af027bcf51d38e3b27dca101a9d3c1f13e8932dbdb65cfe2084f62ca3d0a"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/037_aligned/037_aligned/images.txt",
+            "sha256": "f68e53c7f7c9326c5fce35b5d14e361bdfa4d9b357d6a53d75f389c5d4f4cde0"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/038_aligned/038_aligned/images.txt",
+            "sha256": "5cf835459c4f807e4772ce19b7009056400be5e97dbd463e91b285d50972d992"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/039_aligned/039_aligned/images.txt",
+            "sha256": "fcb14ead9bd84c598d8777a6cf0e6c1b4d5db44f4ebf37c0847daed155aa93a4"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/040_aligned/040_aligned/images.txt",
+            "sha256": "ebf638fec64afd567803337b99eeafa90690d39a3cecfcf54f10a55b03b633b3"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/041_aligned/041_aligned/images.txt",
+            "sha256": "3df716dbc14cfd07aa36c2862103e958256cac2c9d188c44a8cf4fd59082f48b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/042_aligned/042_aligned/images.txt",
+            "sha256": "696a7da819cd6a5ad12f132933942bc5d85c1211b54bb250a44638975cd295ae"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/043_aligned/043_aligned/images.txt",
+            "sha256": "789fc546324900bce5ac0e20d61aa163aa036f23fe35f646c57833108eea68b0"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/044_aligned/044_aligned/images.txt",
+            "sha256": "d52d90d99ad034f1493407bf2a300fdec1caa40a4ddc2547b002f12869d4ebf4"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/045_aligned/045_aligned/images.txt",
+            "sha256": "3dc97b567540c86df81a0856a11e99f7c9cb1243cf4c7565e343d8a2e20f4243"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/046_aligned/046_aligned/images.txt",
+            "sha256": "bebf00a9cfdd66f3bf76c08dc7e5b76a6df87f6bf625e15a0dddca960ab33e9b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/047_aligned/047_aligned/images.txt",
+            "sha256": "8c83d3c43be9ebc5a73b7b72474d8a66a96920e9b7c6a624c8a0b2e05675621e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/048_aligned/048_aligned/images.txt",
+            "sha256": "bd693f9178e23ce4bc56218319971dabfff0a891e869ddda2d4533ac895a9611"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/049_aligned/049_aligned/images.txt",
+            "sha256": "c77502d420f8c8f4013943a14611c986ef2ebde81f43451b39a3bbe1e6b88177"
+          }
+        ],
+        "colmap_pose_bundle_sha256": "659fb73a6f96015fb8528313ebd57a320de69767285b0ed8feebbb78ddbfd755",
+        "colmap_model_image_counts": {
+          "001_aligned": 564,
+          "002_aligned": 297,
+          "003_aligned": 372,
+          "004_aligned": 855,
+          "005_aligned": 600,
+          "006_aligned": 699,
+          "007_aligned": 306,
+          "008_aligned": 363,
+          "009_aligned": 561,
+          "010_aligned": 300,
+          "011_aligned": 342,
+          "012_aligned": 300,
+          "013_aligned": 303,
+          "014_aligned": 300,
+          "015_aligned": 336,
+          "016_aligned": 303,
+          "017_aligned": 618,
+          "018_aligned": 594,
+          "019_aligned": 300,
+          "020_aligned": 297,
+          "021_aligned": 300,
+          "022_aligned": 612,
+          "023_aligned": 786,
+          "024_aligned": 714,
+          "025_aligned": 681,
+          "026_aligned": 303,
+          "027_aligned": 303,
+          "028_aligned": 303,
+          "029_aligned": 300,
+          "030_aligned": 300,
+          "031_aligned": 303,
+          "032_aligned": 300,
+          "033_aligned": 300,
+          "034_aligned": 303,
+          "035_aligned": 591,
+          "036_aligned": 618,
+          "037_aligned": 600,
+          "038_aligned": 618,
+          "039_aligned": 795,
+          "040_aligned": 330,
+          "041_aligned": 303,
+          "042_aligned": 303,
+          "043_aligned": 327,
+          "044_aligned": 336,
+          "045_aligned": 300,
+          "046_aligned": 411,
+          "047_aligned": 303,
+          "048_aligned": 309,
+          "049_aligned": 300
+        },
+        "train_reference_pose_overlap_count": 0,
+        "train_reference_max_center_disagreement_meters": null,
+        "primary_source_urls": [
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/README_RobotCar_v2.md",
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/README_RobotCar-Seasons.md",
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/robotcar_v2_train.txt"
+        ],
+        "limitations": "Custom position-only retrieval diagnostic on public train poses, not official test. All camera sides are eligible positives; no viewpoint/visibility/orientation filter. Official test query poses are not public and are never inferred here."
+      },
+      "gallery_sha256": "19cb34e05b961988e7d64af02782599e7e18ff8493ab2523bf0e313c521833de",
+      "query_sha256": "f3763ec85d4b783aca450ba2f58785f1aeadd1af37be53bcbea311194ba1cd64"
+    },
+    "robotcar_night_rain": {
+      "label": "RobotCar Night-rain*",
+      "num_queries": 224,
+      "num_references": 20862,
+      "baseline": {
+        "R@1": {
+          "hits": 214,
+          "recall": 0.9553571428571429,
+          "percent": 95.53571428571429
+        },
+        "R@5": {
+          "hits": 216,
+          "recall": 0.9642857142857143,
+          "percent": 96.42857142857143
+        },
+        "R@10": {
+          "hits": 218,
+          "recall": 0.9732142857142857,
+          "percent": 97.32142857142857
+        }
+      },
+      "models": {
+        "seed42_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 217,
+              "recall": 0.96875,
+              "percent": 96.875
+            }
+          },
+          "adapter_sha256": "2d9de08d9c79984edcde9723d9d867b115f3e6e27334d14227769f567883a262",
+          "metadata_sha256": "c6a82024eda9f3aa11f1b8ded0c739b938aae6eba73dbddc6f5b762e7e3a4b7c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.robotcar_night_rain.json",
+          "result_sha256": "3187c5d0e26369ed5f22c291f3c68d3462d42b42560e5c7d82a39d1fca538749"
+        },
+        "seed42_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 215,
+              "recall": 0.9598214285714286,
+              "percent": 95.98214285714286
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "a9a804c85470b93a7ef3de79a9a74c7b6b7706cc9700bac645511ec8ee2673f9",
+          "metadata_sha256": "03354ca9d444727f0a78c128a611976e1741e0de791fab269d3f374a26944ae8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.robotcar_night_rain.json",
+          "result_sha256": "494a8bdbe2a4ce4fa8df1d6315afc637cf0da5e037e3ceb54f115eef26e446cc"
+        },
+        "seed42_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 215,
+              "recall": 0.9598214285714286,
+              "percent": 95.98214285714286
+            },
+            "R@10": {
+              "hits": 217,
+              "recall": 0.96875,
+              "percent": 96.875
+            }
+          },
+          "adapter_sha256": "cfd0fc2b7f6b3594c942f0bafc7a7786f023c7329e937680ec1ce087dc1296a5",
+          "metadata_sha256": "3b9a235acbcc0a516f8c06368069066b4e5cb1e79506977cfd901065082584c8",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.robotcar_night_rain.json",
+          "result_sha256": "71c7a655e5b8d0e55cb5813e80cb7ab59a92aef510de15125076345640b2df12"
+        },
+        "seed43_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "46fd4b3648e3dd389874896406be88ef3a501b348fa5c8ea4b75ef7430058870",
+          "metadata_sha256": "e69361cfd9207ee101143739a9e90a70aff11959ce3655344a0010358c3422cf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.robotcar_night_rain.json",
+          "result_sha256": "48ec28cfab75ea57c89b1a5f8d9dcf682aef09e329e5da5a5aa4dc8fdf1d829c"
+        },
+        "seed43_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 214,
+              "recall": 0.9553571428571429,
+              "percent": 95.53571428571429
+            },
+            "R@10": {
+              "hits": 217,
+              "recall": 0.96875,
+              "percent": 96.875
+            }
+          },
+          "adapter_sha256": "2e4711fea5812357d4e33ad523bb104a0852c802e9147fe462ab1fcaea6ea7b1",
+          "metadata_sha256": "48a28b508f36d718110e18cd4b55f003c1d67aac205b261fbaeb59facef511a3",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.robotcar_night_rain.json",
+          "result_sha256": "b914ef19a59cb0577ac81cb96fa352e03b60c372fc483ae9affba96dec659083"
+        },
+        "seed43_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "4b65a6e9156d94cb79f2bbea3f894e6b9e3f9b2a02befc2fa554154daeec32cb",
+          "metadata_sha256": "b37cc36f8cdc627c5b50da56c654df90a3eca683f63d3cd76bd06eed892f1952",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.robotcar_night_rain.json",
+          "result_sha256": "7bf3172756bab71a336841978e8add962d7de0caf87351a64743e2caea79bbfd"
+        },
+        "seed44_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 219,
+              "recall": 0.9776785714285714,
+              "percent": 97.76785714285714
+            }
+          },
+          "adapter_sha256": "7375fb17118422f1f9cec528f393651f918a28caba28fbc2a51fff21726c5d1a",
+          "metadata_sha256": "b556ccc8050dabd2a63e7b4c2132de8e28400b37bb6a8990ea9d25607c7039bf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.robotcar_night_rain.json",
+          "result_sha256": "759c7c49d3fe9ba991ea2eb4c93684cd4b5922b29422224e5fdbb40c97d677e8"
+        },
+        "seed44_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "229a16ae9e41ae01bc752fb6b67d6ef8b67e1ebfb56a771beba0a849c7f598f5",
+          "metadata_sha256": "08cddd28d3f8ea94340578866d109b73d09c347ffaab054bf6bc516ad593a14c",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.robotcar_night_rain.json",
+          "result_sha256": "e7fd5dbce89e2f2e0c31c6756ff290bd782e6e7eab7a4a75461a69cc7b225262"
+        },
+        "seed44_C": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 219,
+              "recall": 0.9776785714285714,
+              "percent": 97.76785714285714
+            }
+          },
+          "adapter_sha256": "3d93b2088a25ae46a2320f0251114ad4604dff1e1b79c5d2600c6b733a8130a3",
+          "metadata_sha256": "e60f077e7e058478684f7fe3a502c39d8b3bf8f33edf2ea7a0d57fd6cb1a2bbf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.robotcar_night_rain.json",
+          "result_sha256": "925db16f3fc32fc5e28769dc9f71e747afe537a6e88d65c21f82d87777491b68"
+        },
+        "G1_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 217,
+              "recall": 0.96875,
+              "percent": 96.875
+            }
+          },
+          "adapter_sha256": "99bf5aad8d328aeef192b9bd147cf255b15f621a6f0c87cc0a50466f48064c08",
+          "metadata_sha256": "75a779a489f4f33f06d4663d1137c3474b531477a2370c6380011112158c6abf",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.robotcar_night_rain.json",
+          "result_sha256": "f482b01326cc2269e9d95d6dec41b20e3b0fd26a783cb15606fc0b70d78d2193"
+        },
+        "G1_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 215,
+              "recall": 0.9598214285714286,
+              "percent": 95.98214285714286
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "91e79a3fc67c8b5a2730eceb67d967a2acbc88a3b51c8cc55eff9f94dfef93ef",
+          "metadata_sha256": "724b76be018538375881ad746a6eedeb21dcf0c55d2e69313e6d09b42d2e5a86",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.robotcar_night_rain.json",
+          "result_sha256": "40f76710b3846eba434f912e65fe4be489204138860d50032d2332dc4bb536f8"
+        },
+        "G2_A": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 216,
+              "recall": 0.9642857142857143,
+              "percent": 96.42857142857143
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "0fb5862b308834048ea69872251aabe99aed20c5d87dfb4cff2951b7faeb0844",
+          "metadata_sha256": "5ad8f56e957bebbcab67d418633bb432c7cacc1b74ca0f1c2cf828a1b7c86019",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.robotcar_night_rain.json",
+          "result_sha256": "6ca43fc484d03394cc3fdc5191e2a6477e543dff0507a08f178e1806b9f96d71"
+        },
+        "G2_B": {
+          "metrics": {
+            "R@1": {
+              "hits": 213,
+              "recall": 0.9508928571428571,
+              "percent": 95.08928571428571
+            },
+            "R@5": {
+              "hits": 215,
+              "recall": 0.9598214285714286,
+              "percent": 95.98214285714286
+            },
+            "R@10": {
+              "hits": 218,
+              "recall": 0.9732142857142857,
+              "percent": 97.32142857142857
+            }
+          },
+          "adapter_sha256": "b68d49e87d3eacf2ac53c000cdd0bc9b338ef69e7cf7ad439c2a1efdabb93468",
+          "metadata_sha256": "ee6bc891e041e8edbbb1d7266755a63791716d4a1fcb598397247c51e83e11fe",
+          "result_path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.robotcar_night_rain.json",
+          "result_sha256": "30450fa41531ad8dc6f1b8b5676f50c4b8bdd2316d19b2f34aaeac7ac6c2d000"
+        }
+      },
+      "P0_three_seed": {
+        "A": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              213,
+              213,
+              213
+            ],
+            "mean": 0.9508928571428571,
+            "sample_std": 0.0,
+            "mean_percent": 95.08928571428571,
+            "sample_std_pp": 0.0,
+            "mean_hits": 213,
+            "mean_delta_vs_day_pp": -0.44642857142858094,
+            "mean_delta_vs_day_hits": -1
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              216,
+              216,
+              216
+            ],
+            "mean": 0.9642857142857143,
+            "sample_std": 0.0,
+            "mean_percent": 96.42857142857143,
+            "sample_std_pp": 0.0,
+            "mean_hits": 216,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              217,
+              218,
+              219
+            ],
+            "mean": 0.9732142857142857,
+            "sample_std": 0.004464285714285698,
+            "mean_percent": 97.32142857142857,
+            "sample_std_pp": 0.44642857142856984,
+            "mean_hits": 218,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        },
+        "B": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              213,
+              213,
+              213
+            ],
+            "mean": 0.9508928571428571,
+            "sample_std": 0.0,
+            "mean_percent": 95.08928571428571,
+            "sample_std_pp": 0.0,
+            "mean_hits": 213,
+            "mean_delta_vs_day_pp": -0.44642857142858094,
+            "mean_delta_vs_day_hits": -1
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              215,
+              214,
+              216
+            ],
+            "mean": 0.9598214285714286,
+            "sample_std": 0.004464285714285698,
+            "mean_percent": 95.98214285714286,
+            "sample_std_pp": 0.44642857142856984,
+            "mean_hits": 215,
+            "mean_delta_vs_day_pp": -0.44642857142856984,
+            "mean_delta_vs_day_hits": -1
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              218,
+              217,
+              218
+            ],
+            "mean": 0.9717261904761905,
+            "sample_std": 0.0025774565588822487,
+            "mean_percent": 97.17261904761905,
+            "sample_std_pp": 0.2577456558882249,
+            "mean_hits": 217.66666666666666,
+            "mean_delta_vs_day_pp": -0.14880952380952328,
+            "mean_delta_vs_day_hits": -0.3333333333333428
+          }
+        },
+        "C": {
+          "R@1": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              213,
+              213,
+              213
+            ],
+            "mean": 0.9508928571428571,
+            "sample_std": 0.0,
+            "mean_percent": 95.08928571428571,
+            "sample_std_pp": 0.0,
+            "mean_hits": 213,
+            "mean_delta_vs_day_pp": -0.44642857142858094,
+            "mean_delta_vs_day_hits": -1
+          },
+          "R@5": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              215,
+              216,
+              216
+            ],
+            "mean": 0.9627976190476191,
+            "sample_std": 0.0025774565588822487,
+            "mean_percent": 96.27976190476191,
+            "sample_std_pp": 0.2577456558882249,
+            "mean_hits": 215.66666666666666,
+            "mean_delta_vs_day_pp": -0.14880952380952328,
+            "mean_delta_vs_day_hits": -0.3333333333333428
+          },
+          "R@10": {
+            "seeds": [
+              42,
+              43,
+              44
+            ],
+            "hits": [
+              217,
+              218,
+              219
+            ],
+            "mean": 0.9732142857142857,
+            "sample_std": 0.004464285714285698,
+            "mean_percent": 97.32142857142857,
+            "sample_std_pp": 0.44642857142856984,
+            "mean_hits": 218,
+            "mean_delta_vs_day_pp": 0.0,
+            "mean_delta_vs_day_hits": 0
+          }
+        }
+      },
+      "per_seed_paired_topk": {
+        "seed42_B_vs_seed42_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 1,
+            "delta_pp": 0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 0
+          }
+        },
+        "seed42_B_vs_seed42_C": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 1,
+            "delta_pp": 0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 0
+          }
+        },
+        "seed43_B_vs_seed43_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -2,
+            "delta_pp": -0.8928571428571429,
+            "repaired_count": 0,
+            "regressed_count": 2
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 0,
+            "regressed_count": 1
+          }
+        },
+        "seed43_B_vs_seed43_C": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -2,
+            "delta_pp": -0.8928571428571429,
+            "repaired_count": 0,
+            "regressed_count": 2
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 0,
+            "regressed_count": 1
+          }
+        },
+        "seed44_B_vs_seed44_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 2
+          }
+        },
+        "seed44_B_vs_seed44_C": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 2
+          }
+        }
+      },
+      "P0_contrast_means": {
+        "B_minus_A": {
+          "R@1": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              -1,
+              -2,
+              0
+            ],
+            "mean_delta_hits": -1,
+            "mean_delta_pp": -0.44642857142857145,
+            "sample_std_delta_pp": 0.44642857142857145
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              1,
+              -1,
+              -1
+            ],
+            "mean_delta_hits": -0.3333333333333333,
+            "mean_delta_pp": -0.1488095238095238,
+            "sample_std_delta_pp": 0.5154913117764516
+          }
+        },
+        "B_minus_C": {
+          "R@1": {
+            "seed_delta_hits": [
+              0,
+              0,
+              0
+            ],
+            "mean_delta_hits": 0,
+            "mean_delta_pp": 0.0,
+            "sample_std_delta_pp": 0.0
+          },
+          "R@5": {
+            "seed_delta_hits": [
+              0,
+              -2,
+              0
+            ],
+            "mean_delta_hits": -0.6666666666666666,
+            "mean_delta_pp": -0.2976190476190476,
+            "sample_std_delta_pp": 0.5154913117764516
+          },
+          "R@10": {
+            "seed_delta_hits": [
+              1,
+              -1,
+              -1
+            ],
+            "mean_delta_hits": -0.3333333333333333,
+            "mean_delta_pp": -0.1488095238095238,
+            "sample_std_delta_pp": 0.5154913117764516
+          }
+        }
+      },
+      "Source_scale_paired_topk": {
+        "G2_A_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 1,
+            "delta_pp": 0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G1_B": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        },
+        "G1_B_vs_G1_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 1,
+            "delta_pp": 0.44642857142857145,
+            "repaired_count": 1,
+            "regressed_count": 0
+          }
+        },
+        "G2_B_vs_G2_A": {
+          "R@1": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          },
+          "R@5": {
+            "delta_hits": -1,
+            "delta_pp": -0.44642857142857145,
+            "repaired_count": 0,
+            "regressed_count": 1
+          },
+          "R@10": {
+            "delta_hits": 0,
+            "delta_pp": 0.0,
+            "repaired_count": 0,
+            "regressed_count": 0
+          }
+        }
+      },
+      "protocol": {
+        "ground_truth": "public_camera_to_world_and_aligned_colmap_3d_radius",
+        "split": "public_train_diagnostic",
+        "usage": "evaluation_only_no_training",
+        "official_test": false,
+        "condition": "night-rain",
+        "query_camera": "rear",
+        "gallery_cameras": [
+          "left",
+          "rear",
+          "right"
+        ],
+        "gallery": "complete_registered_overcast_reference_in_all_49_aligned_models",
+        "positive_radius_meters": 25.0,
+        "positive_boundary": "distance <= 25.0",
+        "distance": "3D_Euclidean_world_camera_centers",
+        "orientation_filter": null,
+        "query_pose_convention": "camera_to_world_p_w=R*p_c+C; center=matrix[:3,3]",
+        "reference_pose_convention": "COLMAP_world_to_camera_p_c=R*p_w+t; center=-R.T@t",
+        "coordinate_frame": "official_README_all_49_aligned_models_share_global_world_frame",
+        "reference_extension_mapping": "COLMAP .png names map to local original .jpg images",
+        "metadata_path": "/home/admin123/github/WeatherVPR/data/RobotCar-Seasons/metadata/robotcar_v2_train.txt?utm_source=chatgpt.com",
+        "metadata_sha256": "842cb03eccf2b10b7ba0a2fe431c1f063f4a1c4459f042b536c9fb39a0315744",
+        "public_train_pose_count": 1906,
+        "colmap_pose_models": [
+          {
+            "path": "3D-models/individual/colmap_reconstructions/001_aligned/001_aligned/images.txt",
+            "sha256": "a509b3562a1537f276c5790cebb93a61f595d6298bcbc0618030cd6023a79171"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/002_aligned/002_aligned/images.txt",
+            "sha256": "6ddb664a5c0d05091d28bf869d56c3ca0dd990a8773065637dd413c3940d7f6c"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/003_aligned/003_aligned/images.txt",
+            "sha256": "35133c880a06cfae4bf530581605ac8c97d16151db459aaf073a5461989402b6"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/004_aligned/004_aligned/images.txt",
+            "sha256": "7cefe64c258ec4fcec31ec289440ed84deaa7db59a71d2eba42e21d583866114"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/005_aligned/005_aligned/images.txt",
+            "sha256": "66185231070e815fe1075094015c1871281fc862c481c254aa48247c7f3413bc"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/006_aligned/006_aligned/images.txt",
+            "sha256": "a312ed5f018ca35e185c5beb4ac95da2d5565547de17984616db9d90d4250016"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/007_aligned/007_aligned/images.txt",
+            "sha256": "4de43a12d26f08dad8d9a50673df0779781311ad3ad43258a39e1bc790b3169e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/008_aligned/008_aligned/images.txt",
+            "sha256": "b1758437ac2ac36fae462de06cea502989b60ee1f4bc8a20532c562a5d314397"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/009_aligned/009_aligned/images.txt",
+            "sha256": "bc6a54e9afab4354708b917dec38cf377de62490af76e00b3f8a474406871601"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/010_aligned/010_aligned/images.txt",
+            "sha256": "8b2659cd61c61f6cfb67745a58a612d3f7d56b5d924d4c166ac696fb81ac3fe5"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/011_aligned/011_aligned/images.txt",
+            "sha256": "56d0f4bd356611e9fa8b51243a415a8c000d476e8ab9bae54eca9a91cbf31a87"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/012_aligned/012_aligned/images.txt",
+            "sha256": "dd1c24c6654c8b28fe8cab5ea72c8953fc7e5992679b7b3a61989738c9c58bed"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/013_aligned/013_aligned/images.txt",
+            "sha256": "95b376d4ba3f56940c3632649534f3eb7348b0a1cfe7c1dfb97a9f1d212e770a"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/014_aligned/014_aligned/images.txt",
+            "sha256": "db6e43b5f5fb8c96d95523429b6c8116a236971faa72811dc1f144cbaf493a6e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/015_aligned/015_aligned/images.txt",
+            "sha256": "ef6a8aa8ce7364542fe3e79bfc106c756705238ac623486e9c3f23553442fe75"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/016_aligned/016_aligned/images.txt",
+            "sha256": "9b2e1834909807a90cf8402a527d201d73996690e28d51316a327d7062f266e2"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/017_aligned/017_aligned/images.txt",
+            "sha256": "02455194e09ccacf1733602b3188ab919711a6c4ebbf817ade410bd8a16591e6"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/018_aligned/018_aligned/images.txt",
+            "sha256": "b7ba3bc91e377b873a40d75f666e3c8ec0f81a928d136dd96d64a72d3e52d461"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/019_aligned/019_aligned/images.txt",
+            "sha256": "95369df94e4a30bf7d1a519bb77af99840bac4f6b6a66420da2840263c0c61ae"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/020_aligned/020_aligned/images.txt",
+            "sha256": "68d7414ae6286baf369f88e6f253d72a464de9ed882c50223d7ac9d36d10fb8e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/021_aligned/021_aligned/images.txt",
+            "sha256": "dd773dbabb068a488b84160feef36b22aa6a25e5ed2377aad41a9ff20354b7cf"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/022_aligned/022_aligned/images.txt",
+            "sha256": "a25ec27ac3c6bfce33a544c60fcee4087ca993e789b5a914d0ba3ff065efe26d"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/023_aligned/023_aligned/images.txt",
+            "sha256": "e809bda10a9aabbb18c1b19e522c15494925bfa2fdc1d0f605c7a4e60c6ae1e9"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/024_aligned/024_aligned/images.txt",
+            "sha256": "e4ca9498eb4f82f9f1c232d14ff5d05e44027805f2583327797c80522375bb0b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/025_aligned/025_aligned/images.txt",
+            "sha256": "1d152f94bda11b68982b316f794892887b48959f21677c026ffa1f49f7dd11a3"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/026_aligned/026_aligned/images.txt",
+            "sha256": "6291f2b67b9c66e3e866543711a5a549790f17a41ccdb52f5ee515f72f842398"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/027_aligned/027_aligned/images.txt",
+            "sha256": "a62faa0ee0df6d393d81ca899bb6f8740dce3461a01e49bccb9b5625afabd58c"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/028_aligned/028_aligned/images.txt",
+            "sha256": "4a028de66981aa5c544c9c9d6d13a3a0078a6384d7abd7ef11eb881b3846c1c5"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/029_aligned/029_aligned/images.txt",
+            "sha256": "67461bd472c93577c8559d4aaca43605e2ebf0832d11a04c5e7b37a21fe250a1"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/030_aligned/030_aligned/images.txt",
+            "sha256": "b6635b7fac27e87eb3caba5cbd1e2c0e9cfd62903d77cbec7c7910409b4b4e07"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/031_aligned/031_aligned/images.txt",
+            "sha256": "39ed682c91998ffb2cb8da7dceb13d5becb6dc8d64f1e5d7ca817b4a5ba49857"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/032_aligned/032_aligned/images.txt",
+            "sha256": "3baa3bb874ed41c50dce6c5236480c4ab88940e1bb1e1d8c1617c0c63570576d"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/033_aligned/033_aligned/images.txt",
+            "sha256": "a51fa550008138b6db3dd30f3f131764ac0d95f47d2c64b47e1b7b70ac7e8337"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/034_aligned/034_aligned/images.txt",
+            "sha256": "ec6849638ea8cb7a34449fcdb42b1c8a6d4d3f4a7131c0e6272a35e7a9cba52e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/035_aligned/035_aligned/images.txt",
+            "sha256": "d27bec55c0818e231646680e8cf97334ca2d791e393948de072693b64b66f233"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/036_aligned/036_aligned/images.txt",
+            "sha256": "bea3af027bcf51d38e3b27dca101a9d3c1f13e8932dbdb65cfe2084f62ca3d0a"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/037_aligned/037_aligned/images.txt",
+            "sha256": "f68e53c7f7c9326c5fce35b5d14e361bdfa4d9b357d6a53d75f389c5d4f4cde0"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/038_aligned/038_aligned/images.txt",
+            "sha256": "5cf835459c4f807e4772ce19b7009056400be5e97dbd463e91b285d50972d992"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/039_aligned/039_aligned/images.txt",
+            "sha256": "fcb14ead9bd84c598d8777a6cf0e6c1b4d5db44f4ebf37c0847daed155aa93a4"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/040_aligned/040_aligned/images.txt",
+            "sha256": "ebf638fec64afd567803337b99eeafa90690d39a3cecfcf54f10a55b03b633b3"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/041_aligned/041_aligned/images.txt",
+            "sha256": "3df716dbc14cfd07aa36c2862103e958256cac2c9d188c44a8cf4fd59082f48b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/042_aligned/042_aligned/images.txt",
+            "sha256": "696a7da819cd6a5ad12f132933942bc5d85c1211b54bb250a44638975cd295ae"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/043_aligned/043_aligned/images.txt",
+            "sha256": "789fc546324900bce5ac0e20d61aa163aa036f23fe35f646c57833108eea68b0"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/044_aligned/044_aligned/images.txt",
+            "sha256": "d52d90d99ad034f1493407bf2a300fdec1caa40a4ddc2547b002f12869d4ebf4"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/045_aligned/045_aligned/images.txt",
+            "sha256": "3dc97b567540c86df81a0856a11e99f7c9cb1243cf4c7565e343d8a2e20f4243"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/046_aligned/046_aligned/images.txt",
+            "sha256": "bebf00a9cfdd66f3bf76c08dc7e5b76a6df87f6bf625e15a0dddca960ab33e9b"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/047_aligned/047_aligned/images.txt",
+            "sha256": "8c83d3c43be9ebc5a73b7b72474d8a66a96920e9b7c6a624c8a0b2e05675621e"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/048_aligned/048_aligned/images.txt",
+            "sha256": "bd693f9178e23ce4bc56218319971dabfff0a891e869ddda2d4533ac895a9611"
+          },
+          {
+            "path": "3D-models/individual/colmap_reconstructions/049_aligned/049_aligned/images.txt",
+            "sha256": "c77502d420f8c8f4013943a14611c986ef2ebde81f43451b39a3bbe1e6b88177"
+          }
+        ],
+        "colmap_pose_bundle_sha256": "659fb73a6f96015fb8528313ebd57a320de69767285b0ed8feebbb78ddbfd755",
+        "colmap_model_image_counts": {
+          "001_aligned": 564,
+          "002_aligned": 297,
+          "003_aligned": 372,
+          "004_aligned": 855,
+          "005_aligned": 600,
+          "006_aligned": 699,
+          "007_aligned": 306,
+          "008_aligned": 363,
+          "009_aligned": 561,
+          "010_aligned": 300,
+          "011_aligned": 342,
+          "012_aligned": 300,
+          "013_aligned": 303,
+          "014_aligned": 300,
+          "015_aligned": 336,
+          "016_aligned": 303,
+          "017_aligned": 618,
+          "018_aligned": 594,
+          "019_aligned": 300,
+          "020_aligned": 297,
+          "021_aligned": 300,
+          "022_aligned": 612,
+          "023_aligned": 786,
+          "024_aligned": 714,
+          "025_aligned": 681,
+          "026_aligned": 303,
+          "027_aligned": 303,
+          "028_aligned": 303,
+          "029_aligned": 300,
+          "030_aligned": 300,
+          "031_aligned": 303,
+          "032_aligned": 300,
+          "033_aligned": 300,
+          "034_aligned": 303,
+          "035_aligned": 591,
+          "036_aligned": 618,
+          "037_aligned": 600,
+          "038_aligned": 618,
+          "039_aligned": 795,
+          "040_aligned": 330,
+          "041_aligned": 303,
+          "042_aligned": 303,
+          "043_aligned": 327,
+          "044_aligned": 336,
+          "045_aligned": 300,
+          "046_aligned": 411,
+          "047_aligned": 303,
+          "048_aligned": 309,
+          "049_aligned": 300
+        },
+        "train_reference_pose_overlap_count": 0,
+        "train_reference_max_center_disagreement_meters": null,
+        "primary_source_urls": [
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/README_RobotCar_v2.md",
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/README_RobotCar-Seasons.md",
+          "https://data.ciirc.cvut.cz/public/projects/2020VisualLocalization/RobotCar-Seasons/robotcar_v2_train.txt"
+        ],
+        "limitations": "Custom position-only retrieval diagnostic on public train poses, not official test. All camera sides are eligible positives; no viewpoint/visibility/orientation filter. Official test query poses are not public and are never inferred here."
+      },
+      "gallery_sha256": "19cb34e05b961988e7d64af02782599e7e18ff8493ab2523bf0e313c521833de",
+      "query_sha256": "604d9516c87d0b86420183df070009506162ff19e2029734fd7d8840995e819a"
+    }
+  },
+  "limits": [
+    "Exploratory, historically inspected external protocols; no significance or blind-test claim",
+    "RobotCar public train-pose retrieval diagnostics, not official withheld test",
+    "Tokyo local v3 query bytes not independently verified against v2",
+    "SF-XL remains reserved; Aachen and official RobotCar test lack local public positives",
+    "P0 and Source-scale axes use different Source sampling/banks",
+    "Real versus synthetic auxiliary does not isolate pairing causality"
+  ],
+  "provenance": {
+    "queue_summary": {
+      "path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/summary.json",
+      "sha256": "b5fbc23d140d42f77a970557d8b7b28302d93c8f96e4d10a4ed19646af8fb3ee"
+    },
+    "queue_status": {
+      "path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/status.json",
+      "sha256": "fa1bfde875db537527d0990b795711e4c02477b2ec2a11dedb2cec3a83098fce"
+    },
+    "frozen_plan": {
+      "path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/experiment_plan.json",
+      "sha256": "1497fbe853441cc4596517e6abbc460b70f949ebd12588ac5e8516a0eba65ca7"
+    },
+    "raw_result_sha256": {
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.svox_test.json": "d613a0e125af28b5709ca6d2aaeb3cc5582bff4c7ddc74090b63c65d97727182",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.svox_test.json": "a2b7b9bdbdac89b59182b6ae3b12a020680f1237945b0e6b04112357ee55e8d3",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.svox_test.json": "9b5a0007492f9c0a4e5fd2c1ec27010ab1986959598531f2941e2e2a5e1aaafc",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.svox_test.json": "2c2e430f1004be8f17371ffdc9802d01fd05616c9a10b85d63d5f88b757bc6f0",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.svox_test.json": "8e7f5f57d7aa2a9ce10a3d4626eb90fd5d5c5dbe057bb4e7fac4c6d411179d40",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.svox_test.json": "bc2cf49f6c1fdb6625bb82d866d18447c5c3a70850d91f975fd990cdd5cbdd61",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.svox_test.json": "83e178cb67f60e19d7154eea38c1fb71baf6603ed74f3581b67df204306f2dc3",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.svox_test.json": "1fb093c9b9a13bf9bfcff03ae63a6a6e8ca18b561a2e47f98226ce484d9ec36e",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.svox_test.json": "301d6e97dfe124e986159d372eb548123dc984eb8bce4e970fecc1904208c22d",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.svox_test.json": "8fe251d9c97ac212865d2c42acab788c442f12f19629fdea71382cd9c37af23f",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.svox_test.json": "c785c44e6c122d03128d26d12729731b64cc23a8f47b004ebafd398e17d03147",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.svox_test.json": "86da07e1ce17698b59e01a73dc736e156fe57a5ed362182ffdd8dfa39468381c",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.svox_test.json": "240385dd2afe68c09905c65c2cfb1e88f0f818d6e48baa9a1c6919827a20eac9",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.tokyo247_night.json": "1d84c3dfbf7d527afdd1a1645edcd59f5938a47e97932c5714a49fa8948bee75",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.tokyo247_night.json": "737c462d3bf82976a81459c1810ab9b1491eb42ab68a33b3e99997053411cfdd",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.tokyo247_night.json": "1eabb1ac5f7baef755e08ba8e754930438c3b700c5b09a6412fa927bbaad00c7",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.tokyo247_night.json": "bb576b34bc767d1b1c445065cf89d34249b06ef81bd22d666d1a7bb44f6a8388",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.tokyo247_night.json": "32972fc3bdf29830c55962252be6924a4707d9aed47181baad4b63f9d0c64598",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.tokyo247_night.json": "631426d6993ace4fe0a1ffba6e99931e65c93eba17aa6239541ece4d3d37f66c",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.tokyo247_night.json": "af6f23aeda297de9e865d6d08c4745c3a221e6be291a1477dbedd6a3cda5dce0",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.tokyo247_night.json": "af17ff6cf7fce27d3ccfedb42a2a423f4689846a25f3d8118c6c994bd82b9230",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.tokyo247_night.json": "d0168a96e368c30cb3889166e8fab67e2285285dc083e2bee33b3e6534d01baa",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.tokyo247_night.json": "66d0ae1aeb467c24c6600b02a836fb3d3ba93bb259eb262ae961efdf7c70bcce",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.tokyo247_night.json": "ae1296ecfef1515451e4597bfebbb93ee7e8d46d60ad387c562d35fa72afef51",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.tokyo247_night.json": "ce286b99447645cb45773ceea33e0594b60040a4a099c6d8895733383beb46ad",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.tokyo247_night.json": "a4f4ef9b1b1da43e1162f4eb7ca546079c2e5eb76102209574ce731ce6db3f81",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.robotcar_night.json": "5935265ab3a2e5815b0eda22a6f0d4d0131e44eb8aef78951a11c490a6b3fecd",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.robotcar_night.json": "cb2b433c34351c76d76a2a800b12b1089826cf4b08e79ca74ba18ee43c41e4d6",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.robotcar_night.json": "4d2bd617dfcd32eae5f6c084d8e8c4f8ceee736607481c7df67e7f8cec16ecd7",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.robotcar_night.json": "dbf4e2db2d5253748f3e747917aadf1597f175091a036169be962fa1588413d5",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.robotcar_night.json": "818821adaafc3b29a54d598e051193ffb060d707e9d1e9badcd6b6ea452e9457",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.robotcar_night.json": "a72d404dd5821a0a9fe5b23dbd096b345f3599856bb3449f4aa1c2ab52d2f85a",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.robotcar_night.json": "29223104c1e9288fc37bf617c892efb723385f856b2b684e1ede3ce1b1e6e4f0",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.robotcar_night.json": "24da79a4d0bebe4ca5618b2316853f87b3057919d74fdd3436fd442308b7d212",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.robotcar_night.json": "e6e7c15a25bdb710bfe614500efcc193d992b8bdc69f9382fa586e4a3821bad2",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.robotcar_night.json": "00342485f7664ec78c81fc30aa1e7758d14dfeec654d4eb3aa1f4d41c6d0ddb7",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.robotcar_night.json": "674005c4b6a7023100bf1e399bb8e63beef60dfe5152646912af7237ec6e3a6a",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.robotcar_night.json": "cc0fb0833fd5b13a9e3af8c0fd438a611a989773e35838b95f212f07c64cc3b4",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.robotcar_night.json": "028e79598fdbcb5d7afbb18d328bf7775c53982a277557f717a6198a3b1b7516",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_A.robotcar_night_rain.json": "3187c5d0e26369ed5f22c291f3c68d3462d42b42560e5c7d82a39d1fca538749",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_B.robotcar_night_rain.json": "494a8bdbe2a4ce4fa8df1d6315afc637cf0da5e037e3ceb54f115eef26e446cc",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed42_C.robotcar_night_rain.json": "71c7a655e5b8d0e55cb5813e80cb7ab59a92aef510de15125076345640b2df12",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_A.robotcar_night_rain.json": "48ec28cfab75ea57c89b1a5f8d9dcf682aef09e329e5da5a5aa4dc8fdf1d829c",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_B.robotcar_night_rain.json": "b914ef19a59cb0577ac81cb96fa352e03b60c372fc483ae9affba96dec659083",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed43_C.robotcar_night_rain.json": "7bf3172756bab71a336841978e8add962d7de0caf87351a64743e2caea79bbfd",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_A.robotcar_night_rain.json": "759c7c49d3fe9ba991ea2eb4c93684cd4b5922b29422224e5fdbb40c97d677e8",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_B.robotcar_night_rain.json": "e7fd5dbce89e2f2e0c31c6756ff290bd782e6e7eab7a4a75461a69cc7b225262",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/seed44_C.robotcar_night_rain.json": "925db16f3fc32fc5e28769dc9f71e747afe537a6e88d65c21f82d87777491b68",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_A.robotcar_night_rain.json": "f482b01326cc2269e9d95d6dec41b20e3b0fd26a783cb15606fc0b70d78d2193",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G1_B.robotcar_night_rain.json": "40f76710b3846eba434f912e65fe4be489204138860d50032d2332dc4bb536f8",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_A.robotcar_night_rain.json": "6ca43fc484d03394cc3fdc5191e2a6477e543dff0507a08f178e1806b9f96d71",
+      "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/G2_B.robotcar_night_rain.json": "30450fa41531ad8dc6f1b8b5676f50c4b8bdd2316d19b2f34aaeac7ac6c2d000"
+    },
+    "figure": {
+      "path": "/home/admin123/github/WeatherVPR/outputs/revised_external_night_20261025/figures/external_night_top1_comparisons.png",
+      "sha256": "c81906b45f8095e5d4ac02ede5a1c735c1150e900c26918af3f24c3a006cd105"
+    },
+    "frozen_code_zip": {
+      "path": "/home/admin123/github/WeatherVPR/runs/revised_external_night_20261025/code_snapshot.zip",
+      "sha256": "3614c482690996d23d838a98efb6ebadb4c15ff8bacb8ab426f860fa0911927f"
+    }
+  }
+}

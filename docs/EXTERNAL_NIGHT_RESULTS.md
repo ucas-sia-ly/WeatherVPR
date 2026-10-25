@@ -1,5 +1,11 @@
 # 其他夜间数据集评估（2026-10-24）
 
+2026-10-25 补充：修订方案的 13 个固定模型已完成全部 **52 次**外部夜间评测，见 [新一轮完整报告](../outputs/revised_external_night_20261025/report.md) 和 [三 seed / 规模对比图](../outputs/revised_external_night_20261025/figures/external_night_top1_comparisons.png)。以下保留 2026-10-24 历史模型的原始记录，不将其混入本轮三 seed 统计。
+
+新一轮真实配对 B 的三 seed 平均 Top-1：SVOX test 92.71%、Tokyo247 Night 84.76%、RobotCar public Night 90.86%、Night-rain 95.09%；相对原始 Day 分别为 0、−1.90、0、−0.45 个百分点，尚未呈现稳定超越原始模型的收益。独立 Source 池 G2−G1 的 B Top-1 净变化依次为 0、0、−1、0 张；扩大池的互补性仍未确立。
+
+本轮使用原生 224、FP32、固定原始 Day Gallery，无融合或 TTA，没有更新权重。可用 `python scripts/run_revised_night_evaluation.py --output runs/new_external_replay` 在全新目录复现；`--plan-only` 仅冻结计划。队列逐项经内存保护运行，记录权重、查询、真值、图库和代码哈希。RobotCar 仍为公开位姿检索诊断；Aachen / RobotCar 官方 test 缺少本地可信正样本真值，SF-XL 继续保留。
+
 ## 固定模型与评估设置
 
 本轮评估已有 Night 专用全参数 DINOv2，没有训练、微调或根据新测试分数调整配置。
