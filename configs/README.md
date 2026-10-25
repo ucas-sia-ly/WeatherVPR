@@ -59,3 +59,23 @@ OUTPUT=runs/night_full_sgpd_replay_02 \
 `night_token_stage2.sh` 用 `STAGE2_ARM=T0|T1|T2|T3` 固定普通 Token 增强与真实配对监督的 2×2 对照；只有 Qwen 主分支在 block 7 后增强部分 Patch，CLS 不直接修改，推理关闭。四组均从原始 Day 权重初始化，沿用 fast 后端与 4×2 的主有效批次。
 
 推荐运行 `python scripts/run_token_style_stage2.py --run-root runs/night_token_stage2_new_seed42`，由队列统一冻结参数、串行内存保护、训练和 SVOX 开发评估；真实审核与 Day 缓存默认从阶段一 latest 复用。实施细节及预检查见 [阶段二运行](../docs/NIGHT_TOKEN_STAGE2.md)，该实验不自动引入扩散模型或依据外部 test 搜索参数。
+
+## 修订方案：多 seed、域覆盖与独立 Source 地点扩展
+
+统一后端多 seed 使用 `scripts/run_stage1_multiseed.py --output runs/new_multiseed`：新增 seeds 43、44 的 A/B/C，复用历史 seed 42，固定 microbatch4×累积2、Source1、额外辅助1，只评估开发集。`--plan-only` 生成冻结计划；`--max-steps 3 --skip-evaluation` 只作实现验证。
+
+独立 Source 规模入口为 `night_gsv_scale.sh`，使用 `GSV_SCALE=G1|G2` 和 `GSV_SCALE_ARM=A|B`。每档配置 `GSV_G1_MANIFEST` / `GSV_G2_MANIFEST` 及不同的 `GSV_G1_CACHE` / `GSV_G2_CACHE`；manifest 必须附带来源/排除证据签名。Source 独立采样，使用该档 Source-only 训练 bank，主 Qwen 流和 bank 固定。B 还须设置 `REAL_PAIRS_REVIEW` 与真实目标缓存，默认真实权重0.1。
+
+```bash
+export PYTHON=/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python
+GSV_SCALE=G2 GSV_SCALE_ARM=A \
+GSV_G2_MANIFEST=outputs/revised_plan_20261025/data_inventory/g2_day.jsonl \
+GSV_G2_CACHE=runs/cache/new_G2_source_day.safetensors \
+OUTPUT=runs/new_G2_A \
+  "$PYTHON" scripts/run_bounded.py --max-gib 7 --high-gib 6 --reserve-gib 2 \
+  --log runs/new_G2_A.memory.jsonl -- bash configs/night_gsv_scale.sh
+```
+
+先使用 `scripts/prepare_research_sources.py` 生成训练来源清单；`scripts/analyze_domain_coverage.py` 只测量冻结模型的统计覆盖与实际扰动，不运行检索或自动打开真实供体。完整边界与本地数据数量见 [修订方案实现](../docs/REVISED_RESEARCH_IMPLEMENTATION.md)。
+
+四单元队列可使用 `python scripts/run_gsv_scale.py --output runs/new_scale_smoke --max-steps 3 --skip-evaluation` 先验证并构建 Source 缓存，再用新目录执行 `python scripts/run_gsv_scale.py --output runs/new_scale_seed42 --seed42`。完整模式要求缓存已就绪，冻结输入与代码后逐组训练和评估 SVOX dev；不复用历史 A/B 作为独立 Source 的 G1。

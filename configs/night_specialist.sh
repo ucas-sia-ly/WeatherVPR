@@ -12,6 +12,8 @@ if [[ -n "${INIT_ADAPTER_DIR:-}" ]]; then EXTRA_ARGS+=(--init-adapter-dir "$INIT
 if [[ -n "${REAL_PAIRS_ROOT:-}" ]]; then EXTRA_ARGS+=(--real-pairs-root "$REAL_PAIRS_ROOT"); fi
 if [[ -n "${REAL_PAIRS_REVIEW:-}" ]]; then EXTRA_ARGS+=(--real-pairs-review "$REAL_PAIRS_REVIEW"); fi
 if [[ -n "${AUXILIARY_DAY_CACHE:-}" ]]; then EXTRA_ARGS+=(--auxiliary-day-cache "$AUXILIARY_DAY_CACHE"); fi
+if [[ -n "${SOURCE_DAY_MANIFEST:-}" ]]; then EXTRA_ARGS+=(--source-day-manifest "$SOURCE_DAY_MANIFEST"); fi
+if [[ -n "${SOURCE_DAY_CACHE:-}" ]]; then EXTRA_ARGS+=(--source-day-cache "$SOURCE_DAY_CACHE"); fi
 if [[ "${COMPACT_BATCHES:-0}" == 1 ]]; then EXTRA_ARGS+=(--compact-batches); fi
 "${PYTHON:-python}" scripts/train.py \
   --checkpoint "${CKPT:-weights/dino_salad.ckpt}" \
@@ -37,6 +39,9 @@ if [[ "${COMPACT_BATCHES:-0}" == 1 ]]; then EXTRA_ARGS+=(--compact-batches); fi
   --source-night-weight "${SOURCE_NIGHT_WEIGHT:-0.5}" \
   --source-night-samples "${SOURCE_NIGHT_SAMPLES:-2}" \
   --source-night-config "${SOURCE_NIGHT_CONFIG:-configs/source_night.json}" \
+  --source-day-cache-batch-size "${SOURCE_DAY_CACHE_BATCH_SIZE:-64}" \
+  --source-day-cache-workers "${SOURCE_DAY_CACHE_WORKERS:-4}" \
+  --source-day-bank-device "${SOURCE_DAY_BANK_DEVICE:-cpu}" \
   --auxiliary-mode "${AUXILIARY_MODE:-none}" \
   --auxiliary-weight "${AUXILIARY_WEIGHT:-0.1}" \
   --auxiliary-samples "${AUXILIARY_SAMPLES:-2}" \

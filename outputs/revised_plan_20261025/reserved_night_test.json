@@ -1,0 +1,14 @@
+{
+  "candidate": "SF-XL night",
+  "query_count": 466,
+  "query_paths_sha256": "eca0447ff75b224c6d3bb388f97fe55718b05a9c0a6cc09f6b3fe0b40897cb42",
+  "database_present": true,
+  "database_pathlist_present": true,
+  "readme_present": true,
+  "inspection": "path names and local documentation only",
+  "query_descriptors_extracted": false,
+  "retrieval_evaluated": false,
+  "query_images_inspected_for_model_selection": false,
+  "blind_status": "candidate_only_requires_training_history_overlap_and_protocol_audit",
+  "note": "No evidence of use in current repo scripts/docs; other project/user history is not certified."
+}

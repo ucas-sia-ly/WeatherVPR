@@ -19,7 +19,9 @@ class TrainingConfigTests(unittest.TestCase):
                             'from pathlib import Path\n'
                             'Path(os.environ["ARGUMENT_CAPTURE"]).write_text(json.dumps(sys.argv[1:]))\n')
             stub.chmod(0o755)
-            env = dict(os.environ, PYTHON=str(stub), ARGUMENT_CAPTURE=str(capture),
+            env = {key: value for key, value in os.environ.items()
+                   if key not in {'FULL_TRAIN_SCOPE', 'FULL_TRAIN_BLOCKS', 'NUM_WORKERS'}}
+            env.update(PYTHON=str(stub), ARGUMENT_CAPTURE=str(capture),
                        NIGHT_AUGMENTATION='camera', AUGMENTATION_STRENGTH='0.7',
                        AUGMENTATION_PROBABILITY='0.9', AUGMENTATION_CONFIG='ranges.json',
                        AUGMENTATION_EPOCH_OFFSET='3')

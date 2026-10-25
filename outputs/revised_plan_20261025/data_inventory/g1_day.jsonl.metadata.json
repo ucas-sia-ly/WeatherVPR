@@ -1,0 +1,78 @@
+{
+  "counts": {
+    "cities": {
+      "Bangkok": 1299,
+      "Barcelona": 247,
+      "Boston": 254,
+      "Brussels": 244,
+      "BuenosAires": 523,
+      "Chicago": 221,
+      "Lisbon": 244,
+      "London": 236,
+      "LosAngeles": 371,
+      "Madrid": 223,
+      "Medellin": 388,
+      "Melbourne": 242,
+      "MexicoCity": 236,
+      "Miami": 255,
+      "Minneapolis": 277,
+      "OSL": 262,
+      "Osaka": 256,
+      "PRG": 250,
+      "PRS": 223,
+      "Phoenix": 299,
+      "Rome": 230,
+      "TRT": 239,
+      "WashingtonDC": 244
+    },
+    "images": 7263,
+    "unique_places": 6441,
+    "views_per_place_histogram": {
+      "1": 5619,
+      "2": 822
+    }
+  },
+  "evaluation_gallery_changed": false,
+  "exclusion_evidence": {
+    "configs/dino_salad_calibration_excluded_places.json": "2c295fe7ac282f08f88f705787f0e8628d7c9e8972638ca42c86407e5eea721a",
+    "data/splits/heldout_places.json": "4715c7c92fc7d46840806d9312f40be34ba80202570e07ce75883d0c36579816",
+    "data/splits/night_val.jsonl": "a5a9ff85580a4efbf825ccbca8ab55b0533753b5a42685d5c9aad551621de3f4",
+    "third_party/salad/configs/splits/ccr_reserved_places.json": "ae2306441ebfea90b02573616225ec4dccc9001fcc11cea3dd210dcd93555961"
+  },
+  "exclusion_files": {
+    "configs/dino_salad_calibration_excluded_places.json": "2c295fe7ac282f08f88f705787f0e8628d7c9e8972638ca42c86407e5eea721a",
+    "data/splits/heldout_places.json": "4715c7c92fc7d46840806d9312f40be34ba80202570e07ce75883d0c36579816",
+    "outputs/revised_plan_20261025/data_inventory/excluded_gsv_places.json": "4715c7c92fc7d46840806d9312f40be34ba80202570e07ce75883d0c36579816"
+  },
+  "kind": "gsv_day_train",
+  "manifest_sha256": "fbe6c4284e0c275ba242be14acd5787b6138965b8b8517828af30e173061d187",
+  "qwen_manifest": "data/splits/night_train.jsonl",
+  "qwen_manifest_sha256": "0c2697fb46f4a1be31834e82544186387bef43ab2bd036d1e7996cdfe9f4a94d",
+  "schema_version": 1,
+  "seed": 42,
+  "source_csvs": {
+    "data/gsv-cities/Dataframes/Bangkok.csv": "182c1895acd646af205c6332171dae19cb91665abd288b32266ad61633359856",
+    "data/gsv-cities/Dataframes/Barcelona.csv": "ec18750328c15acd4ca359b22ce6729e6e665144a9461eb1fac01da31abc8946",
+    "data/gsv-cities/Dataframes/Boston.csv": "77eb9248bfe478d734abfb89b407702972711f795fa3f3174a2c2206429ed4ec",
+    "data/gsv-cities/Dataframes/Brussels.csv": "48dc691f2fa7f43db77ce77b51789ffaf75d49c4d9aaf711128c7c243cab9c2d",
+    "data/gsv-cities/Dataframes/BuenosAires.csv": "cf8d890ae9e7ce8d1c631eb3b873915874c73edd450c34cd142b29320b67eb34",
+    "data/gsv-cities/Dataframes/Chicago.csv": "8a9e1113b6144d2a04a6f25711026c9461458b0b754bfc3c0ef042a8ac348026",
+    "data/gsv-cities/Dataframes/Lisbon.csv": "471330aa627bd3ced9526453c35429122ff56108a45d44844ddb2c89ba3d1b01",
+    "data/gsv-cities/Dataframes/London.csv": "a5889c1883b53bd5a38130a675e092186ada11ce696d3ee7274ee072735d56d8",
+    "data/gsv-cities/Dataframes/LosAngeles.csv": "821108305d3c9e762ca42023aaed3ea741f47d7418061928352d5413fdf010f4",
+    "data/gsv-cities/Dataframes/Madrid.csv": "bb4529532cfa58ca1148eff1a94f03cfb219c736a511ca64ffc5e0a9ee53a929",
+    "data/gsv-cities/Dataframes/Medellin.csv": "365fbf7764b96d8df2da04c4c462fa778e25c16861cbcaae022efc3a4dd0a61a",
+    "data/gsv-cities/Dataframes/Melbourne.csv": "fe2d02284e51804622273c4095adf00e2359094477a7c635bfad7303dcd04e9e",
+    "data/gsv-cities/Dataframes/MexicoCity.csv": "82b5321510e24f402c21af4cfbd3cb62d02a1c9875a9e2ae19855f494c9b28d2",
+    "data/gsv-cities/Dataframes/Miami.csv": "29da948b32365d2bbe5865bf64c1f02f1aa3b7758bea37d14ff5f9cfd529142d",
+    "data/gsv-cities/Dataframes/Minneapolis.csv": "6c46cd2918c986a9a7b8a945bffabea64e76e7e77f128a2494691b05e77ed27d",
+    "data/gsv-cities/Dataframes/OSL.csv": "652c9f270974d7bc4e82ff5929846bc64f1809b222d1e2beb302f1bb4d063b1f",
+    "data/gsv-cities/Dataframes/Osaka.csv": "b17b5c6f1c453eacc4ecf6006817346e9e62c6e36fbd5cb63db88377b171ff8d",
+    "data/gsv-cities/Dataframes/PRG.csv": "54cf75a9c8272e7d7b92192eff816a98a94b4be9ca86cdc8f43c345b611eabae",
+    "data/gsv-cities/Dataframes/PRS.csv": "4dfde0dc6998593a01bae913404e4f8d8465853a14301267e44876d0d00b664d",
+    "data/gsv-cities/Dataframes/Phoenix.csv": "1a3205798fe6f696f6d8759a5d73b86dd40d5a52e9b93a156dfa8bb7c83f3b32",
+    "data/gsv-cities/Dataframes/Rome.csv": "18e3763ab8210fb0b36035904236d62f481ff42e8e19760737b85b611dc3351b",
+    "data/gsv-cities/Dataframes/TRT.csv": "566e664f60a28d3ef12e0c9ad45b98faa961e79ef64514a1b101ae08f6315190",
+    "data/gsv-cities/Dataframes/WashingtonDC.csv": "10d6b06236e0d226e6eebb582af041b981f0c36ff1c62c62243b9bcffa0cb5af"
+  }
+}

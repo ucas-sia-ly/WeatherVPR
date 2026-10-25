@@ -119,6 +119,7 @@ def arm_environment(args, arm: str) -> dict[str, str]:
         NIGHT_AUGMENTATION='camera', AUGMENTATION_CONFIG='configs/night_camera.json',
         AUGMENTATION_STRENGTH='1', AUGMENTATION_PROBABILITY='0.8', AUGMENTATION_EPOCH_OFFSET='0',
         SOURCE_NIGHT_CONFIG='configs/source_night.json', EXCLUDE_PLACES='data/splits/heldout_places.json',
+        SOURCE_DAY_MANIFEST='', SOURCE_DAY_CACHE='',
         INIT_ADAPTER_DIR='', DINO_DIR='third_party/dinov2', PATCH_VISIBILITY='off',
         IMPORTANCE_MODE='saliency', MIN_TEACHER_KEEP='0.01',
     )

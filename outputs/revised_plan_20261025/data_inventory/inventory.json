@@ -1,0 +1,300 @@
+{
+  "excluded_places": 480,
+  "exclusion_evidence": {
+    "configs/dino_salad_calibration_excluded_places.json": "2c295fe7ac282f08f88f705787f0e8628d7c9e8972638ca42c86407e5eea721a",
+    "data/splits/heldout_places.json": "4715c7c92fc7d46840806d9312f40be34ba80202570e07ce75883d0c36579816",
+    "data/splits/night_val.jsonl": "a5a9ff85580a4efbf825ccbca8ab55b0533753b5a42685d5c9aad551621de3f4",
+    "third_party/salad/configs/splits/ccr_reserved_places.json": "ae2306441ebfea90b02573616225ec4dccc9001fcc11cea3dd210dcd93555961"
+  },
+  "image_verification": "path_and_annotation_binding_only",
+  "kind": "train_only_research_inventory",
+  "manifests": {
+    "bdd_train_night": {
+      "path": "outputs/revised_plan_20261025/data_inventory/bdd_train_night.jsonl",
+      "sha256": "c0451ac0d65d43b5f2ae900c1423ba71dfa3d3904cec24b9ad2f92a69565f44b"
+    },
+    "combined": {
+      "path": "outputs/revised_plan_20261025/data_inventory/train_sources.jsonl",
+      "sha256": "491f0b62c9bfd3985902d0bb8004576e965f4430be7299cdb13041e09d042a76"
+    },
+    "darkdriving_train_night": {
+      "path": "outputs/revised_plan_20261025/data_inventory/darkdriving_train_night.jsonl",
+      "sha256": "6488dbe00374acbdbdb9a9917b2ce88faca99fc9554091b3bdee57c634ea9868"
+    },
+    "g1_day": {
+      "metadata": "outputs/revised_plan_20261025/data_inventory/g1_day.jsonl.metadata.json",
+      "path": "outputs/revised_plan_20261025/data_inventory/g1_day.jsonl",
+      "sha256": "fbe6c4284e0c275ba242be14acd5787b6138965b8b8517828af30e173061d187"
+    },
+    "g2_day": {
+      "metadata": "outputs/revised_plan_20261025/data_inventory/g2_day.jsonl.metadata.json",
+      "path": "outputs/revised_plan_20261025/data_inventory/g2_day.jsonl",
+      "sha256": "1f539c9ba9d79ad97d318e5d651b55112afe37784c0b880046b1c9a8f21535f9"
+    },
+    "nightcity_train": {
+      "path": "outputs/revised_plan_20261025/data_inventory/nightcity_train.jsonl",
+      "sha256": "f5ecb85be43a2fcaef777205f105bc57af42eb191e48ddd40bc417555d6e7601"
+    },
+    "qwen_night": {
+      "path": "outputs/revised_plan_20261025/data_inventory/qwen_night.jsonl",
+      "sha256": "8a337bf396464b32333e8d01a189cb6485895a6fea823dcd9712d358b6b894df"
+    },
+    "source_night": {
+      "path": "outputs/revised_plan_20261025/data_inventory/source_night.jsonl",
+      "sha256": "cc5aa80ecb262874acc8a46400a144bed782db2b40348b3db00c3da512b1a8b0"
+    }
+  },
+  "route_independence_certified": false,
+  "schema_version": 1,
+  "seed": 42,
+  "source_counts": {
+    "bdd_train_night": {
+      "groups": 27971,
+      "rows": 27971,
+      "unique_sample_ids": 27971
+    },
+    "darkdriving_train_night": {
+      "groups": 9286,
+      "rows": 9520,
+      "unique_sample_ids": 9520
+    },
+    "nightcity_train": {
+      "groups": 2998,
+      "rows": 2998,
+      "unique_sample_ids": 2998
+    },
+    "qwen_night": {
+      "groups": 6441,
+      "rows": 7263,
+      "unique_sample_ids": 7263
+    },
+    "source_night": {
+      "groups": 6441,
+      "rows": 7263,
+      "unique_sample_ids": 7263
+    }
+  },
+  "sources": {
+    "bdd": {
+      "annotation": "data/bdd100k/labels/bdd100k_labels_images_train.json",
+      "annotation_sha256": "c1998792e385fd79213187576ca07d5249563d0ab83ae976688ad60668baca9e",
+      "container_names_are_not_splits": true,
+      "geographic_independence_known": false,
+      "local_image_count": 70000,
+      "local_official_train_night": 27971,
+      "missing_train_night_images": 0,
+      "official_train_night": 27971,
+      "official_train_records": 69863
+    },
+    "darkdriving": {
+      "accepted_all_splits": 9520,
+      "accepted_status_counts": {
+        "automatic": 9520
+      },
+      "accepted_train": 9520,
+      "exact_content_groups": 9286,
+      "geographic_places_known": false,
+      "limitation": "Exact content and filename sequence are not geographic/route labels; automatic acceptance is not manual review.",
+      "near_duplicate_groups_verified": false,
+      "review_manifest_sha256": "824523b103197009f5a57ac0229a09874f0bb83f639b2be145d481d8fb324def",
+      "review_status_counts": {
+        "automatic": 9520
+      },
+      "reviewed_records": 9520,
+      "route_independence_certified": false,
+      "sequence_counts": {
+        "1_1": 203,
+        "1_2": 265,
+        "1_3": 244,
+        "2_1": 248,
+        "2_2": 253,
+        "2_3": 276,
+        "3_1": 331,
+        "3_2": 309,
+        "3_3": 327,
+        "4_1": 295,
+        "4_2": 287,
+        "4_3": 252,
+        "in_1": 1147,
+        "in_2": 1465,
+        "in_3": 1219,
+        "in_4": 1253,
+        "in_5": 1,
+        "in_6": 114,
+        "in_7": 114,
+        "out_1": 326,
+        "out_2": 287,
+        "out_3": 155,
+        "out_4": 149
+      },
+      "source_manifest_sha256": "b02e4d06cc24e489a44b18252eb4509ca29dc535823a2ce656adb8a0786b3761",
+      "source_pairs": 9520,
+      "split_counts": {
+        "train": 9520
+      },
+      "train_scene_groups": {
+        "whole_closed_driving_field_train_only": 9520
+      },
+      "unique_day_file_hashes": 9492,
+      "unique_day_pixel_hashes": 9492,
+      "unique_night_file_hashes": 9314,
+      "unique_night_pixel_hashes": 9314,
+      "unrecorded_source_pairs": 0
+    },
+    "gsv": {
+      "csv_rows": 529506,
+      "csv_unique_places": 64394,
+      "eligible_existing_places": 63914,
+      "evaluation_gallery_changed": false,
+      "excluded_places": 480,
+      "excluded_places_present_in_csv": 480,
+      "existing_csv_image_rows": 529506,
+      "existing_csv_rows_per_city": {
+        "Bangkok": 22271,
+        "Barcelona": 15894,
+        "Boston": 32616,
+        "Brussels": 14171,
+        "BuenosAires": 8481,
+        "Chicago": 34091,
+        "Lisbon": 27045,
+        "London": 58672,
+        "LosAngeles": 8891,
+        "Madrid": 14554,
+        "Medellin": 6024,
+        "Melbourne": 28542,
+        "MexicoCity": 12801,
+        "Miami": 43637,
+        "Minneapolis": 22326,
+        "OSL": 9756,
+        "Osaka": 22605,
+        "PRG": 17590,
+        "PRS": 39963,
+        "Phoenix": 36251,
+        "Rome": 24068,
+        "TRT": 17712,
+        "WashingtonDC": 11545
+      },
+      "g1": {
+        "cities": {
+          "Bangkok": 1299,
+          "Barcelona": 247,
+          "Boston": 254,
+          "Brussels": 244,
+          "BuenosAires": 523,
+          "Chicago": 221,
+          "Lisbon": 244,
+          "London": 236,
+          "LosAngeles": 371,
+          "Madrid": 223,
+          "Medellin": 388,
+          "Melbourne": 242,
+          "MexicoCity": 236,
+          "Miami": 255,
+          "Minneapolis": 277,
+          "OSL": 262,
+          "Osaka": 256,
+          "PRG": 250,
+          "PRS": 223,
+          "Phoenix": 299,
+          "Rome": 230,
+          "TRT": 239,
+          "WashingtonDC": 244
+        },
+        "images": 7263,
+        "unique_places": 6441,
+        "views_per_place_histogram": {
+          "1": 5619,
+          "2": 822
+        }
+      },
+      "g2": {
+        "cities": {
+          "Bangkok": 1587,
+          "Barcelona": 437,
+          "Boston": 746,
+          "Brussels": 602,
+          "BuenosAires": 623,
+          "Chicago": 765,
+          "Lisbon": 1108,
+          "London": 1084,
+          "LosAngeles": 447,
+          "Madrid": 519,
+          "Medellin": 468,
+          "Melbourne": 812,
+          "MexicoCity": 368,
+          "Miami": 1183,
+          "Minneapolis": 785,
+          "OSL": 536,
+          "Osaka": 672,
+          "PRG": 854,
+          "PRS": 1055,
+          "Phoenix": 945,
+          "Rome": 612,
+          "TRT": 617,
+          "WashingtonDC": 438
+        },
+        "images": 17263,
+        "unique_places": 11441,
+        "views_per_place_histogram": {
+          "1": 5619,
+          "2": 5822
+        }
+      },
+      "missing_csv_image_rows": 0,
+      "new_places_added": 5000,
+      "new_places_requested": 5000,
+      "note": "Known GSV place identities are annotation-backed; no new geographic independence certification is inferred.",
+      "qwen_manifest": "data/splits/night_train.jsonl",
+      "qwen_manifest_sha256": "0c2697fb46f4a1be31834e82544186387bef43ab2bd036d1e7996cdfe9f4a94d",
+      "seed": 42,
+      "selection": "SHA256 rank of explicit CSV city/place, retaining every G1 Day; minimum verified views required",
+      "source_csvs": {
+        "data/gsv-cities/Dataframes/Bangkok.csv": "182c1895acd646af205c6332171dae19cb91665abd288b32266ad61633359856",
+        "data/gsv-cities/Dataframes/Barcelona.csv": "ec18750328c15acd4ca359b22ce6729e6e665144a9461eb1fac01da31abc8946",
+        "data/gsv-cities/Dataframes/Boston.csv": "77eb9248bfe478d734abfb89b407702972711f795fa3f3174a2c2206429ed4ec",
+        "data/gsv-cities/Dataframes/Brussels.csv": "48dc691f2fa7f43db77ce77b51789ffaf75d49c4d9aaf711128c7c243cab9c2d",
+        "data/gsv-cities/Dataframes/BuenosAires.csv": "cf8d890ae9e7ce8d1c631eb3b873915874c73edd450c34cd142b29320b67eb34",
+        "data/gsv-cities/Dataframes/Chicago.csv": "8a9e1113b6144d2a04a6f25711026c9461458b0b754bfc3c0ef042a8ac348026",
+        "data/gsv-cities/Dataframes/Lisbon.csv": "471330aa627bd3ced9526453c35429122ff56108a45d44844ddb2c89ba3d1b01",
+        "data/gsv-cities/Dataframes/London.csv": "a5889c1883b53bd5a38130a675e092186ada11ce696d3ee7274ee072735d56d8",
+        "data/gsv-cities/Dataframes/LosAngeles.csv": "821108305d3c9e762ca42023aaed3ea741f47d7418061928352d5413fdf010f4",
+        "data/gsv-cities/Dataframes/Madrid.csv": "bb4529532cfa58ca1148eff1a94f03cfb219c736a511ca64ffc5e0a9ee53a929",
+        "data/gsv-cities/Dataframes/Medellin.csv": "365fbf7764b96d8df2da04c4c462fa778e25c16861cbcaae022efc3a4dd0a61a",
+        "data/gsv-cities/Dataframes/Melbourne.csv": "fe2d02284e51804622273c4095adf00e2359094477a7c635bfad7303dcd04e9e",
+        "data/gsv-cities/Dataframes/MexicoCity.csv": "82b5321510e24f402c21af4cfbd3cb62d02a1c9875a9e2ae19855f494c9b28d2",
+        "data/gsv-cities/Dataframes/Miami.csv": "29da948b32365d2bbe5865bf64c1f02f1aa3b7758bea37d14ff5f9cfd529142d",
+        "data/gsv-cities/Dataframes/Minneapolis.csv": "6c46cd2918c986a9a7b8a945bffabea64e76e7e77f128a2494691b05e77ed27d",
+        "data/gsv-cities/Dataframes/OSL.csv": "652c9f270974d7bc4e82ff5929846bc64f1809b222d1e2beb302f1bb4d063b1f",
+        "data/gsv-cities/Dataframes/Osaka.csv": "b17b5c6f1c453eacc4ecf6006817346e9e62c6e36fbd5cb63db88377b171ff8d",
+        "data/gsv-cities/Dataframes/PRG.csv": "54cf75a9c8272e7d7b92192eff816a98a94b4be9ca86cdc8f43c345b611eabae",
+        "data/gsv-cities/Dataframes/PRS.csv": "4dfde0dc6998593a01bae913404e4f8d8465853a14301267e44876d0d00b664d",
+        "data/gsv-cities/Dataframes/Phoenix.csv": "1a3205798fe6f696f6d8759a5d73b86dd40d5a52e9b93a156dfa8bb7c83f3b32",
+        "data/gsv-cities/Dataframes/Rome.csv": "18e3763ab8210fb0b36035904236d62f481ff42e8e19760737b85b611dc3351b",
+        "data/gsv-cities/Dataframes/TRT.csv": "566e664f60a28d3ef12e0c9ad45b98faa961e79ef64514a1b101ae08f6315190",
+        "data/gsv-cities/Dataframes/WashingtonDC.csv": "10d6b06236e0d226e6eebb582af041b981f0c36ff1c62c62243b9bcffa0cb5af"
+      },
+      "views_per_new_place": 2
+    },
+    "nightcity": {
+      "dataset_metadata": {
+        "data/NightCity/README.md": "dfbb29072a484cda2c057f12a20b69b1d15e42375f7f4ce35a2b0985a2e42fd5",
+        "data/NightCity/dataset_infos.json": "14a3274080b5a43aa92f603116210955aa40352343d65c616ed465208b2e895c",
+        "data/NightCity/metafile.yaml": "bb7ceb1c0644ea7e98bc352d9de0d6fe4621329e81757bf8479e5b5cdce59f55"
+      },
+      "geographic_independence_known": false,
+      "missing_train_images": 0,
+      "official_train_labels": 2998,
+      "train_images_with_label": 2998,
+      "train_label_identity_sha256": "5b5ef4241bbdfcfd7634a526370cd526987dbf91ec08669c1b8a6c5876fac0c3",
+      "val_test_images_used": 0
+    },
+    "qwen": {
+      "accepted_pairs": 7263,
+      "annotation": "data/splits/night_train.jsonl",
+      "annotation_sha256": "0c2697fb46f4a1be31834e82544186387bef43ab2bd036d1e7996cdfe9f4a94d",
+      "unique_places": 6441
+    }
+  },
+  "training_started": false,
+  "validation_test_images_used": false
+}

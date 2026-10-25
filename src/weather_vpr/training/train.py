@@ -33,6 +33,7 @@ from weather_vpr.training.auxiliary import (
     paired_global_alignment, AuxiliaryGradientProbe,
 )
 from weather_vpr.training.token_style import TokenStyleAugment
+from weather_vpr.training.source_stream import prepare_source_dataset, build_source_stream
 
 # Import the vendored SALAD backend from this project.
 enable_backend_imports()
@@ -107,6 +108,13 @@ def parse_args(argv=None):
                    help='Source-derived night views per microbatch; never clean Day Student inputs')
     p.add_argument('--source-night-config', type=Path,
                    help='JSON configuration for mandatory darkening and optional camera corruption')
+    p.add_argument('--source-day-manifest', type=Path,
+                   help='Opt-in independent CSV-verified GSV Day pool; Qwen main stream stays unchanged')
+    p.add_argument('--source-day-cache', type=Path,
+                   help='Independent frozen Day targets/negative bank for the new Source pool')
+    p.add_argument('--source-day-cache-batch-size', type=int, default=64)
+    p.add_argument('--source-day-cache-workers', type=int, default=4)
+    p.add_argument('--source-day-bank-device', choices=('cpu', 'cuda', 'auto'), default='cpu')
     p.add_argument('--auxiliary-mode', choices=('none', 'real', 'synthetic'), default='none',
                    help='Stage-one additional paired global supervision; never replaces the main batch')
     p.add_argument('--auxiliary-weight', type=float, default=0.1,
@@ -162,6 +170,19 @@ def parse_args(argv=None):
 
 def _validate(args):
     load_augmentation_config(args)
+    if args.source_day_cache_batch_size < 1 or args.source_day_cache_workers < 0:
+        raise ValueError('Source Day cache batch must be positive and workers nonnegative')
+    independent_source = args.source_day_manifest is not None and args.source_night_weight > 0
+    if independent_source:
+        if args.weather != 'night' or args.source_day_cache is None or args.fixed_day_bank is None:
+            raise ValueError('Independent Source requires Night, a separate Source Day cache and fixed main bank')
+        if args.source_day_cache.expanduser().resolve() == args.fixed_day_bank.expanduser().resolve():
+            raise ValueError('Independent Source Day cache must not overwrite the main GSV bank')
+        if args.auxiliary_day_cache is not None and (
+                args.source_day_cache.expanduser().resolve() == args.auxiliary_day_cache.expanduser().resolve()):
+            raise ValueError('Independent Source Day cache must not overwrite real paired Day targets')
+        if args.source_day_bank_device == 'cuda' and torch.device(args.device).type != 'cuda':
+            raise ValueError('CUDA Source bank requires CUDA training')
     for name in ('token_style_probability', 'token_style_fraction', 'token_style_strength'):
         value = getattr(args, name)
         if not math.isfinite(value) or not 0 <= value <= 1:
@@ -333,10 +354,12 @@ def main(argv=None):
             'loss': 'source_night_weight * (global_weight * global + contrast_weight * cross_domain_infonce)',
             'geometry': 'unchanged; no source-view patch supervision is introduced',
         }
+    source_day_dataset = prepare_source_dataset(args, model_size, source_night_config=source_night_config)
     dataset = AcceptedWeatherPairs(args.manifest, args.weather, model_size,
                                   args.exclude_places, args.verify_hashes,
                                   night_augmentation=augmentation_config, seed=args.seed,
-                                  source_night_config=source_night_config)
+                                  source_night_config=(None if source_day_dataset is not None
+                                                       else source_night_config))
     reviewed_pairs = prepare_auxiliary_dataset(args, model_size)
     loader_options = dict(num_workers=args.num_workers,
                           collate_fn=compact_training_batch if args.compact_batches else list,
@@ -431,6 +454,15 @@ def main(argv=None):
     auxiliary = build_auxiliary_branch(
         args, dataset, net, teacher_hash, preprocessing,
         day_descriptors=bank_descriptors, day_bank_info=bank_info, reviewed_pairs=reviewed_pairs)
+    source_stream = build_source_stream(
+        args, net, teacher_hash, preprocessing, dataset=source_day_dataset,
+        source_night_config=source_night_config)
+    if source_stream is not None:
+        source_night_info = {**source_night_info,
+            'scope': 'Independent CSV-verified training GSV Day pool; Qwen stream unchanged',
+            'seed_policy': ('source_seed(seed, view, epoch, microbatch_step, position, dataset_index); '
+                            'private sampler and complete Source input/forward/backward RNG context'),
+            'bank_policy': 'Separate Source-only fixed bank; original Qwen bank unchanged at every scale'}
     need_local = any(getattr(args, name) > 0 for name in
                      ('patch_weight','keep_weight','ot_weight','magnitude_weight','attention_weight'))
     need_attention = args.attention_weight > 0
@@ -447,6 +479,8 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     resolved_config = training_configuration(args, augmentation_info)
     resolved_config['effective_source_night'] = source_night_info
+    resolved_config['effective_source_stream'] = (source_stream.metadata() if source_stream is not None
+                                                 else {'enabled': False, 'mode': 'same_main_batch'})
     resolved_config['effective_full_train_scope'] = scope_info
     resolved_config['effective_patch_visibility'] = visibility_info
     resolved_config['effective_auxiliary'] = (auxiliary.metadata() if auxiliary is not None
@@ -467,10 +501,12 @@ def main(argv=None):
         'full_train_scope': scope_info, 'preprocessing': preprocessing,
         'auxiliary': resolved_config['effective_auxiliary'],
         'token_style': token_style_info,
+        'source_stream': resolved_config['effective_source_stream'],
         'train_code_sha256': sha256(Path(__file__)),
         'auxiliary_code_sha256': sha256(Path(__file__).with_name('auxiliary.py')),
         'token_style_code_sha256': sha256(Path(__file__).with_name('token_style.py')),
         'backbone_code_sha256': sha256(project_root() / 'third_party/salad/workflow/model.py'),
+        'source_stream_code_sha256': sha256(Path(__file__).with_name('source_stream.py')),
         'statement': 'Fixed training run budget; no test-driven selection is performed by this script',
     }, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
@@ -553,6 +589,8 @@ def main(argv=None):
             relation_teacher_temperature=args.relation_teacher_temperature,
             relation_hard_negatives=args.relation_hard_negatives,
             source_night=source_night_info,
+            source_stream=(source_stream.metadata() if source_stream is not None
+                           else {'enabled': False, 'mode': 'same_main_batch'}),
             auxiliary=(auxiliary.metadata() if auxiliary is not None else {
                 'enabled': False, 'mode': args.auxiliary_mode, 'weight': args.auxiliary_weight}),
             auxiliary_gradient_every=args.auxiliary_gradient_every,
@@ -571,7 +609,8 @@ def main(argv=None):
                 'teacher': 'frozen clean Day; no identity-coordinate fallback'},
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_token_style_v9' if token_style is not None else
+            code_version=('weather_vpr_independent_source_v10' if source_stream is not None else
+                          'weather_vpr_token_style_v9' if token_style is not None else
                           'weather_vpr_stage1_paired_auxiliary_v8' if auxiliary is not None else
                           'weather_vpr_full_night_patch_attention_v7' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
@@ -749,37 +788,57 @@ def main(argv=None):
             source_value = source_global_value = source_contrast_value = 0.0
             source_sampled_counts = {'samples': 0, 'applied_samples': 0, 'operations': {}}
             source_positive_pairs = source_negative_pairs = 0
+            source_sample_indices, source_day_ids, source_places = [], [], []
             if args.source_night_weight > 0:
-                count = min(len(batch), args.source_night_samples)
-                source_tensor = torch.stack([item['source_night_tensor']
-                                             for item in batch[:count]]).to(args.device)
-                source_sampled_counts = sampled_augmentation_counts(
-                    [item['source_night_record'] for item in batch[:count]])
-                merge_augmentation_counts(source_night_counts, source_sampled_counts)
-                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
-                      if args.bf16 else nullcontext()):
-                    source_desc = net.student(source_tensor, args.weather, return_aux=False)
-                source_zero = source_desc.float().sum() * 0.0
-                source_global = (descriptor_alignment(source_desc, day_desc[:count])
-                                 if args.global_weight > 0 else source_zero)
-                if args.contrast_weight > 0:
-                    source_contrast = queue.contrastive_loss(
-                        source_desc, day_desc[:count], places[:count], args.temperature,
-                        hard_negatives=args.contrast_hard_negatives)
-                    source_c_loss = source_contrast['loss']
-                    source_positive_pairs = int(source_contrast['positive_pairs'])
-                    source_negative_pairs = int(source_contrast['effective_negative_pairs'])
-                else:
-                    source_c_loss = source_zero
-                source_loss = args.global_weight * source_global + args.contrast_weight * source_c_loss
-                if not torch.isfinite(source_loss):
-                    raise FloatingPointError('Non-finite source night retrieval loss')
-                (args.source_night_weight * source_loss / args.gradient_accumulation_steps).backward()
-                source_value = float(source_loss.detach())
-                source_global_value = float(source_global.detach())
-                source_contrast_value = float(source_c_loss.detach())
-                student_views['source_night'] += count
-                del source_tensor, source_desc, source_loss, source_global, source_c_loss, source_zero
+                source_context = (source_stream.rng_context(args.augmentation_epoch_offset + epoch, step)
+                                  if source_stream is not None else nullcontext())
+                with source_context:
+                    if source_stream is not None:
+                        source_batch = source_stream.next_batch(args.augmentation_epoch_offset + epoch, step)
+                        source_tensor = source_batch['images'].to(args.device)
+                        source_targets = source_batch['targets'].to(args.device)
+                        source_places = source_batch['places']
+                        source_day_ids = source_batch['sample_ids']
+                        source_sample_indices = source_batch['indices']
+                        source_sampled_counts = source_batch['augmentation']
+                        source_queue = source_stream.queue
+                        count = len(source_tensor)
+                        del source_batch
+                    else:
+                        count = min(len(batch), args.source_night_samples)
+                        source_tensor = torch.stack([item['source_night_tensor']
+                                                     for item in batch[:count]]).to(args.device)
+                        source_targets, source_places = day_desc[:count], places[:count]
+                        source_queue = queue
+                        source_sample_indices = main_indices[:count]
+                        source_sampled_counts = sampled_augmentation_counts(
+                            [item['source_night_record'] for item in batch[:count]])
+                    merge_augmentation_counts(source_night_counts, source_sampled_counts)
+                    with (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+                          if args.bf16 else nullcontext()):
+                        source_desc = net.student(source_tensor, args.weather, return_aux=False)
+                    source_zero = source_desc.float().sum() * 0.0
+                    source_global = (descriptor_alignment(source_desc, source_targets)
+                                     if args.global_weight > 0 else source_zero)
+                    if args.contrast_weight > 0:
+                        source_contrast = source_queue.contrastive_loss(
+                            source_desc, source_targets, source_places, args.temperature,
+                            hard_negatives=args.contrast_hard_negatives)
+                        source_c_loss = source_contrast['loss']
+                        source_positive_pairs = int(source_contrast['positive_pairs'])
+                        source_negative_pairs = int(source_contrast['effective_negative_pairs'])
+                    else:
+                        source_c_loss = source_zero
+                    source_loss = args.global_weight * source_global + args.contrast_weight * source_c_loss
+                    if not torch.isfinite(source_loss):
+                        raise FloatingPointError('Non-finite source night retrieval loss')
+                    (args.source_night_weight * source_loss / args.gradient_accumulation_steps).backward()
+                    source_value = float(source_loss.detach())
+                    source_global_value = float(source_global.detach())
+                    source_contrast_value = float(source_c_loss.detach())
+                    student_views['source_night'] += count
+                    del source_tensor, source_desc, source_loss, source_global, source_c_loss, source_zero
+                    del source_targets
             if probe is not None:
                 probe.after_main()
             auxiliary_value = auxiliary_weighted_value = 0.0
@@ -840,8 +899,11 @@ def main(argv=None):
                            epoch=epoch+1, weather=args.weather,
                            adapter_type=args.adapter_type,
                            main_sample_indices=main_indices,
-                           source_sample_indices=main_indices[:min(len(batch), args.source_night_samples)]
-                           if args.source_night_weight > 0 else [],
+                           source_sample_indices=source_sample_indices,
+                           source_day_sample_ids=source_day_ids,
+                           source_day_places=[list(place) for place in source_places],
+                           source_bank_policy=('separate_source_only' if source_stream is not None
+                                               else 'shared_main_gsv'),
                            augmentation=sampled_counts,
                            loss=(float(total.detach()) +
                                  args.source_night_weight * source_value + auxiliary_weighted_value),

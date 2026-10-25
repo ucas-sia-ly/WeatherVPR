@@ -1,5 +1,7 @@
 # DarkDriving_Base：清理后直接使用
 
+2026-10-25 研究准入复核：现有 9,520 个接受记录均为 `automatic`，对应 9,286 个精确内容连通组，整场地只作训练来源。23 个文件名前缀不是独立路线或地点标签；约 200 对缩略图抽查不等于全部人工确认。见 [修订研究账目](REVISED_RESEARCH_IMPLEMENTATION.md) 与 [来源审计](../outputs/revised_plan_20261025/data_inventory/inventory.json)。
+
 当前目录为 `data/DarkDriving_Base/`，保留 **9,520 对**同名 Day/Night 图像，双方均为 2448×2048 RGB JPEG。共 19,040 张，保留图像没有重新编码、改名或改变尺寸。
 
 原始 9,538 对中，移出了 8 个含损坏 JPEG 的图组（连同正常的另一侧），以及 10 个完整日夜内容均重复的冗余图组。每个重复集合按文件名字典序保留首个图组。只有一侧相同、另一侧不同的样本继续保留；重复关系写在 `content_group` 字段中。

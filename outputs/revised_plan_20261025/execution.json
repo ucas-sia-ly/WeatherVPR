@@ -1,0 +1,33 @@
+{
+  "kind": "revised_research_execution",
+  "status": "complete_authorized_round",
+  "proposal_sha256": "aef3a8e93597929b437adaa56357a294ee882710afda8214ab8018f737e32f7f",
+  "tests_passed": 321,
+  "new_full_training_runs": 10,
+  "new_seed_runs": 6,
+  "scale_runs": 4,
+  "p0_summary": "runs/revised_stage1_multiseed_20261025/summary.json",
+  "p1_report": "outputs/revised_plan_20261025/domain_coverage/report.json",
+  "scale_summary": "runs/revised_gsv_scale_20261025/summary.json",
+  "valid_smoke_summary": "runs/revised_gsv_scale_smoke_v3_20261025/summary.json",
+  "external_test_evaluations_this_round": 0,
+  "domain_diagnostic_optimizer_updates": 0,
+  "peak_full_training_ram_gib": 5.039958953857422,
+  "peak_full_training_cuda_allocated_gib": 2.9207444190979004,
+  "conditional_modules": {
+    "real_donor_tfs": false,
+    "guide_diffusion": false,
+    "paired_residual": false
+  },
+  "research_not_proven": [
+    "certified_DarkDriving_route_independence",
+    "causal_pairing_advantage",
+    "cross_domain_generalization",
+    "large_GSV_real_pair_complementarity"
+  ],
+  "next_conditional_work": [
+    "training-only camera/road/content controls and Day alignment diagnostic",
+    "predeclare scale multi-seed confirmation if further pursued",
+    "audit reserved night test protocol before final evaluation"
+  ]
+}

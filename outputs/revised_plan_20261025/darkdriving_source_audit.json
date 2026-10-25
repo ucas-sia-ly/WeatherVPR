@@ -1,0 +1,317 @@
+{
+  "source_sha256": "b02e4d06cc24e489a44b18252eb4509ca29dc535823a2ce656adb8a0786b3761",
+  "review_sha256": "824523b103197009f5a57ac0229a09874f0bb83f639b2be145d481d8fb324def",
+  "pairs": 9520,
+  "unique_content_groups": 9286,
+  "group_size_histogram": {
+    "1": 9064,
+    "2": 214,
+    "3": 4,
+    "4": 4
+  },
+  "cross_sequence_content_groups": 24,
+  "cross_sequence_examples": [
+    {
+      "content_group": "3_1_1730538681949431808",
+      "samples": 3,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538681949431808",
+        "3_1_1730538682248359936",
+        "3_2_1730538681648787968"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538709247900928",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538709247900928",
+        "3_2_1730538708948571904"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538712847405056",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538712847405056",
+        "3_2_1730538712548204032"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538717048008960",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538717048008960",
+        "3_2_1730538716747493888"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538721246941184",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538721246941184",
+        "3_2_1730538720947355904"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538726048026112",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538726048026112",
+        "3_2_1730538725746924032"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538728747538176",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538728747538176",
+        "3_2_1730538728447586048"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538738947163136",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538738947163136",
+        "3_2_1730538738647278080"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538739547138048",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538739547138048",
+        "3_2_1730538739247654912"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538743747002112",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538743747002112",
+        "3_2_1730538743447079936"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538744347165184",
+      "samples": 3,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538744347165184",
+        "3_1_1730538744647213824",
+        "3_2_1730538744046804992"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538747947227904",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538747947227904",
+        "3_2_1730538747647011072"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538753347200000",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538753347200000",
+        "3_2_1730538753046371072"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538757846568192",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538757846568192",
+        "3_2_1730538757546787072"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538761145989888",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538761145989888",
+        "3_2_1730538760846370048"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538763246405120",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538763246405120",
+        "3_2_1730538762947124992"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538766546246144",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538766546246144",
+        "3_2_1730538766246856960"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538770146470144",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538770146470144",
+        "3_2_1730538769846240000"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538773446473984",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538773446473984",
+        "3_2_1730538773146481920"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538776146186240",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538776146186240",
+        "3_2_1730538775846502144"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538779146260992",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538779146260992",
+        "3_2_1730538778846384128"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538782446526976",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538782446526976",
+        "3_2_1730538782146336000"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538785446152960",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538785446152960",
+        "3_2_1730538785145884160"
+      ]
+    },
+    {
+      "content_group": "3_1_1730538791745711104",
+      "samples": 2,
+      "sequences": [
+        "3_1",
+        "3_2"
+      ],
+      "sample_ids": [
+        "3_1_1730538791745711104",
+        "3_2_1730538791445830144"
+      ]
+    }
+  ],
+  "accepted_review_status_counts": {
+    "automatic": 9520
+  },
+  "review_scene_groups": {
+    "whole_closed_driving_field_train_only": 9520
+  },
+  "training_sampling_fact": "Existing H1 sampler balances review.scene_group, but this review has only one whole-field group; within that group it cycles file rows. It does not balance verified routes or exact-content groups. Preserve this for matched seed replication; test a revised sampling protocol separately.",
+  "manual_pair_certification_complete": false,
+  "geographic_route_independence_certified": false,
+  "near_duplicates_certified": false,
+  "evaluation_use": "entire field train-only; no DarkDriving independent dev/test claim",
+  "new_image_review_performed_by_this_audit": false
+}

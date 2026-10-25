@@ -34,6 +34,12 @@ Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述
 
 真实配对阶段一 seed 42 的 [A/B/C 首轮结果](outputs/stage1_results_20261025/report.md) 仍未取得稳定跨数据集提升。参考 TFS-ViT 的 [部分 Patch 模块](docs/NIGHT_TOKEN_STAGE2.md) 已完成 T0–T3 首轮，增强前后的开发 R@1/5/10 与命中集合完全相同，当前保持默认关闭，见 [阶段二结果评价](docs/NIGHT_TOKEN_STAGE2_RESULTS.md)。[论文及源码分析](docs/TOKEN_STYLE_DG_REVIEW.md) 与 [研究计划](idea.md) 保留真实统计供体和伪域采样的后续假说，不将工程检查通过解释为 Recall 增益。
 
+根据用户修订方案新增 [研究实现与数据账目](docs/REVISED_RESEARCH_IMPLEMENTATION.md)：统一后端多 seed 队列、仅训练池的冻结域覆盖诊断，以及独立 GSV Day/Source 规模实验入口。已核验 G2 清单含 17,263 张 Day、11,441 个地点，保留原 Qwen 主流和评估 Gallery；BDD/NightCity 仅纳入官方训练划分。Qwen 批内 TFS 的空结果不作为真实供体研究的前提，后续供体训练仍需独立证据。
+
+[三个 seed 复核](outputs/revised_plan_20261025/p0_multiseed.md) 已完成：真实配对 B 的开发 Top-1 比 A 增加 5/7/2 张，但 Top-5 均下降；修复来自原本已在前五名的候选内排序。[冻结域覆盖结果](outputs/revised_plan_20261025/domain_coverage/report.md) 尚不足以启动真实供体 TFS；保持其关闭，不把统计距离当检索增益。
+
+[修订方案本轮总结果](outputs/revised_plan_20261025/report.md) 包含已完成的 G1/G2×A/B：Top-1 分别为 G1 621/624、G2 623/624；G2-B 的 Top-1 命中集合未增加，Top-10 增加 2 张，单 seed 尚未显示明确互补。321 项检查及全部 10 次新完整训练通过。
+
 ### 可信 Patch 与 DINO 注意力实验
 
 新增 `configs/night_patch.sh`：每张训练 Qwen 图都经过相机退化，再在 Stage 2B A 类对应上监督 Student Patch。可见比例只对黑场和全通道过曝区域降权，不创建对应。独立的 `ATTENTION_WEIGHT` 对齐最后一个 DINOv2 Block 的 CLS→Patch 注意力分布，Teacher 目标与权重冻结，区别于 SALAD Keep。
