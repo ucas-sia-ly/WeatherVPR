@@ -53,3 +53,9 @@ OUTPUT=runs/night_full_sgpd_replay_02 \
 两个 full 脚本支持 `NIGHT_AUGMENTATION=off|camera`、`AUGMENTATION_CONFIG`、`AUGMENTATION_STRENGTH`、`AUGMENTATION_PROBABILITY`、`AUGMENTATION_EPOCH_OFFSET`。仅指定 JSON 不会打开增强，还需指定 `camera`。`night_camera_replay.sh` 保留增强 Global 与同预算 Global / SGPD 接续的历史流程；32 GB 主机运行每阶段时均应通过 `run_bounded.py`，避免绕过内存约束。操作参数见 [增强说明](../docs/NIGHT_CAMERA_AUGMENTATION.md)，已有数字见 [相机增强结果](../docs/NIGHT_CAMERA_RESULTS.md)。
 
 `configs/dino_salad_stage2b_calibration.json` 只与当前 checkpoint 和 224×224 预处理匹配；训练默认排除 `data/splits/heldout_places.json`。其它天气尚未训练，需先准备各自的配对清单和测试集。
+
+## 阶段二部分 Patch 风格增强
+
+`night_token_stage2.sh` 用 `STAGE2_ARM=T0|T1|T2|T3` 固定普通 Token 增强与真实配对监督的 2×2 对照；只有 Qwen 主分支在 block 7 后增强部分 Patch，CLS 不直接修改，推理关闭。四组均从原始 Day 权重初始化，沿用 fast 后端与 4×2 的主有效批次。
+
+推荐运行 `python scripts/run_token_style_stage2.py --run-root runs/night_token_stage2_new_seed42`，由队列统一冻结参数、串行内存保护、训练和 SVOX 开发评估；真实审核与 Day 缓存默认从阶段一 latest 复用。实施细节及预检查见 [阶段二运行](../docs/NIGHT_TOKEN_STAGE2.md)，该实验不自动引入扩散模型或依据外部 test 搜索参数。

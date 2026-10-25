@@ -6,6 +6,7 @@ import json
 import math
 import os
 from contextlib import nullcontext
+from functools import partial
 from pathlib import Path
 import random
 import tempfile
@@ -31,6 +32,7 @@ from weather_vpr.training.auxiliary import (
     build_auxiliary_branch, prepare_auxiliary_dataset,
     paired_global_alignment, AuxiliaryGradientProbe,
 )
+from weather_vpr.training.token_style import TokenStyleAugment
 
 # Import the vendored SALAD backend from this project.
 enable_backend_imports()
@@ -123,6 +125,16 @@ def parse_args(argv=None):
                    help='Independent Teacher extraction batch; 0 uses auxiliary-samples')
     p.add_argument('--auxiliary-cache-workers', type=int, default=0,
                    help='Parallel Day decoding during one-time real Teacher target extraction')
+    p.add_argument('--token-style-probability', type=float, default=0.0,
+                   help='Independent per-Qwen-image Patch stylization probability; zero preserves original path')
+    p.add_argument('--token-style-fraction', type=float, default=0.3,
+                   help='Fraction of Patch tokens selected per active Qwen image; CLS is excluded')
+    p.add_argument('--token-style-strength', type=float, default=0.2,
+                   help='Maximum statistics mixing coefficient; does not bound actual affine gain')
+    p.add_argument('--token-style-beta', type=float, default=0.1,
+                   help='Symmetric Beta shape for the per-image mixing coefficient')
+    p.add_argument('--token-style-after-block', type=int, default=7,
+                   help='Absolute zero-based block output; phase two currently fixes the frozen-prefix boundary')
     p.add_argument('--layer-decay', type=float, default=1.0,
                    help='Layer-wise LR decay over selected full-backbone parameters')
     p.add_argument('--lr-schedule', choices=('constant', 'cosine'), default='constant')
@@ -150,6 +162,23 @@ def parse_args(argv=None):
 
 def _validate(args):
     load_augmentation_config(args)
+    for name in ('token_style_probability', 'token_style_fraction', 'token_style_strength'):
+        value = getattr(args, name)
+        if not math.isfinite(value) or not 0 <= value <= 1:
+            raise ValueError(f'{name} must be finite in [0,1]')
+    if not math.isfinite(args.token_style_beta) or args.token_style_beta <= 0:
+        raise ValueError('token-style-beta must be finite and positive')
+    if not 0 <= args.token_style_after_block < 12:
+        raise ValueError('token-style-after-block must be in [0,11]')
+    style_enabled = all(getattr(args, name) > 0 for name in (
+        'token_style_probability', 'token_style_fraction', 'token_style_strength'))
+    if style_enabled and (args.weather != 'night' or args.adapter_type != 'full'
+                          or args.full_train_scope != 'late' or args.full_train_blocks != 4
+                          or args.token_style_after_block != 7):
+        raise ValueError('Token stylization currently requires independent full Night Late4, after block 7')
+    if style_enabled and any(getattr(args, name) > 0 for name in (
+            'patch_weight', 'keep_weight', 'ot_weight', 'magnitude_weight', 'attention_weight')):
+        raise ValueError('Phase-two Token stylization currently supports global-only supervision')
     if (args.prefetch_factor < 1 or args.auxiliary_cache_batch_size < 0
             or args.auxiliary_cache_workers < 0):
         raise ValueError('Prefetch must be positive; cache batch/worker counts nonnegative')
@@ -351,6 +380,22 @@ def main(argv=None):
         raise RuntimeError('Selected weather adapter has no trainable parameters')
     if scope_info is not None:
         print(f'Night full-weight training scope: {scope_info}', flush=True)
+    token_style_enabled = all(getattr(args, name) > 0 for name in (
+        'token_style_probability', 'token_style_fraction', 'token_style_strength'))
+    token_style = (TokenStyleAugment(
+        seed=args.seed, probability=args.token_style_probability,
+        fraction=args.token_style_fraction, strength=args.token_style_strength,
+        beta=args.token_style_beta) if token_style_enabled else None)
+    token_style_info = {
+        'enabled': token_style_enabled, 'probability': args.token_style_probability,
+        'fraction': args.token_style_fraction, 'strength': args.token_style_strength,
+        'beta': args.token_style_beta, 'after_block': args.token_style_after_block,
+        'scope': 'Qwen main Student only; Source, auxiliary, Teacher and inference unchanged',
+        **(token_style.configuration() if token_style is not None else {}),
+    }
+    token_style_summary = {'batches': 0, 'input_images': 0, 'applied_images': 0,
+                           'applied_patches': 0, 'max_raw_gain': 0.0,
+                           'max_standardized_shift': 0.0, 'max_relative_rms_delta': 0.0}
     groups = (full_backbone_parameter_groups(
         net.adapters[args.weather], learning_rate=args.learning_rate,
         weight_decay=args.weight_decay, layer_decay=args.layer_decay)
@@ -406,6 +451,7 @@ def main(argv=None):
     resolved_config['effective_patch_visibility'] = visibility_info
     resolved_config['effective_auxiliary'] = (auxiliary.metadata() if auxiliary is not None
                                              else {'enabled': False, 'mode': args.auxiliary_mode})
+    resolved_config['effective_token_style'] = token_style_info
     (out / 'training_config.json').write_text(
         json.dumps(resolved_config, indent=2), encoding='utf-8')
     # Persist the input/optimization contract before the first update. This is
@@ -420,8 +466,11 @@ def main(argv=None):
         'source_night_samples': args.source_night_samples if args.source_night_weight else 0,
         'full_train_scope': scope_info, 'preprocessing': preprocessing,
         'auxiliary': resolved_config['effective_auxiliary'],
+        'token_style': token_style_info,
         'train_code_sha256': sha256(Path(__file__)),
         'auxiliary_code_sha256': sha256(Path(__file__).with_name('auxiliary.py')),
+        'token_style_code_sha256': sha256(Path(__file__).with_name('token_style.py')),
+        'backbone_code_sha256': sha256(project_root() / 'third_party/salad/workflow/model.py'),
         'statement': 'Fixed training run budget; no test-driven selection is performed by this script',
     }, indent=2), encoding='utf-8')
     log_path = out / 'training_log.jsonl'
@@ -512,6 +561,7 @@ def main(argv=None):
             main_stream_sha256=main_stream_digest.hexdigest(),
             source_night_samples=args.source_night_samples,
             sampled_source_night_counts=source_night_counts,
+            token_style={**token_style_info, 'summary': dict(token_style_summary)},
             min_teacher_keep=args.min_teacher_keep, seed=args.seed,
             importance_mode=args.importance_mode,
             patch_visibility=visibility_info,
@@ -521,7 +571,8 @@ def main(argv=None):
                 'teacher': 'frozen clean Day; no identity-coordinate fallback'},
             night_augmentation=augmentation_info,
             sampled_augmentation_counts=augmentation_counts,
-            code_version=('weather_vpr_stage1_paired_auxiliary_v8' if auxiliary is not None else
+            code_version=('weather_vpr_token_style_v9' if token_style is not None else
+                          'weather_vpr_stage1_paired_auxiliary_v8' if auxiliary is not None else
                           'weather_vpr_full_night_patch_attention_v7' if args.adapter_type == 'full'
                           else 'weather_vpr_lora_v1'),
             statement='Experimental model; real-weather Recall must be measured separately')
@@ -600,13 +651,38 @@ def main(argv=None):
             ctx = (torch.autocast(device_type='cuda', dtype=torch.bfloat16)
                    if args.bf16 else nullcontext())
             student_attention = None
+            # Only the main Qwen call receives the transient transform. The
+            # callback runs outside block checkpoint recomputation, with its
+            # own per-step RNG, and adds no state_dict entries at inference.
+            style_kwargs = ({
+                'token_transform': partial(token_style.transform,
+                    epoch=args.augmentation_epoch_offset + epoch, step=step),
+                'token_transform_after_block': args.token_style_after_block,
+            } if token_style is not None else {})
             with ctx:
                 if need_attention:
                     with capture_cls_attention(net.adapters[args.weather]) as capture:
-                        student_output = net.student(student_weather, args.weather, return_aux=need_local)
+                        student_output = net.student(student_weather, args.weather,
+                                                     return_aux=need_local, **style_kwargs)
                         student_attention = capture.attention
                 else:
-                    student_output = net.student(student_weather, args.weather, return_aux=need_local)
+                    student_output = net.student(student_weather, args.weather,
+                                                 return_aux=need_local, **style_kwargs)
+            style_record = ({**token_style.last_record, 'after_block': args.token_style_after_block}
+                            if token_style is not None else {'enabled': False})
+            if token_style is not None:
+                if style_record.get('step') != step:
+                    raise RuntimeError('Token transform did not run at the specified Qwen block')
+                token_style_summary['batches'] += 1
+                token_style_summary['input_images'] += len(batch)
+                token_style_summary['applied_images'] += style_record['applied_images']
+                token_style_summary['applied_patches'] += style_record['applied_patches']
+                for summary_key, record_key in (
+                        ('max_raw_gain', 'raw_gain_max'),
+                        ('max_standardized_shift', 'standardized_shift_abs_max'),
+                        ('max_relative_rms_delta', 'relative_rms_delta')):
+                    token_style_summary[summary_key] = max(
+                        token_style_summary[summary_key], style_record.get(record_key, 0.0))
             desc, aux = student_output if need_local else (student_output, None)
             zero = desc.float().sum() * 0.0
             g_loss = descriptor_alignment(desc, day_desc) if args.global_weight > 0 else zero
@@ -793,6 +869,7 @@ def main(argv=None):
                            source_night_global_loss=source_global_value,
                            source_night_contrast_loss=source_contrast_value,
                            source_night_augmentation=source_sampled_counts,
+                           token_style=style_record,
                            source_night_positive_pairs=source_positive_pairs,
                            source_night_negative_pairs=source_negative_pairs,
                            auxiliary_loss=auxiliary_value,

@@ -32,6 +32,8 @@ Night Query ── 独立 Night DINOv2   ── 同一 SALAD ── 检索上述
 
 其他夜间评估支持 Tokyo247 官方 Night 查询子集和 RobotCar v2 公开位姿诊断集。历史 `source_night` 在 Tokyo247 上退化、RobotCar 上小幅改善，尚无一致跨数据集收益；协议与完整数字见 [其他夜间评估](docs/EXTERNAL_NIGHT_RESULTS.md)。
 
+真实配对阶段一 seed 42 的 [A/B/C 首轮结果](outputs/stage1_results_20261025/report.md) 仍未取得稳定跨数据集提升。参考 TFS-ViT 的 [部分 Patch 模块](docs/NIGHT_TOKEN_STAGE2.md) 已完成 T0–T3 首轮，增强前后的开发 R@1/5/10 与命中集合完全相同，当前保持默认关闭，见 [阶段二结果评价](docs/NIGHT_TOKEN_STAGE2_RESULTS.md)。[论文及源码分析](docs/TOKEN_STYLE_DG_REVIEW.md) 与 [研究计划](idea.md) 保留真实统计供体和伪域采样的后续假说，不将工程检查通过解释为 Recall 增益。
+
 ### 可信 Patch 与 DINO 注意力实验
 
 新增 `configs/night_patch.sh`：每张训练 Qwen 图都经过相机退化，再在 Stage 2B A 类对应上监督 Student Patch。可见比例只对黑场和全通道过曝区域降权，不创建对应。独立的 `ATTENTION_WEIGHT` 对齐最后一个 DINOv2 Block 的 CLS→Patch 注意力分布，Teacher 目标与权重冻结，区别于 SALAD Keep。

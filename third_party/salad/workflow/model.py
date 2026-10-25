@@ -139,20 +139,35 @@ class DINOBackbone(nn.Module):
             self.model.norm.train(mode)
         return self
 
-    def forward(self, images):
+    def forward(self, images, *, token_transform=None, token_transform_after_block=7):
+        # An explicit, call-local training transform never becomes model state
+        # or a hook on the shared Day teacher/gallery backbone. Absolute block
+        # numbering is independent of the frozen-prefix split.
+        if token_transform is not None:
+            if not self.training:
+                raise ValueError("Token transforms are available only during training")
+            if not callable(token_transform):
+                raise ValueError("token_transform must be callable")
+            if (type(token_transform_after_block) is not int
+                    or not 0 <= token_transform_after_block < len(self.model.blocks)):
+                raise ValueError("token_transform_after_block must name a backbone block")
         batch, _, height, width = images.shape
         split = len(self.model.blocks) - self.num_trainable_blocks
         with (nullcontext() if self.full_finetune else torch.no_grad()):
             tokens = self.model.prepare_tokens_with_masks(images)
-            for block in self.model.blocks[:split]:
+            for index, block in enumerate(self.model.blocks[:split]):
                 tokens = block(tokens)
-        for block in self.model.blocks[split:]:
+                if token_transform is not None and index == token_transform_after_block:
+                    tokens = token_transform(tokens)
+        for index, block in enumerate(self.model.blocks[split:], start=split):
             if (getattr(self, 'gradient_checkpointing', False) and self.full_finetune
                     and self.training and torch.is_grad_enabled()):
                 from torch.utils.checkpoint import checkpoint
                 tokens = checkpoint(block, tokens, use_reentrant=False)
             else:
                 tokens = block(tokens)
+            if token_transform is not None and index == token_transform_after_block:
+                tokens = token_transform(tokens)
         if self.norm_layer:
             tokens = self.model.norm(tokens)
         features = tokens[:, 1:].reshape(batch, height // 14, width // 14, self.num_channels)

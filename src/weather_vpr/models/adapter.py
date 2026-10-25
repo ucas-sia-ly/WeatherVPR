@@ -241,16 +241,28 @@ class WeatherAdapterSALAD(nn.Module):
         with self._using_weather(None):
             return self.base(images, return_aux=return_aux)
 
-    def student(self, images: torch.Tensor, weather: str, return_aux=True):
+    def student(self, images: torch.Tensor, weather: str, return_aux=True, *,
+                token_transform=None, token_transform_after_block=7):
         if weather not in self.adapters:
             raise ValueError(f"Weather adapter not loaded: {weather}")
+        if token_transform is not None and self.adapter_type != "full":
+            raise ValueError("Token transforms require a full weather backbone")
+        if token_transform is not None and weather != "night":
+            raise ValueError("Token transforms are restricted to the Night student")
         if self.adapter_type == "output":
             # Output adapter: do not retain any DINOv2 backward graph.
             with torch.no_grad():
                 patch_features, cls = self.base.backbone(images)
             patch_features, cls = self.adapters[weather](patch_features, cls)
         elif self.adapter_type == "full":
-            patch_features, cls = self.adapters[weather](images)
+            # Omit the optional keywords for the original execution path, so
+            # inference and existing lightweight/test backbones remain exact.
+            if token_transform is None:
+                patch_features, cls = self.adapters[weather](images)
+            else:
+                patch_features, cls = self.adapters[weather](
+                    images, token_transform=token_transform,
+                    token_transform_after_block=token_transform_after_block)
         else:
             with self._using_weather(weather):
                 patch_features, cls = self.base.backbone(images)

@@ -59,3 +59,11 @@
 - `scripts/prepare_real_pair_review.py`：生成来源绑定的未审核真实配对模板，不自动接受图对。
 - `src/weather_vpr/training/auxiliary.py`：独立均衡采样、无地点标签目标缓存、RNG 隔离和分支梯度诊断。
 - `docs/NIGHT_REAL_PAIRS.md`：阶段一数据格式、运行命令、参考 VPR 实现及解释边界。
+- `idea.md`：真实配对实验设计、部分 Patch 统计增强、真实统计供体与伪域采样研究路线。
+- `docs/TOKEN_STYLE_DG_REVIEW.md`：TFS-ViT/GUIDE 论文与作者代码核查、VPR 迁移限制及受控实验设计。
+- `src/weather_vpr/training/token_style.py`：只用于 Qwen 主分支的部分 Patch 统计增强与独立 RNG，不增加推理状态。
+- `configs/night_token_stage2.sh`：普通 Token 增强 × 真实配对监督的 T0–T3 固定对照入口。
+- `scripts/run_token_style_stage2.py`：冻结输入/代码指纹、串行内存保护训练、开发评估和逐查询对照汇总。
+- `scripts/diagnose_token_style.py`：仅训练数据的 Token 增益、描述符/SALAD 分配变化与原推理路径检查。
+- `docs/NIGHT_TOKEN_STAGE2.md`：阶段二实现、验证、运行命令、日志和结果解释。
+- `docs/NIGHT_TOKEN_STAGE2_RESULTS.md`：首轮 T0–T3 开发集空结果、增强生效检查、权重/排名差异及后续判断。

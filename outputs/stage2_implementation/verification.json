@@ -1,0 +1,98 @@
+{
+  "unit_tests": {
+    "passed": 264,
+    "console": "runs/stage2_final_unit_tests.console.log"
+  },
+  "smoke": {
+    "run_root": "/home/admin123/github/WeatherVPR/runs/night_token_stage2_smoke_20261025_seed42",
+    "state": "complete",
+    "integrity": {
+      "main_stream_equal": true,
+      "source_stream_equal": true,
+      "real_auxiliary_stream_equal": true,
+      "token_style_choices_equal": true,
+      "original_checkpoint_equal": true
+    },
+    "frozen_weights": {
+      "T0": {
+        "frozen_tensors_unchanged": 119,
+        "late4_tensors_changed": 56
+      },
+      "T1": {
+        "frozen_tensors_unchanged": 119,
+        "late4_tensors_changed": 56
+      },
+      "T2": {
+        "frozen_tensors_unchanged": 119,
+        "late4_tensors_changed": 56
+      },
+      "T3": {
+        "frozen_tensors_unchanged": 119,
+        "late4_tensors_changed": 56
+      }
+    }
+  },
+  "training_only_diagnostic": {
+    "batches": 16,
+    "batch_size": 4,
+    "gain": {
+      "count": 24576,
+      "mean": 1.0011447668075562,
+      "min": 0.9172695875167847,
+      "p50": 1.0,
+      "p95": 1.0315303802490234,
+      "p99": 1.057913899421692,
+      "max": 1.1849435567855835,
+      "fraction_gt2": 0.0,
+      "fraction_gt4": 0.0,
+      "fraction_gt8": 0.0
+    },
+    "relative_centered_rms_delta": {
+      "count": 64,
+      "mean": 0.008940127678215504,
+      "min": 0.0,
+      "p50": 9.230143760419196e-09,
+      "p95": 0.03934120014309883,
+      "p99": 0.047282613813877106,
+      "max": 0.050840090960264206
+    },
+    "descriptor_cosine_drift": {
+      "count": 64,
+      "mean": 0.0002973900409415364,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 0.0015150952385738492,
+      "p99": 0.0020562116988003254,
+      "max": 0.0027281008660793304
+    },
+    "plain_inference_deterministic": true,
+    "plain_inference_equals_original_day": true,
+    "nonfinite_count": 0
+  },
+  "clipping_policy": "No extra gain clipping, frozen after train-only diagnostic and before dev Recall",
+  "formal_queue": {
+    "unit": "night-token-stage2-20261025-075002-seed42",
+    "run_root": "/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42",
+    "queue_log": "/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42.queue.console.log",
+    "command": [
+      "systemd-run",
+      "--user",
+      "--unit=night-token-stage2-20261025-075002-seed42",
+      "--description=WeatherVPR phase-two T0-T3 seed42",
+      "-p",
+      "WorkingDirectory=/home/admin123/github/WeatherVPR",
+      "-p",
+      "StandardOutput=append:/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42.queue.console.log",
+      "-p",
+      "StandardError=append:/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42.queue.console.log",
+      "--setenv=PYTHONUNBUFFERED=1",
+      "/home/admin123/miniconda3/envs/a2b-lightvpr/bin/python",
+      "/home/admin123/github/WeatherVPR/scripts/run_token_style_stage2.py",
+      "--run-root",
+      "/home/admin123/github/WeatherVPR/runs/night_token_stage2_20261025_075002_seed42",
+      "--training-diagnostic",
+      "/home/admin123/github/WeatherVPR/runs/stage2_implementation_checks/train_only_token_diagnostic.json"
+    ]
+  },
+  "limitation": "Engineering validation only; formal queue status and Recall are separate."
+}

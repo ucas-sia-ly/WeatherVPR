@@ -43,6 +43,11 @@ if [[ "${COMPACT_BATCHES:-0}" == 1 ]]; then EXTRA_ARGS+=(--compact-batches); fi
   --auxiliary-gradient-every "${AUXILIARY_GRADIENT_EVERY:-0}" \
   --auxiliary-cache-batch-size "${AUXILIARY_CACHE_BATCH_SIZE:-0}" \
   --auxiliary-cache-workers "${AUXILIARY_CACHE_WORKERS:-0}" \
+  --token-style-probability "${TOKEN_STYLE_PROBABILITY:-0}" \
+  --token-style-fraction "${TOKEN_STYLE_FRACTION:-0.3}" \
+  --token-style-strength "${TOKEN_STYLE_STRENGTH:-0.2}" \
+  --token-style-beta "${TOKEN_STYLE_BETA:-0.1}" \
+  --token-style-after-block "${TOKEN_STYLE_AFTER_BLOCK:-7}" \
   --pair-calibration "${CALIBRATION:-configs/dino_salad_stage2b_calibration.json}" \
   --patch-weight "${PATCH_WEIGHT:-0}" --keep-weight "${KEEP_WEIGHT:-0}" \
   --ot-weight "${OT_WEIGHT:-0}" --magnitude-weight "${MAGNITUDE_WEIGHT:-0}" \
